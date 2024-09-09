@@ -6,7 +6,6 @@ import {
   type Generator,
   type Region,
 } from "@genroot/builder/modules/generator";
-import { currentBlockTextureId } from "./constants";
 import {
   type SelectedTextureWithBlend,
   decodeSelectedTextureWithBlend,
@@ -21,7 +20,7 @@ export function defineInputRegion(
 ) {
   generator.defineRegionInput(region, () => {
     const selectedTextureJson = generator.getStringInputValue(
-      currentBlockTextureId
+      "CurrentBlockTexture"
     );
 
     const selectedTexture = selectedTextureJson
