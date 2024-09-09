@@ -32,6 +32,7 @@ import { generator as minecraftVillagerCharacterGenerator } from "@genroot/gener
 import { generator as minecraftWitherGenerator } from "@genroot/generators/minecraftWither/minecraftWitherGenerator";
 import { generator as minecraftWolfCharacterGenerator } from "@genroot/generators/minecraftWolfCharacter/minecraftWolfCharacterGenerator";
 import { generator as minecraftSpiderGenerator } from "@genroot/generators/minecraftSpider/minecraftSpiderGenerator";
+import { generator as minecraftMinecartGenerator } from "@genroot/generators/minecraftMinecart/minecraftMinecartGenerator";
 
 const isDevEnvironment: boolean = process.env.NODE_ENV === "development";
 
@@ -74,6 +75,7 @@ export const utility: GeneratorDef[] = [
   minecraftItemGenerator,
   minecraftCapeAndElytraGenerator,
   minecraftCharacterHeadsGenerator,
+  minecraftMinecartGenerator,
 ];
 
 export const mod: GeneratorDef[] = [

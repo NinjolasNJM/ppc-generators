@@ -1,4 +1,5 @@
 import { type Cuboid, makeCuboid, translateCuboid } from "./cuboid";
+import { DrawCuboidOptions } from "./minecraft";
 
 export type * from "./cuboid";
 
@@ -33,4 +34,14 @@ export const spider: Spider = {
   thorax: translate(cuboid([6, 6, 6]), [0, 0]),
   abdomen: translate(cuboid([10, 8, 12]), [0, 12]),
   leg: translate(cuboid([16, 2, 2]), [18, 0]),
+};
+
+export type Minecart = {
+  bottom: Cuboid;
+  sides: Cuboid;
+};
+
+export const minecart: Minecart = {
+  bottom: translate(cuboid([20, 16, 2]), [0, 10]),
+  sides: translate(cuboid([16, 8, 2]), [0, 0]),
 };
