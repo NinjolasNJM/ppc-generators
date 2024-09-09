@@ -20,7 +20,7 @@ export function defineInputRegion(
 ) {
   generator.defineRegionInput(region, () => {
     const selectedTextureJson = generator.getStringInputValue(
-      "CurrentBlockTexture"
+      "SelectedTextureFrame"
     );
 
     const selectedTexture = selectedTextureJson

@@ -104,13 +104,13 @@ const script: ScriptDef = (generator: Generator) => {
   const versionId = generator.getSelectInputValue("Version");
 
   const currentTextureJson = generator.getStringInputValue(
-    "CurrentBlockTexture"
+    "SelectedTextureFrame"
   );
   const currentTexture = currentTextureJson
     ? decodeSelectedTextureWithBlend(currentTextureJson)
     : null;
 
-  generator.defineCustomStringInput("CurrentBlockTexture", (onChange) => {
+  generator.defineCustomStringInput("SelectedTextureFrame", (onChange) => {
     if (!versionId) {
       return null;
     }
@@ -210,14 +210,14 @@ const script: ScriptDef = (generator: Generator) => {
 
   generator.defineButtonInput("Clear", () => {
     const currentTextureChoice = generator.getStringInputValue(
-      "CurrentBlockTexture"
+      "SelectedTextureFrame"
     );
 
     generator.clearAllVariables();
 
     if (currentTextureChoice) {
       generator.setStringInputValue(
-        "CurrentBlockTexture",
+        "SelectedTextureFrame",
         currentTextureChoice
       );
     }

@@ -10,7 +10,7 @@ import type {
   ThumbnailDef,
 } from "@genroot/builder/modules/generatorDef";
 import { type Generator } from "@genroot/builder/modules/generator";
-import { allTextureDefs, versionIds, findVersion } from "./ui/textureVersions";
+import { allTextureDefs, versionIds, findVersion } from "../../builder/ui/texturePicker/textureVersions";
 import {
   type SelectedTexture,
   encodeSelectedTexture,
