@@ -8,7 +8,7 @@ import {
   Select,
 } from "@genroot/builder/ui/form/select";
 
-type SelectedTint =
+export type SelectedTint =
   | { kind: "NoTint" }
   | { kind: "CustomTint"; hex: string | null }
   | { kind: "SelectedTint"; hex: string };
