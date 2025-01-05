@@ -7,9 +7,10 @@ import type {
   TextureDef,
   ScriptDef,
   ThumbnailDef,
-  VideoDef,
 } from "@genroot/builder/modules/generatorDef";
 import { type Generator } from "@genroot/builder/modules/generator";
+import { steve, alex, Position } from "../_common/minecraftCharacter";
+import { type Dimensions, Minecraft } from "../_common/minecraft";
 
 import thumbnailImage from "./thumbnail/thumbnail-256.jpeg";
 import extraImage from "./images/Extra.png";
@@ -22,7 +23,7 @@ import foreground3Image from "./images/Foreground-3.png";
 import guide1Image from "./images/Guide-1.png";
 import guide2Image from "./images/Guide-2.png";
 import guide3Image from "./images/Guide-3.png";
-import skin64x64SteveImage from "./textures/Skin64x64Steve.png";
+import skin64x64SteveImage from "./textures/Skin64x64ReferenceSteve.png";
 
 const id = "minecraft-modular-bendable";
 
@@ -36,13 +37,16 @@ const thumbnail: ThumbnailDef = {
 };
 
 const images: ImageDef[] = [
-  { id: "Background-Steve", url: backgroundSteveImage.src },
-  { id: "Background-Alex", url: backgroundAlexImage.src },
-  { id: "Colors-Steve", url: colorsSteveImage.src },
-  { id: "Colors-Alex", url: colorsAlexImage.src },
-  { id: "Folds-Steve", url: foldsSteveImage.src },
-  { id: "Folds-Alex", url: foldsAlexImage.src },
-  { id: "Labels", url: labelsImage.src },
+  { id: "Extra", url: extraImage.src },
+  { id: "Folds-1", url: folds1Image.src },
+  { id: "Folds-2", url: folds2Image.src },
+  { id: "Folds-3", url: folds3Image.src },
+  { id: "Foreground-1", url: foreground1Image.src },
+  { id: "Foreground-2", url: foreground2Image.src },
+  { id: "Foreground-3", url: foreground3Image.src },
+  { id: "Guide-1", url: guide1Image.src },
+  { id: "Guide-2", url: guide2Image.src },
+  { id: "Guide-3", url: guide3Image.src },
 ];
 
 const textures: TextureDef[] = [
@@ -55,6 +59,7 @@ const textures: TextureDef[] = [
 ];
 
 const script: ScriptDef = (generator: Generator) => {
+  const minecraftGenerator = new Minecraft(generator);
   // Define user inputs
 
   generator.defineTextureInput("Skin", {
@@ -66,22 +71,23 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Define user variables
 
-  /* generator.defineSelectInput("Skin Model Type", ["Steve", "Alex"]);
+  generator.defineSelectInput("Skin Model Type", ["Steve", "Alex"]);
   generator.defineBooleanInput("Show Folds", true);
-  generator.defineBooleanInput("Show Labels", true); */
+  /* generator.defineBooleanInput("Show Labels", true); */
 
   // Get user variable values
 
-  /* const alexModel = generator.getSelectInputValue("Skin Model Type") === "Alex";
+  const isAlexModel = generator.getSelectInputValue("Skin Model Type") === "Alex";
+  const showHeadOverlay = true;
+  const showBodyOverlay = true;
+  //const showLeftArmOverlay = true;
+  const showRightArmOverlay = true;
+  const showLeftLegOverlay = true;
+  const showRightLegOverlay = true;
+
   const showFolds = generator.getBooleanInputValue("Show Folds");
-  const showColorCodes = generator.getBooleanInputValue("Show Color Codes");
-  const showLabels = generator.getBooleanInputValue("Show Labels");
-  const hideHelmet = generator.getBooleanInputValue("Hide Helmet");
-  const hideJacket = generator.getBooleanInputValue("Hide Jacket");
-  const hideLeftSleeve = generator.getBooleanInputValue("Hide Left Sleeve");
-  const hideRightSleeve = generator.getBooleanInputValue("Hide Right Sleeve");
-  const hideLeftPant = generator.getBooleanInputValue("Hide Left Pant");
-  const hideRightPant = generator.getBooleanInputValue("Hide Right Pant"); */
+  /*const showColorCodes = generator.getBooleanInputValue("Show Color Codes");
+  const showLabels = generator.getBooleanInputValue("Show Labels");*/
 
   // Define regions
 
@@ -104,11 +110,13 @@ const script: ScriptDef = (generator: Generator) => {
     generator.setBooleanInputValue("Hide Right Pant", !hideRightPant);
   }); */
 
+  const char = isAlexModel ? alex : steve;
+
   function drawHead([ox, oy]: Position) {
     const scale: Dimensions = [64, 64, 64];
     minecraftGenerator.drawCuboid("Skin", char.base.head, [ox, oy], scale, { orientation: "South" });
     if (showHeadOverlay) {
-      minecraftGenerator.drawCuboid("Skin", char.overlay.head, [ox, oy], scale);
+      minecraftGenerator.drawCuboid("Skin", char.overlay.head, [ox, oy], scale, {orientation: "South"});
     }
   }
   
@@ -120,13 +128,13 @@ const script: ScriptDef = (generator: Generator) => {
     }
   }
   
-  function drawBody2([ox, oy]: Position) {
+  /*function drawBody2([ox, oy]: Position) {
     const scale: Dimensions = [64, 96, 32];
     minecraftGenerator.drawCuboid("Skin", char.base.body, [ox, oy], scale, { center: "Bottom" });
     if (showBodyOverlay) {
       minecraftGenerator.drawCuboid("Skin", char.overlay.body, [ox, oy], scale);
     }
-  }
+  }*/
   
   function drawRightArm([ox, oy]: Position) {
     const scale: Dimensions = char === alex ? [24, 96, 32] : [32, 96, 32];
@@ -136,13 +144,13 @@ const script: ScriptDef = (generator: Generator) => {
     }
   }
   
-  function drawLeftArm([ox, oy]: Position) {
+  /*function drawLeftArm([ox, oy]: Position) {
     const scale: Dimensions = char === alex ? [24, 96, 32] : [32, 96, 32];
     minecraftGenerator.drawCuboid("Skin", char.base.leftArm, [ox, oy], scale, { orientation: "East" });
     if (showLeftArmOverlay) {
       minecraftGenerator.drawCuboid("Skin", char.overlay.leftArm, [ox, oy], scale, { orientation: "East" });
     }
-  }
+  }*/
   
   function drawRightLeg([ox, oy]: Position) {
     const scale: Dimensions = [32, 96, 32];

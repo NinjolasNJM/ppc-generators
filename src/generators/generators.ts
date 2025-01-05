@@ -22,6 +22,7 @@ import { generator as minecraftGolemGenerator } from "@genroot/generators/minecr
 import { generator as minecraftGolemCharacterGenerator } from "@genroot/generators/minecraftGolemCharacter/minecraftGolemCharacterGenerator";
 import { generator as minecraftHorseGenerator } from "@genroot/generators/minecraftHorse/minecraftHorseGenerator";
 import { generator as minecraftItemGenerator } from "@genroot/generators/minecraftItem/minecraftItemGenerator";
+import { generator as minecraftModularBendableGenerator } from "@genroot/generators/minecraftModularBendable/minecraftModularBendableGenerator";
 import { generator as minecraftMutantCharacterGenerator } from "@genroot/generators/minecraftMutantCharacter/minecraftMutantCharacterGenerator";
 import { generator as minecraftPigGenerator } from "@genroot/generators/minecraftPig/minecraftPigGenerator";
 import { generator as minecraftPigCharacterGenerator } from "@genroot/generators/minecraftPigCharacter/minecraftPigCharacterGenerator";
@@ -39,6 +40,7 @@ export const character: GeneratorDef[] = [
   minecraftActionFigureGenerator,
   minecraftUltimateBendableGenerator,
   minecraftCharacterMiniGenerator,
+  minecraftModularBendableGenerator,
 ];
 
 export const mobCharacter: GeneratorDef[] = [
