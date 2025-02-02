@@ -201,7 +201,7 @@ export function RotationButton({ onClick }: { onClick: () => void }) {
 
 export function EraseButton({ onClick }: { onClick: () => void }) {
     return (
-      <Button size="Small" onClick={onClick}>
+      <Button size="Small" color="Red" onClick={onClick}>
         <BackspaceIcon color="White" />
       </Button>
     );
