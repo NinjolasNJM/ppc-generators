@@ -1,6 +1,6 @@
 import { TexturePicker as BuilderTexturePicker } from "@genroot/builder/ui/texturePicker/texturePicker";
 import { type SelectedTexture } from "@genroot/builder/ui/texturePicker/selectedTexture";
-import { type TextureVersion } from "../../../builder/ui/texturePicker/textureVersions";
+import { type TextureVersion } from "./textureVersions";
 
 export function TexturePicker(props: {
   textureVersion: TextureVersion;

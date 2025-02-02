@@ -18,7 +18,7 @@ import {
   encodeSelectedTextures,
   decodeSelectedTextures,
 } from "@genroot/builder/ui/texturePicker/selectedTexture";
-import { TexturePicker } from "@genroot/builder/ui/texturePicker/texturePicker";
+import { TexturePicker } from "./ui/texturePicker";
 
 /** [x, y, width, height] */
 type Rectangle = [number, number, number, number];
@@ -260,17 +260,12 @@ const script: ScriptDef = (generator: Generator) => {
       return null;
     }
     return (
-
-      <div className="mb-4">
       <TexturePicker
-        textureDef={textureVersion.textureDef}
-        frames={textureVersion.frames}
-        onSelect={(selectedTexture: SelectedTexture) => {
+        textureVersion={textureVersion}
+        onSelect={(selectedTexture) => {
           onChange(encodeSelectedTexture(selectedTexture));
         }}
-        enableRotation={false}
       />
-    </div>
     );
   });
 

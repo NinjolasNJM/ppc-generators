@@ -12,9 +12,6 @@ import {
   rotationToDegrees,
 } from "@genroot/builder/ui/texturePicker/rotation";
 import { type SelectedTexture } from "./selectedTexture";
-import { TintSelector, SelectedTint } from "./tintSelector";
-import { getEnabledExperimentalFeatures } from "next/dist/server/config";
-import { setHeapSnapshotNearHeapLimit } from "v8";
 
 function px(n: number): string {
   return n + "px";
@@ -87,14 +84,6 @@ function makeTileStyle(
   };
 
   return { ...baseStyle, ...backgroundStyle };
-}
-
-function getBlend(tint: string | null): SelectedTint {
-  if (tint === null) {
-      return { kind: "NoTint" };
-  } else {
-      return { kind: "CustomTint", hex: tint };
-  }
 }
 
 function TileButton({
@@ -216,7 +205,6 @@ export function TexturePicker({
   );
 
   const [rotation, setRotation] = React.useState<Rotation>("Rot0");
-  const [tint, setTint] = React.useState("");
 
   const searchLower = search.toLowerCase();
 
@@ -232,20 +220,6 @@ export function TexturePicker({
         textureDefId: textureDef.id,
         frame: selectedFrame,
         rotation: nextRotation,
-        blend: getBlend(tint)
-      };
-      onSelect(selectedTexture);
-    }
-  };
-
-  const onTintChange = (tint: string) => {
-    setTint(tint);
-    if (selectedFrame) {
-      const selectedTexture: SelectedTexture = {
-        textureDefId: textureDef.id,
-        frame: selectedFrame,
-        rotation: rotation,
-        blend: getBlend(tint)
       };
       onSelect(selectedTexture);
     }
@@ -257,7 +231,6 @@ export function TexturePicker({
       textureDefId: textureDef.id,
       frame: frame,
       rotation: rotation,
-      blend: getBlend(tint)
     };
     onSelect(selectedTexture);
   };
@@ -304,9 +277,6 @@ export function TexturePicker({
             </div>
           ) : null}
         </div>
-      </div>
-      <div className="mb-4">
-        <TintSelector onChange={onTintChange} />
       </div>
     </div>
   );

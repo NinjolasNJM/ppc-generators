@@ -1,5 +1,4 @@
 import { type Rotation } from "./rotation";
-import { SelectedTint } from "./tintSelector";
 
 /** [x, y, width, height] */
 type Rectangle = [number, number, number, number];
@@ -16,25 +15,24 @@ export type SelectedTexture = {
   textureDefId: string;
   frame: TextureFrame;
   rotation: Rotation;
-  blend?: SelectedTint;
 };
 
-export function encodeSelectedTexture(
+export const encodeSelectedTexture = (
   selectedTexture: SelectedTexture
-): string {
+): string => {
   return JSON.stringify(selectedTexture);
-}
+};
 
-export function decodeSelectedTexture(json: string): SelectedTexture {
+export const decodeSelectedTexture = (json: string): SelectedTexture => {
   return JSON.parse(json);
-}
+};
 
-export function encodeSelectedTextures(
+export const encodeSelectedTextures = (
   selectedTextures: SelectedTexture[]
-): string {
+): string => {
   return JSON.stringify(selectedTextures);
-}
+};
 
-export function decodeSelectedTextures(json: string): SelectedTexture[] {
+export const decodeSelectedTextures = (json: string): SelectedTexture[] => {
   return JSON.parse(json);
-}
+};

@@ -10,13 +10,11 @@ import type {
 } from "@genroot/builder/modules/generatorDef";
 import { type Generator } from "@genroot/builder/modules/generator";
 import {
-  type SelectedTexture,
-  encodeSelectedTexture,
-  decodeSelectedTexture,
-  encodeSelectedTextures,
-  decodeSelectedTextures,
-} from "@genroot/builder/ui/texturePicker/selectedTexture";
-import { allTextureDefs, versionIds, findVersion } from "../../builder/ui/texturePicker/textureVersions";
+  type SelectedTextureWithBlend,
+  encodeSelectedTextureWithBlend,
+  decodeSelectedTextureWithBlend,
+} from "./selectedTextureWithBlend";
+import { textureDefs, textureVersionIds } from "./textureVersions";
 import { TexturePicker } from "./texturePicker";
 import { drawBlock } from "./shapes/block";
 import { drawSlab } from "./shapes/slab";
@@ -98,51 +96,42 @@ const images: ImageDef[] = [
   { id: "Tabs-Cake-Right", url: tabsCakeRightImage.src },
 ];
 
-const textures: TextureDef[] = allTextureDefs;
+const textures: TextureDef[] = textureDefs;
 
 const script: ScriptDef = (generator: Generator) => {
-  // Show a drop down of different texture versions
+  generator.defineSelectInput("Version", textureVersionIds);
 
-  generator.defineSelectInput("Version", versionIds);
-
-  const versionId = generator.getSelectInputValue("Version") ?? "";
+  const versionId = generator.getSelectInputValue("Version");
 
   const currentTextureJson = generator.getStringInputValue(
     "SelectedTextureFrame"
   );
   const currentTexture = currentTextureJson
-    ? decodeSelectedTexture(currentTextureJson)
+    ? decodeSelectedTextureWithBlend(currentTextureJson)
     : null;
 
-  // Get the current selected version
-
-  const textureVersion = findVersion(versionId);
-
-  // Show the Texture Picker
-  // When a texture is selected, we need to encode it into a string variable
-
   generator.defineCustomStringInput("SelectedTextureFrame", (onChange) => {
-    if (!textureVersion) {
+    if (!versionId) {
       return null;
     }
     return (
       <TexturePicker
         versionId={versionId}
         onTextureSelected={(selectedTexture) => {
-          const newTexture: SelectedTexture = {
+          const newTexture: SelectedTextureWithBlend = {
             selectedTexture,
             blend: currentTexture ? currentTexture.blend : null,
           };
-          onChange(encodeSelectedTexture(newTexture));
+          onChange(encodeSelectedTextureWithBlend(newTexture));
         }}
         onBlendSelected={(blend) => {
-          const newTexture: SelectedTexture = {
+          const newTexture: SelectedTextureWithBlend = {
             selectedTexture: currentTexture
               ? currentTexture.selectedTexture
               : null,
             blend,
           };
-          onChange(encodeSelectedTexture(newTexture));
+          onChange(encodeSelectedTextureWithBlend(newTexture));
         }}
       />
     );

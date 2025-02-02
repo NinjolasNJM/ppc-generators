@@ -7,12 +7,11 @@ import {
   type Region,
 } from "@genroot/builder/modules/generator";
 import {
-  type SelectedTexture,
-  encodeSelectedTexture,
-  decodeSelectedTexture,
-  encodeSelectedTextures,
-  decodeSelectedTextures,
-} from "@genroot/builder/ui/texturePicker/selectedTexture";
+  type SelectedTextureWithBlend,
+  decodeSelectedTextureWithBlend,
+  decodeSelectedTextureWithBlendArray,
+  encodeSelectedTextureWithBlendArray,
+} from "./selectedTextureWithBlend";
 
 export function defineInputRegion(
   generator: Generator,
@@ -25,17 +24,18 @@ export function defineInputRegion(
     );
 
     const selectedTexture = selectedTextureJson
-      ? decodeSelectedTexture(selectedTextureJson)
+      ? decodeSelectedTextureWithBlend(selectedTextureJson)
       : null;
 
     if (selectedTexture) {
       const curentFaceTexturesJson = generator.getStringInputValue(faceId);
       const currentFaceTextures = curentFaceTexturesJson
-        ? decodeSelectedTextures(curentFaceTexturesJson)
+        ? decodeSelectedTextureWithBlendArray(curentFaceTexturesJson)
         : [];
 
       const newFaceTextures = currentFaceTextures.concat([selectedTexture]);
-      const newFaceTexturesJson = encodeSelectedTextures(newFaceTextures);
+      const newFaceTexturesJson =
+        encodeSelectedTextureWithBlendArray(newFaceTextures);
       generator.setStringInputValue(faceId, newFaceTexturesJson);
     }
   });
@@ -43,14 +43,16 @@ export function defineInputRegion(
 
 function drawTexture(
   generator: Generator,
-  face: SelectedTexture,
+  face: SelectedTextureWithBlend,
   source: Region,
   destination: Region,
   options?: DrawTextureOptions
 ) {
-  const textureDefId = face.textureDefId;
-  const rotation = face.rotation;
-  const frame = face.frame;
+  if (!face.selectedTexture) {
+    return;
+  }
+
+  const { textureDefId, frame, rotation } = face.selectedTexture;
   const [dx, dy, dw, dh] = destination;
 
   const [sx, sy, sw, sh] = source;
@@ -114,8 +116,8 @@ export function drawFace(
 ) {
   const faceTexturesJson = generator.getStringInputValue(faceId);
   if (faceTexturesJson) {
-    const faceTextures = decodeSelectedTextures(faceTexturesJson);
-    faceTextures.forEach((selectedTexture: SelectedTexture) => {
+    const faceTextures = decodeSelectedTextureWithBlendArray(faceTexturesJson);
+    faceTextures.forEach((selectedTexture: SelectedTextureWithBlend) => {
       drawTexture(generator, selectedTexture, source, destination, options);
     });
   }
