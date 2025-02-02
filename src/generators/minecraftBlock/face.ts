@@ -27,16 +27,22 @@ export function defineInputRegion(
       ? decodeSelectedTextureWithBlend(selectedTextureJson)
       : null;
 
-    if (selectedTexture) {
-      const curentFaceTexturesJson = generator.getStringInputValue(faceId);
-      const currentFaceTextures = curentFaceTexturesJson
-        ? decodeSelectedTextureWithBlendArray(curentFaceTexturesJson)
-        : [];
+      if (selectedTexture) {
+        const curentFaceTexturesJson = generator.getStringInputValue(faceId);
+        const currentFaceTextures = curentFaceTexturesJson
+          ? decodeSelectedTextureWithBlendArray(curentFaceTexturesJson)
+          : [];
+      
+        // If textureDefId is an empty string, remove the last item
+        const newFaceTextures =
+          selectedTexture.selectedTexture?.textureDefId === ""
+            ? (currentFaceTextures.pop(), currentFaceTextures) // Remove last element if condition met
+            : currentFaceTextures.concat([selectedTexture]); // Otherwise, append
+      
+        const newFaceTexturesJson =
+          encodeSelectedTextureWithBlendArray(newFaceTextures);
+        generator.setStringInputValue(faceId, newFaceTexturesJson);
 
-      const newFaceTextures = currentFaceTextures.concat([selectedTexture]);
-      const newFaceTexturesJson =
-        encodeSelectedTextureWithBlendArray(newFaceTextures);
-      generator.setStringInputValue(faceId, newFaceTexturesJson);
     }
   });
 }

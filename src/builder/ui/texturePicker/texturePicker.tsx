@@ -153,9 +153,20 @@ export function Preview({
   rotation: Rotation;
 }) {
   if (!frame) {
+    const frame = {
+      id: "",
+      name: "Erase",
+      rectangle: [0, 0, 0, 0] as [number, number, number, number],
+      frameIndex: 0,
+      frameCount: 0,
+    }
+    
     return (
       <div className="flex flex-col items-center" style={{ width: "148px" }}>
         <div style={makeTileBaseStyle(false, 128)} />
+        <div className="text-center text-gray-500 p-2 pt-0">
+        {makeFrameLabel(frame)}
+      </div>
       </div>
     );
   }
