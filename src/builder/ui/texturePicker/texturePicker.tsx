@@ -297,14 +297,13 @@ export function TexturePicker({
   };
 
   const onEraseClick = () => {
-    const nextRotation = makeNextRotation("Rot0");
-    setRotation(nextRotation);
+    setRotation("Rot0");
     setSelectedFrame(null)
     if (selectedFrame) {
       const selectedTexture: SelectedTexture = {
         textureDefId: "",
         frame: selectedFrame,
-        rotation: nextRotation,
+        rotation: "Rot0",
       };
         onSelect(selectedTexture)
       }
