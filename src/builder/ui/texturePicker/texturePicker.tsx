@@ -1,6 +1,6 @@
 import React from "react";
 import { Button } from "@genroot/builder/ui/button/button";
-import { ArrowPathIcon, BackspaceIcon, XMarkIcon } from "@genroot/builder/ui/icon";
+import { ArrowPathIcon, ArrowsRightLeftIcon, ArrowsUpDownIcon, BackspaceIcon, XMarkIcon } from "@genroot/builder/ui/icon";
 import { type TextureDef } from "@genroot/builder/modules/generatorDef";
 import {
   type TextureFrame,
@@ -207,6 +207,22 @@ export function EraseButton({ onClick }: { onClick: () => void }) {
     );
   }
 
+  export function FlipHorizontalButton({ onClick }: { onClick: () => void }) {
+    return (
+      <Button size="Small" color="Green" onClick={onClick}>
+        <ArrowsRightLeftIcon color="White" />
+      </Button>
+    );
+  }
+
+  export function FlipVerticalButton({ onClick }: { onClick: () => void }) {
+    return (
+      <Button size="Small" color="Green" onClick={onClick}>
+        <ArrowsUpDownIcon color="White" />
+      </Button>
+    );
+  }
+
 /*module RotationButton = {
   @react.component
   let make = (~onClick) => {
@@ -331,7 +347,7 @@ export function TexturePicker({
         }}
       />
       <div className="flex">
-        <div className="overflow-y-auto h-60 w-full">
+        <div className="overflow-y-auto h-80 w-full">
           {framesFiltered.map((frame) => {
             const isSelected = selectedFrame
               ? frame.id === selectedFrame.id
@@ -349,17 +365,20 @@ export function TexturePicker({
             );
           })}
         </div>
-        <div>
+        <div className="ml-4">
           <Preview
             textureDef={textureDef}
             frame={selectedFrame}
             rotation={rotation}
           />
           {enableRotation ? (
-            <div className="flex justify-center mt-4">
+            <><div className="flex justify-around">
               <RotationButton onClick={() => onRotateClick()} />
               <EraseButton onClick={() => onEraseClick()} />
-            </div>
+            </div><div className="flex justify-around mt-4">
+                <FlipHorizontalButton onClick={() => onRotateClick()} />
+                <FlipVerticalButton onClick={() => onEraseClick()} />
+              </div></>
           ) : null}
         </div>
       </div>
