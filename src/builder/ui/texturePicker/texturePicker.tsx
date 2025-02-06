@@ -12,6 +12,7 @@ import {
   rotationToDegrees,
 } from "@genroot/builder/ui/texturePicker/rotation";
 import { type SelectedTexture } from "./selectedTexture";
+import { Flip, makeNextFlipAndRotation, toTransform } from "./flip";
 
 function px(n: number): string {
   return n + "px";
@@ -147,10 +148,12 @@ export function Preview({
   textureDef,
   frame,
   rotation,
+  flip,
 }: {
   textureDef: TextureDef;
   frame: TextureFrame | null;
   rotation: Rotation;
+  flip: Flip,
 }) {
   if (!frame) {
     const frame = {
@@ -173,13 +176,15 @@ export function Preview({
 
   const rotationDegrees = rotationToDegrees(rotation);
 
+  const flipTransform = toTransform(flip)
+  
   const tileStyle = makeTileStyle(textureDef, frame, false, false, 128);
 
-  const rotationStyle = {
-    transform: `rotate(${deg(rotationDegrees)})`,
+  const transformStyle = {
+    transform: `rotate(${deg(rotationDegrees)}) ${flipTransform}`,
   };
 
-  const style = { ...tileStyle, ...rotationStyle };
+  const style = { ...tileStyle, ...transformStyle };
 
   return (
     <div className="flex flex-col items-center" style={{ width: "148px" }}>
@@ -292,6 +297,7 @@ export function TexturePicker({
   );
 
   const [rotation, setRotation] = React.useState<Rotation>("Rot0");
+  const [flip, setFlip] = React.useState<Flip>("None");
 
   const searchLower = search.toLowerCase();
 
@@ -307,30 +313,58 @@ export function TexturePicker({
         textureDefId: textureDef.id,
         frame: selectedFrame,
         rotation: nextRotation,
+        flip,
       };
       onSelect(selectedTexture);
     }
   };
 
+  const onFlipClick = (vertical: boolean = false) => {
+    const [nextFlip, nextRotation] = makeNextFlipAndRotation(
+      vertical ? "Vertical" : "Horizontal",
+      flip,
+      rotation
+    );
+  
+    setFlip(nextFlip);
+    setRotation(nextRotation);
+  
+    if (selectedFrame) {
+      const selectedTexture: SelectedTexture = {
+        textureDefId: textureDef.id,
+        frame: selectedFrame,
+        rotation: nextRotation,
+        flip: nextFlip,
+      };
+      onSelect(selectedTexture);
+    }
+  };
+  
+
   const onEraseClick = () => {
     setRotation("Rot0");
+    setFlip("None");
     setSelectedFrame(null)
     if (selectedFrame) {
       const selectedTexture: SelectedTexture = {
         textureDefId: "",
         frame: selectedFrame,
         rotation: "Rot0",
+        flip,
       };
         onSelect(selectedTexture)
       }
     }
 
   const onSelectClick = (frame: TextureFrame) => {
+    setRotation("Rot0");
+    setFlip("None");
     setSelectedFrame(frame);
     const selectedTexture = {
       textureDefId: textureDef.id,
       frame: frame,
-      rotation: rotation,
+      rotation,
+      flip,
     };
     onSelect(selectedTexture);
   };
@@ -370,14 +404,15 @@ export function TexturePicker({
             textureDef={textureDef}
             frame={selectedFrame}
             rotation={rotation}
+            flip={flip}
           />
           {enableRotation ? (
             <><div className="flex justify-around">
               <RotationButton onClick={() => onRotateClick()} />
               <EraseButton onClick={() => onEraseClick()} />
             </div><div className="flex justify-around mt-4">
-                <FlipHorizontalButton onClick={() => onRotateClick()} />
-                <FlipVerticalButton onClick={() => onEraseClick()} />
+                <FlipHorizontalButton onClick={() => onFlipClick(false)} />
+                <FlipVerticalButton onClick={() => onFlipClick(true)} />
               </div></>
           ) : null}
         </div>

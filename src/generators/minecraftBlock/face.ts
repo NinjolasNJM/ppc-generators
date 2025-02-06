@@ -58,13 +58,28 @@ function drawTexture(
     return;
   }
 
-  const { textureDefId, frame, rotation } = face.selectedTexture;
+  const { textureDefId, frame, rotation, flip } = face.selectedTexture;
   const [dx, dy, dw, dh] = destination;
 
   const [sx, sy, sw, sh] = source;
-  const [fx, fy] = frame.rectangle;
+  const [fx, fy, fw, fh] = frame.rectangle;
+  let ix = fx + sx;
+  let iy = fy + sy;
 
-  const sourceRegion: Region = [sx + fx, sy + fy, sw, sh];
+  const sourceRegion: Region = (() => {
+    switch (rotation) {
+      case "Rot0":
+        return [ix, iy, sw, sh];
+      case "Rot90":
+        return [fx + sy, fy + fw - (sw + sx), sh, sw];
+      case "Rot180":
+        return [fx + fw - (sw + sx), fy + fh - (sh + sy), sw, sh];
+      case "Rot270":
+        return [fx + fh - (sh + sy), fy + sx, sh, sw];
+      default:
+        return [ix, iy, sw, sh];
+    }
+  })();
 
   const destinationRegion: Region = (() => {
     switch (rotation) {
@@ -99,9 +114,10 @@ function drawTexture(
     ? { kind: "MultiplyHex", hex: face.blend }
     : undefined;
 
-  const optionsWithRotate: DrawTextureOptions = {
+  const optionsWithTransform: DrawTextureOptions = {
     ...options,
     rotate,
+    flip,
     blend,
   };
 
@@ -109,7 +125,7 @@ function drawTexture(
     textureDefId,
     sourceRegion,
     destinationRegion,
-    optionsWithRotate
+    optionsWithTransform
   );
 }
 

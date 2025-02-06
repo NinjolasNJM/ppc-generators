@@ -1,3 +1,4 @@
+import { Flip } from "./flip";
 import { type Rotation } from "./rotation";
 
 /** [x, y, width, height] */
@@ -15,6 +16,7 @@ export type SelectedTexture = {
   textureDefId: string;
   frame: TextureFrame;
   rotation: Rotation;
+  flip: Flip;
 };
 
 export const encodeSelectedTexture = (
