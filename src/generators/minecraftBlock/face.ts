@@ -63,8 +63,8 @@ function drawTexture(
 
   const [sx, sy, sw, sh] = source;
   const [fx, fy, fw, fh] = frame.rectangle;
-  let ix = fx + sx;
-  let iy = fy + sy;
+  const ix = fx + sx;
+  const iy = fy + sy;
 
   const sourceRegion: Region = (() => {
     switch (rotation) {
