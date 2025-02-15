@@ -1,4 +1,4 @@
-# pixel-papercraft-generators
+# Pixel Papercraft Generators
 
 # Making a Generator
 - Start with an existing generator in the src/generators folder and duplicate it.
