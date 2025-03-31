@@ -35,12 +35,15 @@ import { generator as minecraftWolfCharacterGenerator } from "@genroot/generator
 
 const isDevEnvironment: boolean = process.env.NODE_ENV === "development";
 
+export const featured: GeneratorDef[] = [
+  minecraftCobblestoneGenerator,
+]
+
 export const character: GeneratorDef[] = [
   minecraftCharacterGenerator,
   minecraftActionFigureGenerator,
   minecraftUltimateBendableGenerator,
   minecraftCharacterMiniGenerator,
-  minecraftCobblestoneGenerator,
 ];
 
 export const mobCharacter: GeneratorDef[] = [
@@ -100,6 +103,7 @@ function concatArrays<GeneratorDef>(arrays: Array<Array<GeneratorDef>>) {
 }
 
 export const generators = concatArrays([
+  featured,
   character,
   mobCharacter,
   mob,
@@ -120,6 +124,7 @@ export type GeneratorGroup = {
 };
 
 export const generatorGroups: GeneratorGroup[] = [
+  { label: "Featured", generators: featured },
   { label: "Characters", generators: character },
   { label: "Mob Characters", generators: mobCharacter },
   { label: "Mobs", generators: mob },
