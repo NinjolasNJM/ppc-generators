@@ -13,6 +13,7 @@ import { generator as minecraftCatCharacterGenerator } from "@genroot/generators
 import { generator as minecraftCharacterGenerator } from "@genroot/generators/minecraftCharacter/minecraftCharacterGenerator";
 import { generator as minecraftCharacterHeadsGenerator } from "@genroot/generators/minecraftCharacterHeads/minecraftCharacterHeadsGenerator";
 import { generator as minecraftCharacterMiniGenerator } from "@genroot/generators/minecraftCharacterMini/minecraftCharacterMiniGenerator";
+import { generator as minecraftCobblestoneGenerator } from "@genroot/generators/minecraftCobblestone/minecraftCobblestoneGenerator";
 import { generator as minecraftCowCharacterGenerator } from "@genroot/generators/minecraftCowCharacter/minecraftCowCharacterGenerator";
 import { generator as minecraftCreeperGenerator } from "@genroot/generators/minecraftCreeper/minecraftCreeperGenerator";
 import { generator as minecraftCreeperCharacterGenerator } from "@genroot/generators/minecraftCreeperCharacter/minecraftCreeperCharacterGenerator";
@@ -39,6 +40,7 @@ export const character: GeneratorDef[] = [
   minecraftActionFigureGenerator,
   minecraftUltimateBendableGenerator,
   minecraftCharacterMiniGenerator,
+  minecraftCobblestoneGenerator,
 ];
 
 export const mobCharacter: GeneratorDef[] = [
