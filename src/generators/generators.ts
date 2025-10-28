@@ -25,6 +25,7 @@ import { generator as minecraftItemGenerator } from "@genroot/generators/minecra
 import { generator as minecraftMutantCharacterGenerator } from "@genroot/generators/minecraftMutantCharacter/minecraftMutantCharacterGenerator";
 import { generator as minecraftPigGenerator } from "@genroot/generators/minecraftPig/minecraftPigGenerator";
 import { generator as minecraftPigCharacterGenerator } from "@genroot/generators/minecraftPigCharacter/minecraftPigCharacterGenerator";
+import { generator as minecraftSkeletonGenerator } from "@genroot/generators/minecraftSkeleton/minecraftSkeletonGenerator";
 import { generator as minecraftSquidCharacterGenerator } from "@genroot/generators/minecraftSquidCharacter/minecraftSquidCharacterGenerator";
 import { generator as minecraftUltimateBendableGenerator } from "@genroot/generators/minecraftUltimateBendable/minecraftUltimateBendableGenerator";
 import { generator as minecraftVillagerGenerator } from "@genroot/generators/minecraftVillager/minecraftVillagerGenerator";
@@ -62,6 +63,7 @@ export const mob: GeneratorDef[] = [
   minecraftGolemGenerator,
   minecraftHorseGenerator,
   minecraftPigGenerator,
+  minecraftSkeletonGenerator,
   minecraftCatGenerator,
   minecraftVillagerGenerator,
 ];
