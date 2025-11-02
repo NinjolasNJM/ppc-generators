@@ -9,7 +9,7 @@ import type {
   ScriptDef,
 } from "@genroot/builder/modules/generatorDef";
 import { type Generator } from "@genroot/builder/modules/generator";
-import { steve, alex } from "../_common/minecraftCharacter";
+import { skeleton } from "../_common/minecraftEntities";
 import { type Dimensions, Minecraft } from "../_common/minecraft";
 
 import thumbnailImage from "./thumbnail/thumbnail-256.jpeg";
@@ -20,7 +20,7 @@ import foregroundAlexImage from "./images/Foreground-Alex.png";
 import foregroundSteveImage from "./images/Foreground-Steve.png";
 import foregroundM16Image from "./images/Foreground-M16.png";
 import labelsImage from "./images/Labels.png";
-import skin64x64SteveImage from "./textures/Skin64x64Steve.png";
+//import skin64x64SteveImage from "./textures/Skin64x64Steve.png";
 import skeletonTexture from "./textures/skeleton.png";
 import witherSkeletonTexture from "./textures/wither_skeleton.png";
 import strayTexture from "./textures/stray.png";
@@ -55,9 +55,9 @@ const images: ImageDef[] = [
 const textures: TextureDef[] = [
   {
     id: "Skin",
-    url: skin64x64SteveImage.src,
+    url: skeletonTexture.src,
     standardWidth: 64,
-    standardHeight: 64,
+    standardHeight: 32,
   },
   {
     id: "Skeleton",
@@ -114,6 +114,7 @@ const script: ScriptDef = (generator: Generator) => {
     standardWidth: 64,
     standardHeight: 64,
     choices: ["Skeleton", "Wither Skeleton", "Stray", "Bogged", "Parched"],
+    enableMinecraftSkinInput: true,
   });
 
   // Define user variables
@@ -155,7 +156,7 @@ const script: ScriptDef = (generator: Generator) => {
 
   const m16Mode = generator.getBooleanInputValueWithDefault("M16 Mode", false);
 
-  const char = isAlexModel ? alex : steve;
+  const char = skeleton;
 
   function drawHead([ox, oy]: [number, number]) {
     const dimensions: Dimensions = [64, 64, 64];
@@ -228,7 +229,7 @@ const script: ScriptDef = (generator: Generator) => {
   }
 
   function drawRightArm([ox, oy]: [number, number]) {
-    const dimensions: Dimensions = char === alex ? [24, 96, 32] : [32, 96, 32];
+    const dimensions: Dimensions = [16, 96, 16];
     minecraftGenerator.drawCuboid(
       "Skin",
       char.base.rightArm,
@@ -248,37 +249,37 @@ const script: ScriptDef = (generator: Generator) => {
   function drawRightShoulder([ox, oy]: [number, number]) {
     generator.drawTexture(
       "Skin",
-      [char === alex ? 47 : 48, 20, 4, 4],
+      [48, 20, 4, 4],
       [ox, oy + 15, 32, 32]
     ); //Right Shoulder Inside
     generator.drawTexture(
       "Skin",
-      [char === alex ? 47 : 48, 20, 4, 4],
+      [48, 20, 4, 4],
       [ox, oy + 49, 32, 32]
     ); //Right Shoulder
 
     if (showRightArmOverlay) {
       generator.drawTexture(
         "Skin",
-        [char === alex ? 47 : 48, 36, 4, 4],
+        [48, 36, 4, 4],
         [ox, oy + 15, 32, 32]
       ); //Right Shoulder Inside
       generator.drawTexture(
         "Skin",
-        [char === alex ? 47 : 48, 36, 4, 4],
+        [48, 36, 4, 4],
         [ox, oy + 49, 32, 32]
       ); //Right Shoulder
     }
   }
 
   function drawLeftArm([ox, oy]: [number, number]) {
-    const dimensions: Dimensions = char === alex ? [24, 96, 32] : [32, 96, 32];
+    const dimensions: Dimensions = [16, 96, 16];
     minecraftGenerator.drawCuboid(
       "Skin",
       char.base.leftArm,
       [ox, oy],
       dimensions,
-      { orientation: "East" }
+      { flip: "Horizontal" }
     );
 
     if (showLeftArmOverlay) {
@@ -287,23 +288,23 @@ const script: ScriptDef = (generator: Generator) => {
         char.overlay.leftArm,
         [ox, oy],
         dimensions,
-        { orientation: "East" }
+        { flip: "Horizontal" }
       );
     }
   }
 
   function drawLeftShoulder([ox, oy]: [number, number]) {
-    generator.drawTexture("Skin", [32, 52, 4, 4], [ox, oy + 15, 32, 32]); //Left Shoulder Inside
-    generator.drawTexture("Skin", [32, 52, 4, 4], [ox, oy + 49, 32, 32]); //Left Shoulder
+    generator.drawTexture("Skin", [32, 52, 4, 4], [ox, oy + 15, 32, 32], {flip: "Horizontal"}); //Left Shoulder Inside
+    generator.drawTexture("Skin", [32, 52, 4, 4], [ox, oy + 49, 32, 32], {flip: "Horizontal"}); //Left Shoulder
 
     if (showLeftArmOverlay) {
-      generator.drawTexture("Skin", [48, 52, 4, 4], [ox, oy + 15, 32, 32]); //Left Shoulder Inside
-      generator.drawTexture("Skin", [48, 52, 4, 4], [ox, oy + 49, 32, 32]); //Left Shoulder
+      generator.drawTexture("Skin", [48, 52, 4, 4], [ox, oy + 15, 32, 32], {flip: "Horizontal"}); //Left Shoulder Inside
+      generator.drawTexture("Skin", [48, 52, 4, 4], [ox, oy + 49, 32, 32], {flip: "Horizontal"}); //Left Shoulder
     }
   }
 
   function drawRightLeg([ox, oy]: [number, number]) {
-    const dimensions: Dimensions = [32, 96, 32];
+    const dimensions: Dimensions = [16, 96, 16];
     minecraftGenerator.drawCuboid(
       "Skin",
       char.base.rightLeg,
@@ -351,23 +352,24 @@ const script: ScriptDef = (generator: Generator) => {
     }
   }
   function drawLeftLeg([ox, oy]: [number, number]) {
-    const dimensions: Dimensions = [32, 96, 32];
+    const dimensions: Dimensions = [16, 96, 16];
     minecraftGenerator.drawCuboid(
       "Skin",
       char.base.leftLeg,
       [ox, oy],
       dimensions,
-      { orientation: "East" }
+      { flip: "Horizontal" }
     );
     generator.drawTexture("Skin", [28, 52, 4, 4], [ox + 64, oy - 50, 32, 32], {
       rotate: 180,
+    flip: "Horizontal",
     });
     generator.drawTexture("Skin", char.base.leftLeg.top, [
       ox + 64,
       oy - 18,
       32,
       50,
-    ]);
+    ], {flip: "Horizontal"});
 
     // 50 pixels tall top, so that the back texture is in line with where it should be on the back side
     if (showLeftLegOverlay) {
@@ -376,26 +378,26 @@ const script: ScriptDef = (generator: Generator) => {
         char.overlay.leftLeg,
         [ox, oy],
         dimensions,
-        { orientation: "East" }
+        { flip: "Horizontal" }
       );
       generator.drawTexture(
         "Skin",
         [12, 52, 4, 4],
         [ox + 64, oy - 50, 32, 32],
-        { rotate: 180 }
+        { rotate: 180, flip:"Horizontal" }
       );
       generator.drawTexture("Skin", char.base.leftLeg.top, [
         ox + 64,
         oy - 18,
         32,
         50,
-      ]);
+      ], {flip: "Horizontal"});
       generator.drawTexture("Skin", char.overlay.leftLeg.top, [
         ox + 64,
         oy - 18,
         32,
         50,
-      ]);
+      ], {flip: "Horizontal"});
       // 50 pixels tall top, so that the back texture is in line with where it should be on the back side
     }
   }
@@ -454,8 +456,9 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Right Arm
 
-  [ox, oy] = getGridOrigin(1, 10);
+  [ox, oy] = getGridOrigin(2, 10);
   ox = isAlexModel ? ox + 8 : ox;
+  oy = oy + 16;
 
   drawRightArm([ox, oy]);
 
@@ -474,8 +477,9 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Left Arm
 
-  [ox, oy] = getGridOrigin(13, 10);
+  [ox, oy] = getGridOrigin(14, 10);
   ox = isAlexModel ? ox + 8 : ox;
+  oy = oy + 16;
 
   drawLeftArm([ox, oy]);
 
@@ -494,7 +498,8 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Right Leg
 
-  [ox, oy] = getGridOrigin(1, 18);
+  [ox, oy] = getGridOrigin(2, 18);
+  oy = oy + 16;
 
   drawRightLeg([ox, oy]);
   generator.defineRegionInput([ox, oy - 48, 128, 208], () => {
@@ -506,7 +511,8 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Left Leg
 
-  [ox, oy] = getGridOrigin(13, 18);
+  [ox, oy] = getGridOrigin(14, 18);
+  oy = oy + 16;
 
   drawLeftLeg([ox, oy]);
   generator.defineRegionInput([ox, oy - 48, 128, 208], () => {
@@ -517,20 +523,21 @@ const script: ScriptDef = (generator: Generator) => {
   });
 
   // Foreground
-  if (isAlexModel) {
+  /* if (isAlexModel) {
     generator.drawImage("Foreground-Alex", [0, 0]);
   } else {
     generator.drawImage("Foreground-Steve", [0, 0]);
-  }
+  } */
+ generator.drawImage("Foreground-Steve", [0, 0]);
 
   // Folds
-  if (showFolds) {
+  if (!showFolds) {
     if (isAlexModel) {
       generator.drawImage("Folds-Alex", [0, 0]);
     } else {
       generator.drawImage("Folds-Steve", [0, 0]);
     }
-  }
+  } 
 
   // M16 Mode
 
