@@ -123,7 +123,7 @@ const script: ScriptDef = (generator: Generator) => {
   generator.defineBooleanInput("Show Labels", true);
   generator.defineBooleanInput("Hand Notches", true);
   // Get user variable values
-  const isAlexModel = generator.getSelectInputValue("Skin Model") === "Alex";
+  const isBoggedModel = generator.getSelectInputValue("Skin Model") === "Alex";
 
   const showFolds = generator.getBooleanInputValue("Show Folds");
   const showLabels = generator.getBooleanInputValue("Show Labels");
@@ -131,27 +131,27 @@ const script: ScriptDef = (generator: Generator) => {
 
   const showHeadOverlay = generator.getBooleanInputValueWithDefault(
     "Show Head Overlay",
-    true
+    false
   );
   const showBodyOverlay = generator.getBooleanInputValueWithDefault(
     "Show Body Overlay",
-    true
+    false
   );
   const showLeftArmOverlay = generator.getBooleanInputValueWithDefault(
     "Show Left Arm Overlay",
-    true
+    false
   );
   const showRightArmOverlay = generator.getBooleanInputValueWithDefault(
     "Show Right Arm Overlay",
-    true
+    false
   );
   const showLeftLegOverlay = generator.getBooleanInputValueWithDefault(
     "Show Left Leg Overlay",
-    true
+    false
   );
   const showRightLegOverlay = generator.getBooleanInputValueWithDefault(
     "Show Right Leg Overlay",
-    true
+    false
   );
 
   const m16Mode = generator.getBooleanInputValueWithDefault("M16 Mode", false);
@@ -207,7 +207,7 @@ const script: ScriptDef = (generator: Generator) => {
       oy,
       32,
       128,
-    ]); // Left Pelvis
+    ], { flip: "Horizontal" }); // Left Pelvis
 
     if (showRightLegOverlay) {
       generator.drawTexture("Skin", char.overlay.rightLeg.top, [
@@ -246,28 +246,32 @@ const script: ScriptDef = (generator: Generator) => {
     }
   }
 
-  function drawRightShoulder([ox, oy]: [number, number]) {
+  function drawShoulder([ox, oy]: [number, number], isLeft: boolean) {
     generator.drawTexture(
       "Skin",
-      [48, 20, 4, 4],
-      [ox, oy + 15, 32, 32]
+      char.base.rightArm.top,
+      [ox, oy + 15, 32, 32],
+      {flip: isLeft ? "Horizontal" : "None" },
     ); //Right Shoulder Inside
     generator.drawTexture(
       "Skin",
-      [48, 20, 4, 4],
-      [ox, oy + 49, 32, 32]
+      char.base.rightArm.top,
+      [ox, oy + 49, 32, 32],
+      {flip: isLeft ? "Horizontal" : "None" },
     ); //Right Shoulder
 
     if (showRightArmOverlay) {
       generator.drawTexture(
         "Skin",
-        [48, 36, 4, 4],
-        [ox, oy + 15, 32, 32]
+        char.overlay.rightArm.top,
+        [ox, oy + 15, 32, 32],
+      {flip: isLeft ? "Horizontal" : "None" },
       ); //Right Shoulder Inside
       generator.drawTexture(
         "Skin",
-        [48, 36, 4, 4],
-        [ox, oy + 49, 32, 32]
+        char.overlay.rightArm.top,
+        [ox, oy + 49, 32, 32],
+      {flip: isLeft ? "Horizontal" : "None" },
       ); //Right Shoulder
     }
   }
@@ -293,16 +297,6 @@ const script: ScriptDef = (generator: Generator) => {
     }
   }
 
-  function drawLeftShoulder([ox, oy]: [number, number]) {
-    generator.drawTexture("Skin", [32, 52, 4, 4], [ox, oy + 15, 32, 32], {flip: "Horizontal"}); //Left Shoulder Inside
-    generator.drawTexture("Skin", [32, 52, 4, 4], [ox, oy + 49, 32, 32], {flip: "Horizontal"}); //Left Shoulder
-
-    if (showLeftArmOverlay) {
-      generator.drawTexture("Skin", [48, 52, 4, 4], [ox, oy + 15, 32, 32], {flip: "Horizontal"}); //Left Shoulder Inside
-      generator.drawTexture("Skin", [48, 52, 4, 4], [ox, oy + 49, 32, 32], {flip: "Horizontal"}); //Left Shoulder
-    }
-  }
-
   function drawRightLeg([ox, oy]: [number, number]) {
     const dimensions: Dimensions = [16, 96, 16];
     minecraftGenerator.drawCuboid(
@@ -311,17 +305,16 @@ const script: ScriptDef = (generator: Generator) => {
       [ox, oy],
       dimensions
     );
-    generator.drawTexture("Skin", [12, 20, 4, 4], [ox + 32, oy - 50, 32, 32], {
-      rotate: 180,
+    generator.drawTexture("Skin", [6, 18, 2, 4], [ox + 16, oy - 41, 16, 32], {
+      rotate: 180
     });
     generator.drawTexture("Skin", char.base.rightLeg.top, [
-      ox + 32,
-      oy - 18,
-      32,
-      50,
+      ox + 16,
+      oy - 9,
+      16,
+      25,
     ]);
 
-    // 50 pixels tall top, so that the back texture is in line with where it should be on the back side
 
     if (showRightLegOverlay) {
       minecraftGenerator.drawCuboid(
@@ -360,18 +353,17 @@ const script: ScriptDef = (generator: Generator) => {
       dimensions,
       { flip: "Horizontal" }
     );
-    generator.drawTexture("Skin", [28, 52, 4, 4], [ox + 64, oy - 50, 32, 32], {
+    generator.drawTexture("Skin", [6, 18, 2, 4], [ox + 32, oy - 41, 16, 32], {
       rotate: 180,
     flip: "Horizontal",
     });
     generator.drawTexture("Skin", char.base.leftLeg.top, [
-      ox + 64,
-      oy - 18,
-      32,
-      50,
+      ox + 32,
+      oy - 9,
+      16,
+      25,
     ], {flip: "Horizontal"});
 
-    // 50 pixels tall top, so that the back texture is in line with where it should be on the back side
     if (showLeftLegOverlay) {
       minecraftGenerator.drawCuboid(
         "Skin",
@@ -398,7 +390,6 @@ const script: ScriptDef = (generator: Generator) => {
         32,
         50,
       ], {flip: "Horizontal"});
-      // 50 pixels tall top, so that the back texture is in line with where it should be on the back side
     }
   }
 
@@ -457,12 +448,11 @@ const script: ScriptDef = (generator: Generator) => {
   // Right Arm
 
   [ox, oy] = getGridOrigin(2, 10);
-  ox = isAlexModel ? ox + 8 : ox;
   oy = oy + 16;
 
   drawRightArm([ox, oy]);
 
-  generator.defineRegionInput([ox, oy, isAlexModel ? 112 : 128, 160], () => {
+  generator.defineRegionInput([ox, oy, 128, 160], () => {
     generator.setBooleanInputValue(
       "Show Right Arm Overlay",
       !showRightArmOverlay
@@ -473,17 +463,17 @@ const script: ScriptDef = (generator: Generator) => {
 
   [ox, oy] = getGridOrigin(7, 12);
 
-  drawRightShoulder([ox, oy]);
+  drawShoulder([ox, oy], false);
+  drawShoulder([ox - 64, oy], false);
 
   // Left Arm
 
   [ox, oy] = getGridOrigin(14, 10);
-  ox = isAlexModel ? ox + 8 : ox;
   oy = oy + 16;
 
   drawLeftArm([ox, oy]);
 
-  generator.defineRegionInput([ox, oy, isAlexModel ? 112 : 128, 166], () => {
+  generator.defineRegionInput([ox, oy, 128, 166], () => {
     generator.setBooleanInputValue(
       "Show Left Arm Overlay",
       !showLeftArmOverlay
@@ -494,7 +484,8 @@ const script: ScriptDef = (generator: Generator) => {
 
   [ox, oy] = getGridOrigin(10, 12);
 
-  drawLeftShoulder([ox, oy]);
+  drawShoulder([ox, oy], true);
+  drawShoulder([ox + 64, oy], true);
 
   // Right Leg
 
@@ -523,7 +514,7 @@ const script: ScriptDef = (generator: Generator) => {
   });
 
   // Foreground
-  /* if (isAlexModel) {
+  /* if (isBoggedModel) {
     generator.drawImage("Foreground-Alex", [0, 0]);
   } else {
     generator.drawImage("Foreground-Steve", [0, 0]);
@@ -532,7 +523,7 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Folds
   if (!showFolds) {
-    if (isAlexModel) {
+    if (isBoggedModel) {
       generator.drawImage("Folds-Alex", [0, 0]);
     } else {
       generator.drawImage("Folds-Steve", [0, 0]);
@@ -567,15 +558,13 @@ const script: ScriptDef = (generator: Generator) => {
   if (handNotches) {
     // Right Hand Notches
     [ox, oy] = getGridOrigin(1, 10);
-    ox = isAlexModel ? ox + 4 : ox;
-    drawNotch([ox + 44, oy + 104], false); // Front Notch
-    drawNotch([ox + (isAlexModel ? 100 : 108), oy + 104], true); // Back Notch
+    drawNotch([ox + 52, oy + 104], false); // Front Notch
+    drawNotch([ox + 84, oy + 104], true); // Back Notch
 
     // Left Hand Notches
     [ox, oy] = getGridOrigin(13, 10);
-    ox = isAlexModel ? ox + 4 : ox;
-    drawNotch([ox + (isAlexModel ? 68 : 76), oy + 104], true); // Front Notch
-    drawNotch([ox + 12, oy + 104], false); // Back Notch
+    drawNotch([ox + 68, oy + 104], true); // Front Notch
+    drawNotch([ox + 36, oy + 104], false); // Back Notch
   }
 
   // Labels
