@@ -14,8 +14,7 @@ import { steve, alex } from "@genroot/generators/_common/minecraftCharacter";
 
 import thumbnailImage from "./thumbnail/thumbnail-256.jpeg";
 import overlayBeeImage from "./images/OverlayBee.png";
-import skin1Image from "./textures/Skin1.png";
-import skin2Image from "./textures/Skin2.png";
+
 import steveImage from "../_common/skins/wide/steve.png";
 import alexImage from "../_common/skins/slim/alex.png";
 
@@ -40,13 +39,13 @@ const images: ImageDef[] = [{ id: "OverlayBee", url: overlayBeeImage.src }];
 const textures: TextureDef[] = [
   {
     id: "Skin1",
-    url: skin1Image.src,
+    url: steveImage.src,
     standardWidth: 64,
     standardHeight: 64,
   },
   {
     id: "Skin2",
-    url: skin2Image.src,
+    url: steveImage.src,
     standardWidth: 64,
     standardHeight: 64,
   },

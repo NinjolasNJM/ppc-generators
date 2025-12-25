@@ -5,6 +5,8 @@ import {
   makeTextureFromUrl,
   makeTextureFromImage,
 } from "@genroot/builder/modules/texture";
+import { makeImageFromUrl } from "@genroot/builder/modules/image";
+import { convertToStandardSkin } from "@genroot/builder/modules/minecraftSkinConverter";
 import { fetchSkinImage } from "@genroot/builder/modules/minecraftSkin";
 import { type SelectOption, Select } from "../form/select";
 import { Button, type ButtonState } from "../button/button";
@@ -112,14 +114,29 @@ export function TextureControl({
     }
     const fileReader = new FileReader();
 
-    fileReader.onload = (e) => {
+    fileReader.onload = async (e) => {
       const result = e.target ? e.target.result : null;
 
       if (typeof result !== "string") {
         return;
       }
 
-      makeTextureFromUrl(result, standardWidth, standardHeight).then(onChange);
+      if (enableMinecraftSkinInput) {
+        try {
+          const image = await makeImageFromUrl(result);
+          const converted = await convertToStandardSkin(image);
+          const texture = makeTextureFromImage(
+            converted,
+            standardWidth,
+            standardHeight
+          );
+          onChange(texture);
+        } catch (error) {
+          console.error(error);
+        }
+      } else {
+        makeTextureFromUrl(result, standardWidth, standardHeight).then(onChange).catch((error) => console.error(error));
+      }
     };
 
     fileReader.readAsDataURL(file);

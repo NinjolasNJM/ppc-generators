@@ -19,7 +19,7 @@ import page4Image from "./images/Page4.png";
 import hole1Image from "./images/Hole1.png";
 import hole2Image from "./images/Hole2.png";
 import hole3Image from "./images/Hole3.png";
-import skinTexture from "./textures/Skin.png";
+import steveTexture from "../_common/skins/wide/steve.png";
 import alexImage from "../_common/skins/slim/alex.png";
 
 const id = "minecraft-mutant-character";
@@ -49,13 +49,13 @@ const images: ImageDef[] = [
 const textures: TextureDef[] = [
   {
     id: "Skin",
-    url: skinTexture.src,
+    url: steveTexture.src,
     standardWidth: 64,
     standardHeight: 64,
   },
   {
     id: "Steve",
-    url: skinTexture.src,
+    url: steveTexture.src,
     standardWidth: 64,
     standardHeight: 64,
   },
