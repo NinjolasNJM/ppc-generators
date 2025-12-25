@@ -14,7 +14,8 @@ import thumbnailImage from "./thumbnail/thumbnail.jpeg";
 import backgroundImage from "./images/Background.png";
 import foldsImage from "./images/Folds.png";
 import labelsImage from "./images/Labels.png";
-import steveTexture from "./textures/Steve.png";
+import steveTexture from "../_common/skins/wide/steve.png";
+import alexImage from "../_common/skins/slim/alex.png";
 
 const id = "minecraft-cat-character";
 
@@ -44,6 +45,18 @@ const textures: TextureDef[] = [
     standardWidth: 64,
     standardHeight: 64,
   },
+  {
+    id: "Steve",
+    url: steveTexture.src,
+    standardWidth: 64,
+    standardHeight: 64,
+  },
+  {
+    id: "Alex",
+    url: alexImage.src,
+    standardWidth: 64,
+    standardHeight: 64,
+  },
 ];
 
 const script: ScriptDef = (generator: Generator) => {
@@ -64,7 +77,7 @@ const script: ScriptDef = (generator: Generator) => {
   generator.defineTextureInput("Skin", {
     standardWidth: 64,
     standardHeight: 64,
-    choices: [],
+    choices: ["Steve", "Alex"],
     enableMinecraftSkinInput: true,
   });
   // Define user variables

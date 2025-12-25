@@ -22,7 +22,8 @@ import thumbnailImage from "./thumbnail/thumbnail-256.jpeg";
 import backgroundImage from "./images/Background.png";
 import foldsImage from "./images/Folds.png";
 import labelsImage from "./images/Labels.png";
-import steveImage from "./textures/Steve.png";
+import steveImage from "../_common/skins/wide/steve.png";
+import alexImage from "../_common/skins/slim/alex.png";
 import axolotlBlueImage from "./textures/axolotl_blue.png";
 import axolotlCyanImage from "./textures/axolotl_cyan.png";
 import axolotlLucyImage from "./textures/axolotl_lucy.png";
@@ -56,6 +57,18 @@ const textures: TextureDef[] = [
   {
     id: "Skin",
     url: steveImage.src,
+    standardWidth: 64,
+    standardHeight: 64,
+  },
+  {
+    id: "Steve",
+    url: steveImage.src,
+    standardWidth: 64,
+    standardHeight: 64,
+  },
+  {
+    id: "Alex",
+    url: alexImage.src,
     standardWidth: 64,
     standardHeight: 64,
   },

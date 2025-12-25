@@ -20,6 +20,7 @@ import hole1Image from "./images/Hole1.png";
 import hole2Image from "./images/Hole2.png";
 import hole3Image from "./images/Hole3.png";
 import skinTexture from "./textures/Skin.png";
+import alexImage from "../_common/skins/slim/alex.png";
 
 const id = "minecraft-mutant-character";
 
@@ -52,13 +53,25 @@ const textures: TextureDef[] = [
     standardWidth: 64,
     standardHeight: 64,
   },
+  {
+    id: "Steve",
+    url: skinTexture.src,
+    standardWidth: 64,
+    standardHeight: 64,
+  },
+  {
+    id: "Alex",
+    url: alexImage.src,
+    standardWidth: 64,
+    standardHeight: 64,
+  },
 ];
 
 const script: ScriptDef = (generator: Generator) => {
   generator.defineTextureInput("Skin", {
     standardWidth: 64,
     standardHeight: 64,
-    choices: [],
+    choices: ["Steve", "Alex"],
     enableMinecraftSkinInput: true,
   });
 

@@ -19,7 +19,8 @@ import labelsImage from "./images/Labels.png";
 import actionFigureImage from "./images/Action-Figure.png";
 import actionFigureFoldsImage from "./images/Action-Figure-Folds.png";
 import actionFigureLabelsImage from "./images/Action-Figure-Labels.png";
-import steveImage from "./textures/Steve.png";
+import steveImage from "../_common/skins/wide/steve.png";
+import alexImage from "../_common/skins/slim/alex.png";
 
 const id = "minecraft-creeper-character";
 
@@ -52,6 +53,18 @@ const textures: TextureDef[] = [
     standardWidth: 64,
     standardHeight: 64,
   },
+  {
+    id: "Steve",
+    url: steveImage.src,
+    standardWidth: 64,
+    standardHeight: 64,
+  },
+  {
+    id: "Alex",
+    url: alexImage.src,
+    standardWidth: 64,
+    standardHeight: 64,
+  },
 ];
 
 const script: ScriptDef = (generator: Generator) => {
@@ -63,7 +76,7 @@ const script: ScriptDef = (generator: Generator) => {
   generator.defineTextureInput("Skin", {
     standardWidth: 64,
     standardHeight: 64,
-    choices: [],
+    choices: ["Steve", "Alex"],
     enableMinecraftSkinInput: true,
   });
 

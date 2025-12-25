@@ -32,7 +32,8 @@ import chainmailArmorFaithfulTexture from "./textures/faithful/chainmail-armor.p
 import ironArmorFaithfulTexture from "./textures/faithful/iron-armor.png";
 import saddleSpacePigTexture from "./textures/space-pig/saddle.png";
 import armorSpacePigTexture from "./textures/space-pig/armor.png";
-import steveTexture from "./textures/Steve.png";
+import steveTexture from "../_common/skins/wide/steve.png";
+import alexImage from "../_common/skins/slim/alex.png";
 
 const id = "minecraft-pig-character";
 
@@ -82,6 +83,18 @@ const textures: TextureDef[] = [
     url: pigTexture.src,
     standardWidth: 64,
     standardHeight: 32,
+  },
+  {
+    id: "Steve",
+    url: steveTexture.src,
+    standardWidth: 64,
+    standardHeight: 64,
+  },
+  {
+    id: "Alex",
+    url: alexImage.src,
+    standardWidth: 64,
+    standardHeight: 64,
   },
   {
     id: "Saddle (Vanilla)",
@@ -323,7 +336,7 @@ const script: ScriptDef = (generator: Generator) => {
     texture: skinTexture,
     width: 64,
     height: 64,
-    choices: [],
+    choices: ["Steve", "Alex"],
     enableMinecraftSkinInput: true,
   });
 

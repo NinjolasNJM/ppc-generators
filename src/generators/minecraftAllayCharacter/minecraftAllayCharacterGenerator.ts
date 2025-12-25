@@ -16,6 +16,8 @@ import thumbnailImage from "./thumbnail/thumbnail-256.jpeg";
 import overlayAllayImage from "./images/OverlayAllay.png";
 import skin1Image from "./textures/Skin1.png";
 import skin2Image from "./textures/Skin2.png";
+import steveImage from "../_common/skins/wide/steve.png";
+import alexImage from "../_common/skins/slim/alex.png";
 
 const id = "minecraft-allay-character";
 
@@ -45,6 +47,18 @@ const textures: TextureDef[] = [
   {
     id: "Skin2",
     url: skin2Image.src,
+    standardWidth: 64,
+    standardHeight: 64,
+  },
+  {
+    id: "Steve",
+    url: steveImage.src,
+    standardWidth: 64,
+    standardHeight: 64,
+  },
+  {
+    id: "Alex",
+    url: alexImage.src,
     standardWidth: 64,
     standardHeight: 64,
   },
@@ -722,7 +736,7 @@ const script: ScriptDef = (generator: Generator) => {
   generator.defineTextureInput("Skin1", {
     standardWidth: 64,
     standardHeight: 64,
-    choices: [],
+    choices: ["Steve", "Alex"],
     enableMinecraftSkinInput: true,
   });
 
@@ -734,7 +748,7 @@ const script: ScriptDef = (generator: Generator) => {
   generator.defineTextureInput("Skin2", {
     standardWidth: 64,
     standardHeight: 64,
-    choices: [],
+    choices: ["Steve", "Alex"],
     enableMinecraftSkinInput: true,
   });
 

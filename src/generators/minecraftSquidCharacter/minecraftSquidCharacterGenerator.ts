@@ -13,7 +13,8 @@ import { type Generator } from "@genroot/builder/modules/generator";
 import thumbnailImage from "./thumbnail/v3-thumbnail-256.jpeg";
 import backgroundImage from "./images/Background.png";
 import foldsImage from "./images/Folds.png";
-import steveTexture from "./textures/Steve.png";
+import steveTexture from "../_common/skins/wide/steve.png";
+import alexImage from "../_common/skins/slim/alex.png";
 import squidTexture from "./textures/Squid.png";
 
 const id = "minecraft-squid-character";
@@ -51,6 +52,18 @@ const textures: TextureDef[] = [
     standardHeight: 64,
   },
   {
+    id: "Steve",
+    url: steveTexture.src,
+    standardWidth: 64,
+    standardHeight: 64,
+  },
+  {
+    id: "Alex",
+    url: alexImage.src,
+    standardWidth: 64,
+    standardHeight: 64,
+  },
+  {
     id: "Squid",
     url: squidTexture.src,
     standardWidth: 64,
@@ -66,7 +79,7 @@ const script: ScriptDef = (generator: Generator) => {
   generator.defineTextureInput("Skin", {
     standardWidth: 64,
     standardHeight: 64,
-    choices: [],
+    choices: ["Steve", "Alex"],
     enableMinecraftSkinInput: true,
   });
 
