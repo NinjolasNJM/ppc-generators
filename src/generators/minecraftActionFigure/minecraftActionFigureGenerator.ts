@@ -34,6 +34,7 @@ const history: HistoryDef = [
   "06 Jun 2021 NinjolasNJM - Converted to ReScript generator.",
   "02 Feb 2024 NinjolasNJM - Reworked layout, improved notches and added skin input",
   "22 Mar 2024 NinjolasNJM - Converted to TypeScript Generator.",
+  "24 Dec 2025 NinjolasNJM - Added option for second layer separate from main body.",
 ];
 
 const thumbnail: ThumbnailDef = {
@@ -77,13 +78,28 @@ const script: ScriptDef = (generator: Generator) => {
   generator.defineBooleanInput("Show Folds", true);
   generator.defineBooleanInput("Show Labels", true);
   generator.defineBooleanInput("Hand Notches", true);
+  generator.defineBooleanInput("3D Second Layer", true);
   // Get user variable values
   const isAlexModel = generator.getSelectInputValue("Skin Model") === "Alex";
 
   const showFolds = generator.getBooleanInputValue("Show Folds");
   const showLabels = generator.getBooleanInputValue("Show Labels");
   const handNotches = generator.getBooleanInputValue("Hand Notches");
+  const secondLayer = generator.getBooleanInputValue("3D Second Layer");
 
+  /* 
+    Redefine how overlay works:
+    each variable can be true, false, or separate
+    separate ones are drawn on a second page, and then each one needs to be cycling between different center faces
+    meaning that there can either be a rework of how the toggle works, or there can be the same first toggle where it does what you think, but when false...
+    it enables the second page, and that ones toggle is for the center faces instead.
+    How it looks like:
+    - add a toggle in menu for "enable 3d second layer"
+    - this makes it so that when an overlay is false, it goes to the second page
+    - second page draws in basic way(?) but wih need for center faces cycling.
+    - currently no folds, labels or tabs on second page, in case the layer needs to be slightly bigger or a discrete layout needs to be thought through.
+    also to anticiptate generating specific tab layouts if that ends up being needed.
+  */
   const showHeadOverlay = generator.getBooleanInputValueWithDefault(
     "Show Head Overlay",
     true
@@ -356,6 +372,59 @@ const script: ScriptDef = (generator: Generator) => {
     }
   }
 
+  // Second Layers for second page. Stolen from character gen and modified to let you change the center.
+  function draw3DHead([ox, oy]: [number, number]) {
+    const dimensions: Dimensions = [64, 64, 64];
+    minecraftGenerator.drawCuboid("Skin", char.overlay.head, [ox, oy], dimensions);
+  }
+
+  function draw3DBody([ox, oy]: [number, number]) {
+    const dimensions: Dimensions = [64, 96, 32];
+    minecraftGenerator.drawCuboid("Skin", char.overlay.body, [ox, oy], dimensions);
+  }
+
+  function draw3DRightArm([ox, oy]: [number, number]) {
+    const dimensions: Dimensions = char === alex ? [24, 96, 32] : [32, 96, 32];
+    minecraftGenerator.drawCuboid(
+      "Skin",
+      char.overlay.rightArm,
+      [ox, oy],
+      dimensions
+    );
+  }
+
+  function draw3DLeftArm([ox, oy]: [number, number]) {
+    const dimensions: Dimensions = char === alex ? [24, 96, 32] : [32, 96, 32];
+    minecraftGenerator.drawCuboid(
+      "Skin",
+      char.overlay.leftArm,
+      [ox, oy],
+      dimensions,
+      { orientation: "East" }
+    );
+  }
+
+  function draw3DRightLeg([ox, oy]: [number, number]) {
+    const dimensions: Dimensions = [32, 96, 32];
+    minecraftGenerator.drawCuboid(
+      "Skin",
+      char.overlay.rightLeg,
+      [ox, oy],
+      dimensions
+    );
+  }
+
+  function draw3DLeftLeg([ox, oy]: [number, number]) {
+    const dimensions: Dimensions = [32, 96, 32];
+    minecraftGenerator.drawCuboid(
+      "Skin",
+      char.overlay.leftLeg,
+      [ox, oy],
+      dimensions,
+      { orientation: "East" }
+    );
+  }
+
   function drawNotch([ox, oy]: [number, number], isLeftSide: boolean) {
     const dir = isLeftSide ? 1 : 0;
     const [x, y, w, h] = [ox + dir, oy, 8, 24];
@@ -530,6 +599,66 @@ const script: ScriptDef = (generator: Generator) => {
   // Labels
   if (showLabels) {
     generator.drawImage("Labels", [0, 0]);
+  }
+
+  // Second Layer Page
+  if (secondLayer && (  !showHeadOverlay ||  !showBodyOverlay ||
+      !showLeftArmOverlay ||
+      !showRightArmOverlay ||
+      !showLeftLegOverlay ||
+      !showRightLegOverlay)) {
+    generator.usePage("Second Layer");
+
+    // Head
+    [ox, oy] = getGridOrigin(1, 1);
+
+    if (!showHeadOverlay) {
+      draw3DHead([ox, oy]);
+    }
+
+    // Body
+
+    [ox, oy] = getGridOrigin(7, 6);
+
+    if (!showBodyOverlay) {
+      draw3DBody([ox, oy]);
+    }
+
+    // Arms
+
+    // Right Arm
+
+    [ox, oy] = getGridOrigin(1, 10);
+    ox = isAlexModel ? ox + 8 : ox;
+
+    if (!showRightArmOverlay) {
+      draw3DRightArm([ox, oy]);
+    }
+
+    // Left Arm
+
+    [ox, oy] = getGridOrigin(13, 10);
+    ox = isAlexModel ? ox + 8 : ox;
+
+    if (!showLeftArmOverlay) {
+      draw3DLeftArm([ox, oy]);
+    }
+
+    // Right Leg
+
+    [ox, oy] = getGridOrigin(1, 18);
+
+    if (!showRightLegOverlay) {
+      draw3DRightLeg([ox, oy]);
+    }
+
+    // Left Leg
+
+    [ox, oy] = getGridOrigin(13, 18);
+
+    if (!showLeftLegOverlay) {
+      draw3DLeftLeg([ox, oy]);
+    }
   }
 };
 
