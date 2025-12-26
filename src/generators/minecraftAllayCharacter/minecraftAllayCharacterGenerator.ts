@@ -729,36 +729,36 @@ const script: ScriptDef = (generator: Generator) => {
     );
   };
 
-  generator.defineSelectInput("Character 1 skin model type", ["Steve", "Alex"]);
+  generator.defineSelectInput("Character 1 skin model type", ["Wide", "Slim"]);
 
   generator.defineTextureInput("Skin1", {
     standardWidth: 64,
     standardHeight: 64,
-    choices: ["Steve", "Alex"],
+    choices: [],
     enableMinecraftSkinInput: true,
   });
 
-  const alexModel1 =
-    generator.getSelectInputValue("Character 1 skin model type") === "Alex";
+  const isSlimModel1 =
+    generator.getSelectInputValue("Character 1 skin model type") === "Slim";
 
-  generator.defineSelectInput("Character 2 skin model type", ["Steve", "Alex"]);
+  generator.defineSelectInput("Character 2 skin model type", ["Wide", "Slim"]);
 
   generator.defineTextureInput("Skin2", {
     standardWidth: 64,
     standardHeight: 64,
-    choices: ["Steve", "Alex"],
+    choices: [],
     enableMinecraftSkinInput: true,
   });
 
-  const alexModel2 =
-    generator.getSelectInputValue("Character 2 skin model type") === "Alex";
+  const isSlimModel2 =
+    generator.getSelectInputValue("Character 2 skin model type") === "Slim";
 
   // Skin 1
 
   drawHead(62, 63, "Skin1");
   drawBody(422, 84, "Skin1");
 
-  if (alexModel1) {
+  if (isSlimModel1) {
     drawRightArmAlex(186, 198, "Skin1");
     drawLeftArmAlex(48, 198, "Skin1");
   } else {
@@ -773,7 +773,7 @@ const script: ScriptDef = (generator: Generator) => {
   drawHead(62, 424, "Skin2");
   drawBody(422, 445, "Skin2");
 
-  if (alexModel2) {
+  if (isSlimModel2) {
     drawRightArmAlex(186, 198 + 361, "Skin2");
     drawLeftArmAlex(48, 198 + 361, "Skin2");
   } else {

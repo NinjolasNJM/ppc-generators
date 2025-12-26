@@ -457,7 +457,7 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Define input textures
 
-  generator.defineSelectInput("Skin Model Type", ["Steve", "Alex"]);
+  generator.defineSelectInput("Skin Model Type", ["Wide", "Slim"]);
 
   generator.defineTextureInput("Skin", {
     standardWidth: 64,
@@ -492,7 +492,7 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Get user variable values
 
-  const alexModel = generator.getSelectInputValue("Skin Model Type") === "Alex";
+  const isSlimModel = generator.getSelectInputValue("Skin Model Type") === "Slim";
   const showFolds = generator.getBooleanInputValue("Show Folds");
   const showLabels = generator.getBooleanInputValue("Show Labels");
   const showOverlay = generator.getBooleanInputValue("Show Overlay");
@@ -502,7 +502,7 @@ const script: ScriptDef = (generator: Generator) => {
 
   drawBody(steve.base);
 
-  if (alexModel) {
+  if (isSlimModel) {
     drawArms(alex.base);
   } else {
     drawArms(steve.base);
@@ -516,7 +516,7 @@ const script: ScriptDef = (generator: Generator) => {
   if (showOverlay) {
     drawHead(steve.overlay, faceStretch);
     drawBody(steve.overlay);
-    if (alexModel) {
+    if (isSlimModel) {
       drawArms(alex.overlay);
     } else {
       drawArms(steve.overlay);

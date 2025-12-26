@@ -81,6 +81,12 @@ export function Controls({
                   control.props.enableMinecraftSkinInput ?? false
                 }
                 textures={model.values.textures}
+                getModelSelectValue={(id: string) => model.getStringVariable(id)}
+                getModelStringValue={(id: string) => model.getStringVariable(id)}
+                setModelStringValue={(id: string, value: string | null) => {
+                  model.setStringVariable(id, value ?? "");
+                  onChange(model);
+                }}
                 onChange={(texture) => onTextureChange(control.id, texture)}
               />
             );

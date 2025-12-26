@@ -578,17 +578,17 @@ const script: ScriptDef = (generator: Generator) => {
     },
   };
 
-  generator.defineSelectInput("Character 1 skin model type", ["Steve", "Alex"]);
+  generator.defineSelectInput("Character 1 skin model type", ["Wide", "Slim"]);
 
   generator.defineTextureInput("Skin1", {
     standardWidth: 64,
     standardHeight: 64,
-    choices: ["Steve", "Alex"],
+    choices: [],
     enableMinecraftSkinInput: true,
   });
 
-  const alexModel1 =
-    generator.getSelectInputValue("Character 1 skin model type") === "Alex";
+  const isSlimModel1 =
+    generator.getSelectInputValue("Character 1 skin model type") === "Slim";
 
   generator.defineRangeInput("Head size 1", {
     min: 0,
@@ -599,17 +599,17 @@ const script: ScriptDef = (generator: Generator) => {
 
   const headmultiplier1 = generator.getRangeInputValue("Head size 1");
 
-  generator.defineSelectInput("Character 2 skin model type", ["Steve", "Alex"]);
+  generator.defineSelectInput("Character 2 skin model type", ["Wide", "Slim"]);
 
   generator.defineTextureInput("Skin2", {
     standardWidth: 64,
     standardHeight: 64,
-    choices: ["Steve", "Alex"],
+    choices: [],
     enableMinecraftSkinInput: true,
   });
 
-  const alexModel2 =
-    generator.getSelectInputValue("Character 2 skin model type") === "Alex";
+  const isSlimModel2 =
+    generator.getSelectInputValue("Character 2 skin model type") === "Slim";
 
   generator.defineRangeInput("Head size 2", {
     min: 0,
@@ -628,7 +628,7 @@ const script: ScriptDef = (generator: Generator) => {
   drawing.drawHead(ox1, oy1, headmultiplier1, "Skin1");
   drawing.drawBody(ox1, oy1, headmultiplier1, "Skin1");
 
-  if (alexModel1) {
+  if (isSlimModel1) {
     drawing.drawRightArmAlex(ox1 + 221, oy1 - 53, "Skin1");
     drawing.drawLeftArmAlex(ox1 + 245, oy1 - 53, "Skin1");
   } else {
@@ -642,7 +642,7 @@ const script: ScriptDef = (generator: Generator) => {
   drawing.drawLeftLeg(ox1 + 245, oy1 + 12, "Skin1");
   drawing.drawPlan(ox1 + 321, oy1 - 48, headmultiplier1, "Skin1");
 
-  if (alexModel1) {
+  if (isSlimModel1) {
     drawing.drawPlanArmsAlex(ox1 + 321, oy1 - 48, "Skin1");
   } else {
     drawing.drawPlanArms(ox1 + 321, oy1 - 48, "Skin1");
@@ -654,7 +654,7 @@ const script: ScriptDef = (generator: Generator) => {
   drawing.drawHead(ox2, oy2, headmultiplier2, "Skin2");
   drawing.drawBody(ox2, oy2, headmultiplier2, "Skin2");
 
-  if (alexModel2) {
+  if (isSlimModel2) {
     drawing.drawRightArmAlex(ox2 + 221, oy2 - 53, "Skin2");
     drawing.drawLeftArmAlex(ox2 + 245, oy2 - 53, "Skin2");
   } else {
@@ -668,7 +668,7 @@ const script: ScriptDef = (generator: Generator) => {
   drawing.drawLeftLeg(ox2 + 245, oy2 + 12, "Skin2");
   drawing.drawPlan(ox2 + 321, oy2 - 48, headmultiplier2, "Skin2");
 
-  if (alexModel2) {
+  if (isSlimModel2) {
     drawing.drawPlanArmsAlex(ox2 + 321, oy2 - 48, "Skin2");
   } else {
     drawing.drawPlanArms(ox2 + 321, oy2 - 48, "Skin2");

@@ -71,13 +71,13 @@ const script: ScriptDef = (generator: Generator) => {
   generator.defineTextureInput("Skin", {
     standardWidth: 64,
     standardHeight: 64,
-    choices: ["Steve", "Alex"],
+    choices: [],
     enableMinecraftSkinInput: true,
   });
 
-  generator.defineSelectInput("Skin style", ["Steve", "Alex"]);
+  generator.defineSelectInput("Skin style", ["Wide", "Slim"]);
 
-  const alexModel = generator.getSelectInputValue("Skin style") === "Alex";
+  const isSlimModel = generator.getSelectInputValue("Skin style") === "Slim";
 
   generator.usePage("Page 1");
   generator.drawImage("Page1", [0, 0]);
@@ -147,7 +147,7 @@ const script: ScriptDef = (generator: Generator) => {
     { flip: "Vertical" }
   ); // Bottom
 
-  if (alexModel) {
+  if (isSlimModel) {
     // Right Arm
 
     generator.drawTextureLegacy(
@@ -468,7 +468,7 @@ const script: ScriptDef = (generator: Generator) => {
 
   generator.drawImage("Page2", [0, 0]);
 
-  if (alexModel) {
+  if (isSlimModel) {
     generator.drawTextureLegacy(
       "Skin",
       { x: 40, y: 26, w: 4, h: 6 },

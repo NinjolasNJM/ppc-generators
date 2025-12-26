@@ -77,12 +77,12 @@ const script: ScriptDef = (generator: Generator) => {
   const minecraftGenerator = new Minecraft(generator);
   // Define user inputs
 
-  generator.defineSelectInput("Skin Model", ["Steve", "Alex"]);
+  generator.defineSelectInput("Skin Model", ["Wide", "Slim"]);
 
   generator.defineTextureInput("Skin", {
     standardWidth: 64,
     standardHeight: 64,
-    choices: ["Steve", "Alex"],
+    choices: [],
     enableMinecraftSkinInput: true,
   });
 
@@ -93,7 +93,7 @@ const script: ScriptDef = (generator: Generator) => {
   generator.defineBooleanInput("Hand Notches", true);
   generator.defineBooleanInput("Enable 3D Second Layers", true);
   // Get user variable values
-  const isAlexModel = generator.getSelectInputValue("Skin Model") === "Alex";
+  const isSlimModel = generator.getSelectInputValue("Skin Model") === "Slim";
 
   const showFolds = generator.getBooleanInputValue("Show Folds");
   const showLabels = generator.getBooleanInputValue("Show Labels");
@@ -149,7 +149,7 @@ const leftLegOverlayCenter = (generator.getSelectInputValue("Left Leg Center") ?
 
   const m16Mode = generator.getBooleanInputValueWithDefault("M16 Mode", false);
 
-  const char = isAlexModel ? alex : steve;
+  const char = isSlimModel ? alex : steve;
 
   function drawHead([ox, oy]: [number, number]) {
     const dimensions: Dimensions = [64, 64, 64];
@@ -502,11 +502,11 @@ const leftLegOverlayCenter = (generator.getSelectInputValue("Left Leg Center") ?
   // Right Arm
 
   [ox, oy] = getGridOrigin(1, 10);
-  ox = isAlexModel ? ox + 8 : ox;
+  ox = isSlimModel ? ox + 8 : ox;
 
   drawRightArm([ox, oy]);
 
-  generator.defineRegionInput([ox, oy, isAlexModel ? 112 : 128, 160], () => {
+  generator.defineRegionInput([ox, oy, isSlimModel ? 112 : 128, 160], () => {
     generator.setBooleanInputValue(
       "Show Right Arm Overlay",
       !showRightArmOverlay
@@ -522,11 +522,11 @@ const leftLegOverlayCenter = (generator.getSelectInputValue("Left Leg Center") ?
   // Left Arm
 
   [ox, oy] = getGridOrigin(13, 10);
-  ox = isAlexModel ? ox + 8 : ox;
+  ox = isSlimModel ? ox + 8 : ox;
 
   drawLeftArm([ox, oy]);
 
-  generator.defineRegionInput([ox, oy, isAlexModel ? 112 : 128, 166], () => {
+  generator.defineRegionInput([ox, oy, isSlimModel ? 112 : 128, 166], () => {
     generator.setBooleanInputValue(
       "Show Left Arm Overlay",
       !showLeftArmOverlay
@@ -564,7 +564,7 @@ const leftLegOverlayCenter = (generator.getSelectInputValue("Left Leg Center") ?
   });
 
   // Foreground
-  if (isAlexModel) {
+  if (isSlimModel) {
     generator.drawImage("Foreground-Alex", [0, 0]);
   } else {
     generator.drawImage("Foreground-Steve", [0, 0]);
@@ -572,7 +572,7 @@ const leftLegOverlayCenter = (generator.getSelectInputValue("Left Leg Center") ?
 
   // Folds
   if (showFolds) {
-    if (isAlexModel) {
+    if (isSlimModel) {
       generator.drawImage("Folds-Alex", [0, 0]);
     } else {
       generator.drawImage("Folds-Steve", [0, 0]);
@@ -607,14 +607,14 @@ const leftLegOverlayCenter = (generator.getSelectInputValue("Left Leg Center") ?
   if (handNotches) {
     // Right Hand Notches
     [ox, oy] = getGridOrigin(1, 10);
-    ox = isAlexModel ? ox + 4 : ox;
+    ox = isSlimModel ? ox + 4 : ox;
     drawNotch([ox + 44, oy + 104], false); // Front Notch
-    drawNotch([ox + (isAlexModel ? 100 : 108), oy + 104], true); // Back Notch
+    drawNotch([ox + (isSlimModel ? 100 : 108), oy + 104], true); // Back Notch
 
     // Left Hand Notches
     [ox, oy] = getGridOrigin(13, 10);
-    ox = isAlexModel ? ox + 4 : ox;
-    drawNotch([ox + (isAlexModel ? 68 : 76), oy + 104], true); // Front Notch
+    ox = isSlimModel ? ox + 4 : ox;
+    drawNotch([ox + (isSlimModel ? 68 : 76), oy + 104], true); // Front Notch
     drawNotch([ox + 12, oy + 104], false); // Back Notch
   }
 
@@ -654,14 +654,15 @@ const leftLegOverlayCenter = (generator.getSelectInputValue("Left Leg Center") ?
 
     // Arms
 
+
     // Right Arm
 
     [ox, oy] = getGridOrigin(1, 10);
-    ox = isAlexModel ? ox + 8 : ox;
+    ox = isSlimModel ? ox + 8 : ox;
 
     if (!showRightArmOverlay) {
       draw3DRightArm([ox, oy], rightArmOverlayCenter);
-      generator.defineRegionInput([ox, oy, isAlexModel ? 112 : 128, 160], () => {
+      generator.defineRegionInput([ox, oy, isSlimModel ? 112 : 128, 160], () => {
   generator.setSelectInputValue("Right Arm Center", cycleCenter(generator.getSelectInputValue("Right Arm Center")));
 });
     }
@@ -669,11 +670,11 @@ const leftLegOverlayCenter = (generator.getSelectInputValue("Left Leg Center") ?
     // Left Arm
 
     [ox, oy] = getGridOrigin(13, 10);
-    ox = isAlexModel ? ox + 8 : ox;
+    ox = isSlimModel ? ox + 8 : ox;
 
     if (!showLeftArmOverlay) {
       draw3DLeftArm([ox, oy], leftArmOverlayCenter);
-      generator.defineRegionInput([ox, oy, isAlexModel ? 112 : 128, 166], () => {
+      generator.defineRegionInput([ox, oy, isSlimModel ? 112 : 128, 166], () => {
   generator.setSelectInputValue("Left Arm Center", cycleCenter(generator.getSelectInputValue("Left Arm Center")));
 });
     }

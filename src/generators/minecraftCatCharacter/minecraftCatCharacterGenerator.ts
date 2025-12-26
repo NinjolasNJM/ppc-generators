@@ -73,18 +73,18 @@ const script: ScriptDef = (generator: Generator) => {
   };
 
   // Define user inputs
-  generator.defineSelectInput("Skin Model Type", ["Steve", "Alex"]);
+  generator.defineSelectInput("Skin Model Type", ["Wide", "Slim"]);
   generator.defineTextureInput("Skin", {
     standardWidth: 64,
     standardHeight: 64,
-    choices: ["Steve", "Alex"],
+    choices: [],
     enableMinecraftSkinInput: true,
   });
   // Define user variables
   generator.defineBooleanInput("Show Folds", true);
   generator.defineBooleanInput("Show Labels", true);
   // Get user variable values
-  const alexModel = generator.getSelectInputValue("Skin Model Type") === "Alex";
+  const isSlimModel = generator.getSelectInputValue("Skin Model Type") === "Slim";
   const showFolds = generator.getBooleanInputValue("Show Folds");
   const showLabels = generator.getBooleanInputValue("Show Labels");
   // Script Variables
@@ -305,7 +305,7 @@ const script: ScriptDef = (generator: Generator) => {
     ); //back
   }
   // Legs
-  if (alexModel) {
+  if (isSlimModel) {
     // Front Right Leg
     generator.drawTextureLegacy(
       "Skin",
@@ -358,7 +358,7 @@ const script: ScriptDef = (generator: Generator) => {
     ); // bottom
   }
   if (!hideRightSleeve) {
-    if (alexModel) {
+    if (isSlimModel) {
       // Front Right Leg Pant
       generator.drawTextureLegacy(
         "Skin",
@@ -411,7 +411,7 @@ const script: ScriptDef = (generator: Generator) => {
       ); // bottom
     }
   }
-  if (alexModel) {
+  if (isSlimModel) {
     // Front Left Leg
     generator.drawTextureLegacy(
       "Skin",
@@ -464,7 +464,7 @@ const script: ScriptDef = (generator: Generator) => {
     ); // bottom
   }
   if (!hideLeftSleeve) {
-    if (alexModel) {
+    if (isSlimModel) {
       // Front Left Leg Pant
       generator.drawTextureLegacy(
         "Skin",
@@ -591,7 +591,7 @@ const script: ScriptDef = (generator: Generator) => {
     ); // bottom
   }
   const drawTail = (sx: number, sy: number, isArm: boolean) => {
-    if (isArm && alexModel) {
+    if (isArm && isSlimModel) {
       // Tail
       generator.drawTextureLegacy(
         "Skin",

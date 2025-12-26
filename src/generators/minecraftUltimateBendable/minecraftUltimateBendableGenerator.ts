@@ -80,20 +80,20 @@ const script: ScriptDef = (generator: Generator) => {
   generator.defineTextureInput("Skin", {
     standardWidth: 64,
     standardHeight: 64,
-    choices: ["Steve", "Alex"],
+    choices: [],
     enableMinecraftSkinInput: true,
   });
 
   // Define user variables
 
-  generator.defineSelectInput("Skin Model Type", ["Steve", "Alex"]);
+  generator.defineSelectInput("Skin Model Type", ["Wide", "Slim"]);
   generator.defineBooleanInput("Show Folds", true);
   generator.defineBooleanInput("Show Color Codes", true);
   generator.defineBooleanInput("Show Labels", true);
 
   // Get user variable values
 
-  const alexModel = generator.getSelectInputValue("Skin Model Type") === "Alex";
+  const isSlimModel = generator.getSelectInputValue("Skin Model Type") === "Slim";
   const showFolds = generator.getBooleanInputValue("Show Folds");
   const showColorCodes = generator.getBooleanInputValue("Show Color Codes");
   const showLabels = generator.getBooleanInputValue("Show Labels");
@@ -227,7 +227,7 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Left Arm
 
-  if (alexModel) {
+  if (isSlimModel) {
     // Left Shoulder
 
     generator.drawTextureLegacy(
@@ -323,7 +323,7 @@ const script: ScriptDef = (generator: Generator) => {
   }
   // Right Arm
 
-  if (alexModel) {
+  if (isSlimModel) {
     // Right Shoulder
 
     generator.drawTextureLegacy(
@@ -615,7 +615,7 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Left Arm
 
-  if (alexModel) {
+  if (isSlimModel) {
     if (!hideLeftSleeve) {
       //Left Shoulder
 
@@ -725,7 +725,7 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Right Arm
 
-  if (alexModel) {
+  if (isSlimModel) {
     if (!hideRightSleeve) {
       // Right Shoulder
 
@@ -952,7 +952,7 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Background
 
-  if (alexModel) {
+  if (isSlimModel) {
     generator.drawImage("Background-Alex", [0, 0]);
   } else {
     generator.drawImage("Background-Steve", [0, 0]);
@@ -961,7 +961,7 @@ const script: ScriptDef = (generator: Generator) => {
   // Folds
 
   if (showFolds) {
-    if (alexModel) {
+    if (isSlimModel) {
       generator.drawImage("Folds-Alex", [0, 0]);
     } else {
       generator.drawImage("Folds-Steve", [0, 0]);
@@ -971,7 +971,7 @@ const script: ScriptDef = (generator: Generator) => {
   // Color Code
 
   if (showColorCodes) {
-    if (alexModel) {
+    if (isSlimModel) {
       generator.drawImage("Colors-Alex", [0, 0]);
     } else {
       generator.drawImage("Colors-Steve", [0, 0]);

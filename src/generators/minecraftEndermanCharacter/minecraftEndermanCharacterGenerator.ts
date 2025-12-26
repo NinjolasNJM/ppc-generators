@@ -63,11 +63,11 @@ const textures: TextureDef[] = [
 const script: ScriptDef = (generator: Generator) => {
   // Define input textures
 
-  generator.defineSelectInput("Skin Model Type", ["Steve", "Alex"]);
+  generator.defineSelectInput("Skin Model Type", ["Wide", "Slim"]);
   generator.defineTextureInput("Skin", {
     standardWidth: 64,
     standardHeight: 64,
-    choices: ["Steve", "Alex"],
+    choices: [],
     enableMinecraftSkinInput: true,
   });
 
@@ -78,7 +78,7 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Get user variable values
 
-  const alexModel = generator.getSelectInputValue("Skin Model Type") === "Alex";
+  const isSlimModel = generator.getSelectInputValue("Skin Model Type") === "Slim";
   const showFolds = generator.getBooleanInputValue("Show Folds");
   const showLabels = generator.getBooleanInputValue("Show Labels");
 
@@ -194,7 +194,7 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Right arm
 
-  if (alexModel) {
+  if (isSlimModel) {
     generator.drawTextureLegacy("Skin", alex.base.rightArm.right, {
       x: 96,
       y: 400,
@@ -272,7 +272,7 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Left arm
 
-  if (alexModel) {
+  if (isSlimModel) {
     generator.drawTextureLegacy("Skin", alex.base.leftArm.right, {
       x: 190,
       y: 400,
@@ -511,7 +511,7 @@ const script: ScriptDef = (generator: Generator) => {
   if (!hideRightSleeve) {
     // Right Sleeve
 
-    if (alexModel) {
+    if (isSlimModel) {
       generator.drawTextureLegacy("Skin", alex.overlay.rightArm.right, {
         x: 96,
         y: 400,
@@ -590,7 +590,7 @@ const script: ScriptDef = (generator: Generator) => {
   if (!hideLeftSleeve) {
     // Left Sleeve
 
-    if (alexModel) {
+    if (isSlimModel) {
       generator.drawTextureLegacy("Skin", alex.overlay.leftArm.right, {
         x: 190,
         y: 400,

@@ -316,14 +316,14 @@ const script: ScriptDef = (generator: Generator) => {
     generator.defineTextureInput(textureId, {
       standardWidth: 64,
       standardHeight: 64,
-      choices: ["Steve", "Alex"],
+      choices: [],
       enableMinecraftSkinInput: true,
     });
 
     if (generator.hasTexture(textureId)) {
       const modelTypeName = textureId + " Model";
 
-      generator.defineSelectInput(modelTypeName, ["Steve", "Alex"]);
+      generator.defineSelectInput(modelTypeName, ["Wide", "Slim"]);
 
       const modelType = generator.getSelectInputValue(modelTypeName);
 
@@ -367,7 +367,7 @@ const script: ScriptDef = (generator: Generator) => {
         ["Simple", "Detailed"]
       );
 
-      const isAlexModel = modelType === "Alex";
+      const isSlimModel = modelType === "Slim";
       const pixelate = textureStyle === "Simple";
       let ox: number;
       let oy: number;
@@ -419,7 +419,7 @@ const script: ScriptDef = (generator: Generator) => {
 
       // Arms
 
-      const armTexture = isAlexModel ? alex : steve;
+      const armTexture = isSlimModel ? alex : steve;
 
       // Right Arm
 

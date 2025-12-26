@@ -73,11 +73,11 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Define input textures
 
-  generator.defineSelectInput("Skin Model Type", ["Steve", "Alex"]);
+  generator.defineSelectInput("Skin Model Type", ["Wide", "Slim"]);
   generator.defineTextureInput("Skin", {
     standardWidth: 64,
     standardHeight: 64,
-    choices: ["Steve", "Alex"],
+    choices: [],
     enableMinecraftSkinInput: true,
   });
   generator.defineTextureInput("Flower", {
@@ -98,7 +98,7 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Get user variable values
 
-  const alexModel = generator.getSelectInputValue("Skin Model Type") === "Alex";
+  const isSlimModel = generator.getSelectInputValue("Skin Model Type") === "Slim";
   const showFolds = generator.getBooleanInputValue("Show Folds");
   const showLabels = generator.getBooleanInputValue("Show Labels");
 
@@ -361,7 +361,7 @@ const script: ScriptDef = (generator: Generator) => {
   ox = 29;
   oy = 493;
 
-  if (alexModel) {
+  if (isSlimModel) {
     generator.drawTextureLegacy(
       "Skin",
       { x: 44, y: 20, w: 3, h: 12 },
@@ -432,7 +432,7 @@ const script: ScriptDef = (generator: Generator) => {
   ox = 216;
   oy = 493;
 
-  if (alexModel) {
+  if (isSlimModel) {
     generator.drawTextureLegacy(
       "Skin",
       { x: 36, y: 52, w: 3, h: 12 },
@@ -732,7 +732,7 @@ const script: ScriptDef = (generator: Generator) => {
     ox = 29;
     oy = 493;
 
-    if (alexModel) {
+    if (isSlimModel) {
       generator.drawTextureLegacy(
         "Skin",
         { x: 44, y: 36, w: 3, h: 12 },
@@ -805,7 +805,7 @@ const script: ScriptDef = (generator: Generator) => {
     ox = 216;
     oy = 493;
 
-    if (alexModel) {
+    if (isSlimModel) {
       generator.drawTextureLegacy(
         "Skin",
         { x: 52, y: 52, w: 3, h: 12 },

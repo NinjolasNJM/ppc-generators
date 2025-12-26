@@ -330,13 +330,13 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Define user inputs
 
-  generator.defineSelectInput("Skin Model Type", ["Steve", "Alex"]);
+  generator.defineSelectInput("Skin Model Type", ["Wide", "Slim"]);
 
   makeTextureInput({
     texture: skinTexture,
     width: 64,
     height: 64,
-    choices: ["Steve", "Alex"],
+    choices: [],
     enableMinecraftSkinInput: true,
   });
 
@@ -410,7 +410,7 @@ const script: ScriptDef = (generator: Generator) => {
   generator.defineBooleanInput("Show Titles", true);
   generator.defineBooleanInput("Transparent Background", false);
 
-  const alexModel = generator.getSelectInputValue("Skin Model Type") === "Alex";
+  const isSlimModel = generator.getSelectInputValue("Skin Model Type") === "Slim";
   const showFolds = generator.getBooleanInputValue("Show Folds");
   const showLabels = generator.getBooleanInputValue("Show Labels");
   const showTitles = generator.getBooleanInputValue("Show Titles");
@@ -832,7 +832,7 @@ const script: ScriptDef = (generator: Generator) => {
     dy: number,
     labelID: number,
     showSecondLayer: boolean,
-    alexModel: boolean
+    isSlimModel: boolean
   ) => {
     drawSprite(bgSprite, bgSprites.leg, dx, dy);
     const drawLayer = (
@@ -841,9 +841,9 @@ const script: ScriptDef = (generator: Generator) => {
       sy: number,
       dx: number,
       dy: number,
-      alexModel: boolean
+      isSlimModel: boolean
     ) => {
-      if (alexModel) {
+      if (isSlimModel) {
         generator.drawTextureLegacy(
           texture,
           { x: sx, y: sy + 4, w: 4, h: 12 },
@@ -909,9 +909,9 @@ const script: ScriptDef = (generator: Generator) => {
         ); // Bottom
       }
     };
-    drawLayer(texture, sx, sy, dx, dy, alexModel); // First Layer
+    drawLayer(texture, sx, sy, dx, dy, isSlimModel); // First Layer
     if (showSecondLayer) {
-      drawLayer(texture, ox, oy, dx, dy, alexModel); // Second Layer
+      drawLayer(texture, ox, oy, dx, dy, isSlimModel); // Second Layer
     }
     if (showFolds) {
       drawSprite(foldSprite, foldSprites.leg, dx, dy);
@@ -1439,9 +1439,9 @@ const script: ScriptDef = (generator: Generator) => {
     104,
     1,
     !hideRightSleeve,
-    alexModel
+    isSlimModel
   ); // Right Arm
-  drawLeg(skinTexture, 32, 48, 48, 48, 392, 288, 2, !hideLeftSleeve, alexModel); // Left Arm
+  drawLeg(skinTexture, 32, 48, 48, 48, 392, 288, 2, !hideLeftSleeve, isSlimModel); // Left Arm
   drawLeg(skinTexture, 0, 16, 0, 32, 392, 472, 3, !hideRightPant, false); // Right Leg
   drawLeg(skinTexture, 16, 48, 0, 48, 240, 584, 4, !hideLeftPant, false); // Left Leg
 
