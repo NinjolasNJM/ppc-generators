@@ -17,6 +17,7 @@ import overlayBeeImage from "./images/OverlayBee.png";
 
 import steveImage from "../_common/skins/wide/steve.png";
 import alexImage from "../_common/skins/slim/alex.png";
+import { getSkinUrl } from "../_common/skins";
 
 const id = "minecraft-bee-character";
 
@@ -39,28 +40,17 @@ const images: ImageDef[] = [{ id: "OverlayBee", url: overlayBeeImage.src }];
 const textures: TextureDef[] = [
   {
     id: "Skin1",
-    url: steveImage.src,
+    url: getSkinUrl("Default", "Wide"),
     standardWidth: 64,
     standardHeight: 64,
   },
   {
     id: "Skin2",
-    url: steveImage.src,
+    url: getSkinUrl("Default", "Wide"),
     standardWidth: 64,
     standardHeight: 64,
   },
-  {
-    id: "Steve",
-    url: steveImage.src,
-    standardWidth: 64,
-    standardHeight: 64,
-  },
-  {
-    id: "Alex",
-    url: alexImage.src,
-    standardWidth: 64,
-    standardHeight: 64,
-  },
+ 
 ];
 
 const script: ScriptDef = (generator: Generator) => {

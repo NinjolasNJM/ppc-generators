@@ -34,6 +34,7 @@ import saddleSpacePigTexture from "./textures/space-pig/saddle.png";
 import armorSpacePigTexture from "./textures/space-pig/armor.png";
 import steveTexture from "../_common/skins/wide/steve.png";
 import alexImage from "../_common/skins/slim/alex.png";
+import { getSkinUrl } from "../_common/skins";
 
 const id = "minecraft-pig-character";
 
@@ -84,18 +85,7 @@ const textures: TextureDef[] = [
     standardWidth: 64,
     standardHeight: 32,
   },
-  {
-    id: "Steve",
-    url: steveTexture.src,
-    standardWidth: 64,
-    standardHeight: 64,
-  },
-  {
-    id: "Alex",
-    url: alexImage.src,
-    standardWidth: 64,
-    standardHeight: 64,
-  },
+ 
   {
     id: "Saddle (Vanilla)",
     url: saddleTexture.src,
@@ -176,7 +166,7 @@ const textures: TextureDef[] = [
   },
   {
     id: "Skin",
-    url: steveTexture.src,
+    url: getSkinUrl("Default", "Wide"),
     standardWidth: 64,
     standardHeight: 64,
   },

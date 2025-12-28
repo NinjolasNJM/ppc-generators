@@ -116,13 +116,18 @@ export function TextureControl({
 }) {
   const makeNoneChoice = { id: "", label: "None" };
 
-  // Merge defaults to the top of the choices, avoiding duplicates
-  const defaultSet = new Set<string>(DEFAULT_SKIN_NAMES as unknown as string[]);
+  // Merge defaults to the top of the choices, avoiding duplicates — but only
+  // when `enableMinecraftSkinInput` is enabled. Otherwise present only the
+  // generator-provided choices.
+  const defaultNames = enableMinecraftSkinInput
+    ? (DEFAULT_SKIN_NAMES as unknown as string[])
+    : [];
+  const defaultSet = new Set<string>(defaultNames);
   const additionalChoices = choices.filter((c) => !defaultSet.has(c));
 
   const selectChoices: SelectOption[] = [
     makeNoneChoice,
-    ...Array.from(defaultSet).map((n) => ({ id: n, label: n })),
+    ...(enableMinecraftSkinInput ? Array.from(defaultSet).map((n) => ({ id: n, label: n })) : []),
     ...additionalChoices.map((choice) => ({ id: choice, label: choice })),
   ];
 
@@ -201,82 +206,10 @@ export function TextureControl({
     onChange(texture);
   };
 
-  // On mount: attempt to auto-detect if the provided `Skin` texture matches one
-  // of the bundled default skins (wide or slim). If so, persist that default
-  // skin name so we can auto-swap when the model type changes.
-  React.useEffect(() => {
-    const tryDetectDefaultSkin = async () => {
-      try {
-        // If enableMinecraftSkinInput is true, prefer the configured Default
-        // bundled skin (if present) — or fall back to the first non-Steve
-        // default — and load that immediately, ignoring the generator-provided
-        // `Skin` texture.
-        if (enableMinecraftSkinInput) {
-          const hasDefault = Array.from(DEFAULT_SKIN_NAMES as unknown as string[]).includes(
-            "Default"
-          );
-          const preferred = hasDefault
-            ? "Default"
-            : (Array.from(DEFAULT_SKIN_NAMES as unknown as string[]).find((n) => n !== "Steve") as string) ??
-              (Array.from(DEFAULT_SKIN_NAMES as unknown as string[])[0] as string);
-
-          setModelStringValue?.(storedSkinVarId, preferred);
-          await loadDefaultSkin(preferred);
-          return;
-        }
-
-        const currentTexture = textures.get(id);
-        if (!currentTexture) return;
-
-        const currentCanvas = currentTexture.imageWithCanvas.canvasWithContext.canvas;
-        const currentData = currentCanvas.toDataURL();
-
-        for (const name of Array.from(DEFAULT_SKIN_NAMES) as unknown as string[]) {
-          try {
-            const wideUrl = getSkinUrl(name, "Wide");
-            const slimUrl = getSkinUrl(name, "Slim");
-
-            const wideImg = await makeImageFromUrl(wideUrl);
-            const wideCanvas = document.createElement("canvas");
-            wideCanvas.width = wideImg.width;
-            wideCanvas.height = wideImg.height;
-            const wideCtx = wideCanvas.getContext("2d");
-            if (!wideCtx) continue;
-            wideCtx.drawImage(wideImg, 0, 0);
-            const wideData = wideCanvas.toDataURL();
-            if (wideData === currentData) {
-              setModelStringValue?.(storedSkinVarId, name);
-              // load correct variant for current model
-              void loadDefaultSkin(name);
-              return;
-            }
-
-            const slimImg = await makeImageFromUrl(slimUrl);
-            const slimCanvas = document.createElement("canvas");
-            slimCanvas.width = slimImg.width;
-            slimCanvas.height = slimImg.height;
-            const slimCtx = slimCanvas.getContext("2d");
-            if (!slimCtx) continue;
-            slimCtx.drawImage(slimImg, 0, 0);
-            const slimData = slimCanvas.toDataURL();
-            if (slimData === currentData) {
-              setModelStringValue?.(storedSkinVarId, name);
-              void loadDefaultSkin(name);
-              return;
-            }
-          } catch (e) {
-            // ignore and try next
-          }
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    };
-
-    void tryDetectDefaultSkin();
-    // Only run once on mount or when the textures map changes for this id
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [textures, id, enableMinecraftSkinInput]);
+  // NOTE: initial auto-detection removed — default detection was causing
+  // implicit overrides of generator-provided `Skin` textures. The control
+  // will still swap wide/slim variants when a user explicitly chooses a
+  // bundled default (persisted via the `${id} Skin Name` variable).
 
   // React to model type changes: if a stored default skin name exists, swap to the appropriate variant
   React.useEffect(() => {

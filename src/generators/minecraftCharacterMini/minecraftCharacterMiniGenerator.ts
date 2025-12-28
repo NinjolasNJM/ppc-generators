@@ -25,6 +25,7 @@ import foregroundImage from "./images/Foreground.png";
 import titleImage from "./images/Title.png";
 import steveSkin from "../_common/skins/wide/steve.png";
 import alexSkin from "../_common/skins/slim/alex.png";
+import { getSkinUrl } from "../_common/skins";
 
 const id = "minecraft-character-mini";
 
@@ -57,24 +58,12 @@ const textures: TextureDef[] = [
   // Default texture for "Mini 1"
   {
     id: "Mini 1",
-    url: steveSkin.src,
+    url: getSkinUrl("Default", "Wide"),
     standardWidth: 64,
     standardHeight: 64,
   },
   // Steve texture choice
-  {
-    id: "Steve",
-    url: steveSkin.src,
-    standardWidth: 64,
-    standardHeight: 64,
-  },
-  // Alex texture choice
-  {
-    id: "Alex",
-    url: alexSkin.src,
-    standardWidth: 64,
-    standardHeight: 64,
-  },
+ 
 ];
 
 const script: ScriptDef = (generator: Generator) => {

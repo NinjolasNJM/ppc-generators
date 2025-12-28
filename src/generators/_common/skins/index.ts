@@ -21,8 +21,7 @@ import sunnySlim from "./slim/sunny.png";
 import zuriSlim from "./slim/zuri.png";
 
 export const DEFAULT_SKIN_NAMES = [
-  "Default",
-    "Alex",
+  "Alex",
   "Ari",
   "Efe",
   "Kai",
@@ -31,6 +30,7 @@ export const DEFAULT_SKIN_NAMES = [
   "Steve",
   "Sunny",
   "Zuri",
+  "Default",
 ] as const;
 
 type ModelType = "Steve" | "Alex" | string;

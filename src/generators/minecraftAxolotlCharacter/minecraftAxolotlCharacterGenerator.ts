@@ -24,6 +24,7 @@ import foldsImage from "./images/Folds.png";
 import labelsImage from "./images/Labels.png";
 import steveImage from "../_common/skins/wide/steve.png";
 import alexImage from "../_common/skins/slim/alex.png";
+import { getSkinUrl } from "../_common/skins";
 import axolotlBlueImage from "./textures/axolotl_blue.png";
 import axolotlCyanImage from "./textures/axolotl_cyan.png";
 import axolotlLucyImage from "./textures/axolotl_lucy.png";
@@ -56,22 +57,11 @@ const images: ImageDef[] = [
 const textures: TextureDef[] = [
   {
     id: "Skin",
-    url: steveImage.src,
+    url: getSkinUrl("Default", "Wide"),
     standardWidth: 64,
     standardHeight: 64,
   },
-  {
-    id: "Steve",
-    url: steveImage.src,
-    standardWidth: 64,
-    standardHeight: 64,
-  },
-  {
-    id: "Alex",
-    url: alexImage.src,
-    standardWidth: 64,
-    standardHeight: 64,
-  },
+ 
   {
     id: "Blue",
     url: axolotlBlueImage.src,

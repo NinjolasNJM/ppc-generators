@@ -19,6 +19,7 @@ import actionFigureImage from "./images/Action-Figure.png";
 import tabsImage from "./images/Tabs.png";
 import steveImage from "./textures/Steve.png";
 import alexImage from "./textures/Alex.png";
+import { getSkinUrl } from "../_common/skins";
 import zombieImage from "./textures/Zombie.png";
 import endermanImage from "./textures/Enderman.png";
 import skeletonImage from "./textures/Skeleton.png";
@@ -52,22 +53,11 @@ const images: ImageDef[] = [
 const textures: TextureDef[] = [
   {
     id: "Skin 1",
-    url: steveImage.src,
+    url: getSkinUrl("Default", "Wide"),
     standardWidth: 64,
     standardHeight: 64,
   },
-  {
-    id: "Steve",
-    url: steveImage.src,
-    standardWidth: 64,
-    standardHeight: 64,
-  },
-  {
-    id: "Alex",
-    url: alexImage.src,
-    standardWidth: 64,
-    standardHeight: 64,
-  },
+ 
   {
     id: "Zombie",
     url: zombieImage.src,

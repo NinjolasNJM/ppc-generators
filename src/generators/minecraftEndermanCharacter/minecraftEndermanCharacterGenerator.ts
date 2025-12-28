@@ -17,6 +17,7 @@ import foldsImage from "./images/Folds.png";
 import labelsImage from "./images/Labels.png";
 import steveTexture from "../_common/skins/wide/steve.png";
 import alexImage from "../_common/skins/slim/alex.png";
+import { getSkinUrl } from "../_common/skins";
 
 const id = "minecraft-enderman-character";
 
@@ -42,22 +43,11 @@ const images: ImageDef[] = [
 const textures: TextureDef[] = [
   {
     id: "Skin",
-    url: steveTexture.src,
+    url: getSkinUrl("Default", "Wide"),
     standardWidth: 64,
     standardHeight: 64,
   },
-  {
-    id: "Steve",
-    url: steveTexture.src,
-    standardWidth: 64,
-    standardHeight: 64,
-  },
-  {
-    id: "Alex",
-    url: alexImage.src,
-    standardWidth: 64,
-    standardHeight: 64,
-  },
+  // Centralized default Skin only; remove named Steve/Alex entries
 ];
 
 const script: ScriptDef = (generator: Generator) => {

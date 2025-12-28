@@ -22,6 +22,7 @@ import steveFoldsImage from "./images/SteveFolds.png";
 import steveTabsImage from "./images/SteveTabs.png";
 import skinAlex64Image from "../_common/skins/slim/alex.png";
 import skinSteve64Image from "../_common/skins/wide/steve.png";
+import { getSkinUrl } from "../_common/skins";
 
 const id = "minecraft-character";
 
@@ -63,19 +64,7 @@ const images: ImageDef[] = [
 const textures: TextureDef[] = [
   {
     id: "Skin",
-    url: skinSteve64Image.src,
-    standardWidth: 64,
-    standardHeight: 64,
-  },
-  {
-    id: "Steve",
-    url: skinSteve64Image.src,
-    standardWidth: 64,
-    standardHeight: 64,
-  },
-  {
-    id: "Alex",
-    url: skinAlex64Image.src,
+    url: getSkinUrl("Default", "Wide"),
     standardWidth: 64,
     standardHeight: 64,
   },

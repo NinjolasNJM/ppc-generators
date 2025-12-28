@@ -19,8 +19,9 @@ import labelsImage from "./images/Labels.png";
 import actionFigureImage from "./images/Action-Figure.png";
 import actionFigureFoldsImage from "./images/Action-Figure-Folds.png";
 import actionFigureLabelsImage from "./images/Action-Figure-Labels.png";
-import steveImage from "../_common/skins/wide/steve.png";
-import alexImage from "../_common/skins/slim/alex.png";
+import steveImage from "../_common/skins/wide/default.png";
+import alexImage from "../_common/skins/slim/default.png";
+import { getSkinUrl } from "../_common/skins";
 
 const id = "minecraft-creeper-character";
 
@@ -49,18 +50,13 @@ const images: ImageDef[] = [
 const textures: TextureDef[] = [
   {
     id: "Skin",
-    url: steveImage.src,
+    url: getSkinUrl("Default", "Wide"),
     standardWidth: 64,
     standardHeight: 64,
   },
+  // Keep Default (Slim) option only; named Steve/Alex removed in favor of defaults
   {
-    id: "Steve",
-    url: steveImage.src,
-    standardWidth: 64,
-    standardHeight: 64,
-  },
-  {
-    id: "Alex",
+    id: "Default (Slim)",
     url: alexImage.src,
     standardWidth: 64,
     standardHeight: 64,
@@ -76,7 +72,7 @@ const script: ScriptDef = (generator: Generator) => {
   generator.defineTextureInput("Skin", {
     standardWidth: 64,
     standardHeight: 64,
-    choices: [],
+    choices: ["Default (Slim)"],
     enableMinecraftSkinInput: true,
   });
 

@@ -9,6 +9,7 @@ import {
 } from "./modelControls";
 import { type Variable } from "./variables";
 import { type Values } from "./modelValues";
+import { DEFAULT_SKIN_NAMES, getSkinUrl } from "@genroot/generators/_common/skins";
 
 export class Model {
   controls: Control[];
@@ -135,6 +136,8 @@ export class Model {
 
   addTexture(id: string, texture: Texture) {
     this.values.addTexture(id, texture);
+    console.log("Texture added:", id, texture.imageWithCanvas.image.src);
+    console.log("Texture is bundled default:", this.isTextureDefaultBundleId(id));
   }
 
   findTexture(id: string): Texture | null {
@@ -143,6 +146,39 @@ export class Model {
 
   hasTexture(id: string): boolean {
     return this.findTexture(id) !== null;
+  }
+
+  /**
+   * isTextureDefaultBundle
+   * Check whether a given Texture object matches any of the bundled
+   * default skin URLs (wide/slim). Matching first tries full `src`
+   * equality, then falls back to comparing the filename/base name so
+   * hashed/static URLs still match.
+   */
+  isTextureDefaultBundle(texture: Texture): boolean {
+    const src = texture.imageWithCanvas?.image?.src ?? "";
+    if (!src) return false;
+    const base = src.split("/").pop() ?? src;
+    const names = Array.from(DEFAULT_SKIN_NAMES as unknown as string[]);
+    for (const name of names) {
+      const wide = getSkinUrl(name, "Wide");
+      const slim = getSkinUrl(name, "Slim");
+      if (src === wide || src === slim) return true;
+      if ((wide.split("/").pop() ?? "") === base) return true;
+      if ((slim.split("/").pop() ?? "") === base) return true;
+    }
+    return false;
+  }
+
+  /**
+   * isTextureDefaultBundleId
+   * Convenience wrapper that accepts a texture id and returns whether the
+   * corresponding texture (if present) matches a bundled default.
+   */
+  isTextureDefaultBundleId(id: string): boolean {
+    const texture = this.findTexture(id);
+    if (!texture) return false;
+    return this.isTextureDefaultBundle(texture);
   }
 
   removeTexture(id: string) {
