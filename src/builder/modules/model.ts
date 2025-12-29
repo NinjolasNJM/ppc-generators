@@ -9,7 +9,7 @@ import {
 } from "./modelControls";
 import { type Variable } from "./variables";
 import { type Values } from "./modelValues";
-import { DEFAULT_SKIN_NAMES, getSkinUrl } from "@genroot/generators/_common/skins";
+import { DEFAULT_SKIN_NAMES, getSkinUrl, getSkinNameForUrl } from "@genroot/generators/_common/skins";
 
 export class Model {
   controls: Control[];
@@ -136,8 +136,21 @@ export class Model {
 
   addTexture(id: string, texture: Texture) {
     this.values.addTexture(id, texture);
-    console.log("Texture added:", id, texture.imageWithCanvas.image.src);
-    console.log("Texture is bundled default:", this.isTextureDefaultBundleId(id));
+
+    // If this texture matches one of the bundled default skins, persist
+    // the chosen default name so UI controls can swap wide/slim variants
+    // when the model type changes. Don't overwrite an explicit user value.
+    try {
+      const src = texture.imageWithCanvas?.image?.src ?? "";
+      const name = getSkinNameForUrl(src);
+      const storedSkinVarId = `${id} Skin Name`;
+      const existing = this.getStringVariable(storedSkinVarId);
+      if (name && existing === null) {
+        this.setStringVariable(storedSkinVarId, name);
+      }
+    } catch (e) {
+      // swallow errors — detection is best-effort
+    }
   }
 
   findTexture(id: string): Texture | null {
