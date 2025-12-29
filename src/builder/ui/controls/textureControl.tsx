@@ -134,9 +134,9 @@ export function TextureControl({
   const storedSkinVarId = `${id} Skin Name`;
 
   const getCurrentModelType = (): string => {
-    const a = getModelSelectValue ? getModelSelectValue("Skin Model") : null;
-    const b = getModelSelectValue ? getModelSelectValue("Skin Model Type") : null;
-    return a ?? b ?? "Wide";
+    const key = `${id} Model Type`;
+    const v = getModelSelectValue ? getModelSelectValue(key) : null;
+    return v ?? "Wide";
   };
 
   const loadDefaultSkin = async (name: string) => {
@@ -217,8 +217,9 @@ export function TextureControl({
     if (stored && defaultSet.has(stored)) {
       void loadDefaultSkin(stored);
     }
+    // React when the per-texture model type changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [getModelSelectValue ? getModelSelectValue("Skin Model") : undefined, getModelSelectValue ? getModelSelectValue("Skin Model Type") : undefined, getModelStringValue ? getModelStringValue(storedSkinVarId) : undefined]);
+  }, [getModelSelectValue ? getModelSelectValue(`${id} Model Type`) : undefined, getModelStringValue ? getModelStringValue(storedSkinVarId) : undefined]);
 
   return (
     <>

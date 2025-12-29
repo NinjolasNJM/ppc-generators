@@ -39,13 +39,13 @@ const images: ImageDef[] = [{ id: "OverlayBee", url: overlayBeeImage.src }];
 
 const textures: TextureDef[] = [
   {
-    id: "Skin1",
+    id: "Skin 1",
     url: getSkinUrl("Default", "Wide"),
     standardWidth: 64,
     standardHeight: 64,
   },
   {
-    id: "Skin2",
+    id: "Skin 2",
     url: getSkinUrl("Default", "Wide"),
     standardWidth: 64,
     standardHeight: 64,
@@ -568,9 +568,9 @@ const script: ScriptDef = (generator: Generator) => {
     },
   };
 
-  generator.defineSelectInput("Character 1 skin model type", ["Wide", "Slim"]);
+  generator.defineSelectInput("Skin 1 Model Type", ["Wide", "Slim"]);
 
-  generator.defineTextureInput("Skin1", {
+  generator.defineTextureInput("Skin 1", {
     standardWidth: 64,
     standardHeight: 64,
     choices: [],
@@ -578,20 +578,20 @@ const script: ScriptDef = (generator: Generator) => {
   });
 
   const isSlimModel1 =
-    generator.getSelectInputValue("Character 1 skin model type") === "Slim";
+    generator.getSelectInputValue("Skin 1 Model Type") === "Slim";
 
-  generator.defineRangeInput("Head size 1", {
+  generator.defineRangeInput("Head Size 1", {
     min: 0,
     max: 10,
     step: 1,
     value: 0,
   });
 
-  const headmultiplier1 = generator.getRangeInputValue("Head size 1");
+  const headmultiplier1 = generator.getRangeInputValue("Head Size 1");
 
-  generator.defineSelectInput("Character 2 skin model type", ["Wide", "Slim"]);
+  generator.defineSelectInput("Skin 2 Model Type", ["Wide", "Slim"]);
 
-  generator.defineTextureInput("Skin2", {
+  generator.defineTextureInput("Skin 2", {
     standardWidth: 64,
     standardHeight: 64,
     choices: [],
@@ -599,69 +599,69 @@ const script: ScriptDef = (generator: Generator) => {
   });
 
   const isSlimModel2 =
-    generator.getSelectInputValue("Character 2 skin model type") === "Slim";
+    generator.getSelectInputValue("Skin 2 Model Type") === "Slim";
 
-  generator.defineRangeInput("Head size 2", {
+  generator.defineRangeInput("Head Size 2", {
     min: 0,
     max: 10,
     step: 1,
     value: 0,
   });
 
-  const headmultiplier2 = generator.getRangeInputValue("Head size 2");
+  const headmultiplier2 = generator.getRangeInputValue("Head Size 2");
 
   generator.drawImage("OverlayBee", [0, 0]);
 
   const ox1 = 108;
   const oy1 = 103;
 
-  drawing.drawHead(ox1, oy1, headmultiplier1, "Skin1");
-  drawing.drawBody(ox1, oy1, headmultiplier1, "Skin1");
+  drawing.drawHead(ox1, oy1, headmultiplier1, "Skin 1");
+  drawing.drawBody(ox1, oy1, headmultiplier1, "Skin 1");
 
   if (isSlimModel1) {
-    drawing.drawRightArmAlex(ox1 + 221, oy1 - 53, "Skin1");
-    drawing.drawLeftArmAlex(ox1 + 245, oy1 - 53, "Skin1");
+    drawing.drawRightArmAlex(ox1 + 221, oy1 - 53, "Skin 1");
+    drawing.drawLeftArmAlex(ox1 + 245, oy1 - 53, "Skin 1");
   } else {
-    drawing.drawRightArm(ox1 + 221, oy1 - 53, "Skin1");
-    drawing.drawLeftArm(ox1 + 245, oy1 - 53, "Skin1");
+    drawing.drawRightArm(ox1 + 221, oy1 - 53, "Skin 1");
+    drawing.drawLeftArm(ox1 + 245, oy1 - 53, "Skin 1");
   }
 
-  drawing.drawRightLeg(ox1 + 221, oy1 - 20, "Skin1");
-  drawing.drawLeftLeg(ox1 + 245, oy1 - 20, "Skin1");
-  drawing.drawRightLeg(ox1 + 221, oy1 + 12, "Skin1");
-  drawing.drawLeftLeg(ox1 + 245, oy1 + 12, "Skin1");
-  drawing.drawPlan(ox1 + 321, oy1 - 48, headmultiplier1, "Skin1");
+  drawing.drawRightLeg(ox1 + 221, oy1 - 20, "Skin 1");
+  drawing.drawLeftLeg(ox1 + 245, oy1 - 20, "Skin 1");
+  drawing.drawRightLeg(ox1 + 221, oy1 + 12, "Skin 1");
+  drawing.drawLeftLeg(ox1 + 245, oy1 + 12, "Skin 1");
+  drawing.drawPlan(ox1 + 321, oy1 - 48, headmultiplier1, "Skin 1");
 
   if (isSlimModel1) {
-    drawing.drawPlanArmsAlex(ox1 + 321, oy1 - 48, "Skin1");
+    drawing.drawPlanArmsAlex(ox1 + 321, oy1 - 48, "Skin 1");
   } else {
-    drawing.drawPlanArms(ox1 + 321, oy1 - 48, "Skin1");
+    drawing.drawPlanArms(ox1 + 321, oy1 - 48, "Skin 1");
   }
 
   const ox2 = 108;
   const oy2 = 416;
 
-  drawing.drawHead(ox2, oy2, headmultiplier2, "Skin2");
-  drawing.drawBody(ox2, oy2, headmultiplier2, "Skin2");
+  drawing.drawHead(ox2, oy2, headmultiplier2, "Skin 2");
+  drawing.drawBody(ox2, oy2, headmultiplier2, "Skin 2");
 
   if (isSlimModel2) {
-    drawing.drawRightArmAlex(ox2 + 221, oy2 - 53, "Skin2");
-    drawing.drawLeftArmAlex(ox2 + 245, oy2 - 53, "Skin2");
+    drawing.drawRightArmAlex(ox2 + 221, oy2 - 53, "Skin 2");
+    drawing.drawLeftArmAlex(ox2 + 245, oy2 - 53, "Skin 2");
   } else {
-    drawing.drawRightArm(ox2 + 221, oy2 - 53, "Skin2");
-    drawing.drawLeftArm(ox2 + 245, oy2 - 53, "Skin2");
+    drawing.drawRightArm(ox2 + 221, oy2 - 53, "Skin 2");
+    drawing.drawLeftArm(ox2 + 245, oy2 - 53, "Skin 2");
   }
 
-  drawing.drawRightLeg(ox2 + 221, oy2 - 20, "Skin2");
-  drawing.drawLeftLeg(ox2 + 245, oy2 - 20, "Skin2");
-  drawing.drawRightLeg(ox2 + 221, oy2 + 12, "Skin2");
-  drawing.drawLeftLeg(ox2 + 245, oy2 + 12, "Skin2");
-  drawing.drawPlan(ox2 + 321, oy2 - 48, headmultiplier2, "Skin2");
+  drawing.drawRightLeg(ox2 + 221, oy2 - 20, "Skin 2");
+  drawing.drawLeftLeg(ox2 + 245, oy2 - 20, "Skin 2");
+  drawing.drawRightLeg(ox2 + 221, oy2 + 12, "Skin 2");
+  drawing.drawLeftLeg(ox2 + 245, oy2 + 12, "Skin 2");
+  drawing.drawPlan(ox2 + 321, oy2 - 48, headmultiplier2, "Skin 2");
 
   if (isSlimModel2) {
-    drawing.drawPlanArmsAlex(ox2 + 321, oy2 - 48, "Skin2");
+    drawing.drawPlanArmsAlex(ox2 + 321, oy2 - 48, "Skin 2");
   } else {
-    drawing.drawPlanArms(ox2 + 321, oy2 - 48, "Skin2");
+    drawing.drawPlanArms(ox2 + 321, oy2 - 48, "Skin 2");
   }
 
   generator.drawImage("OverlayBee", [0, 0]);

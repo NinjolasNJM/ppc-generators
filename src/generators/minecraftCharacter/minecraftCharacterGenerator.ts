@@ -80,7 +80,7 @@ const script: ScriptDef = (generator: Generator) => {
     enableMinecraftSkinInput: true,
   });
 
-  generator.defineSelectInput("Skin Model", ["Wide", "Slim"]);
+  generator.defineSelectInput("Skin Model Type", ["Wide", "Slim"]);
 
   generator.defineBooleanInput("Show Folds", true);
 
@@ -92,7 +92,7 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Draw
 
-  const isSlimModel = generator.getSelectInputValue("Skin Model") === "Slim";
+  const isSlimModel = generator.getSelectInputValue("Skin Model Type") === "Slim";
 
   const showFolds = generator.getBooleanInputValue("Show Folds");
 

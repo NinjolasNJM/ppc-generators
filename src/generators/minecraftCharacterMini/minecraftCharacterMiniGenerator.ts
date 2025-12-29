@@ -310,7 +310,7 @@ const script: ScriptDef = (generator: Generator) => {
     });
 
     if (generator.hasTexture(textureId)) {
-      const modelTypeName = textureId + " Model";
+      const modelTypeName = textureId + " Model Type";
 
       generator.defineSelectInput(modelTypeName, ["Wide", "Slim"]);
 

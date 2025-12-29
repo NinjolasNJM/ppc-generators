@@ -65,9 +65,9 @@ const script: ScriptDef = (generator: Generator) => {
     enableMinecraftSkinInput: true,
   });
 
-  generator.defineSelectInput("Skin style", ["Wide", "Slim"]);
+  generator.defineSelectInput("Skin Model Type", ["Wide", "Slim"]);
 
-  const isSlimModel = generator.getSelectInputValue("Skin style") === "Slim";
+  const isSlimModel = generator.getSelectInputValue("Skin Model Type") === "Slim";
 
   generator.usePage("Page 1");
   generator.drawImage("Page1", [0, 0]);

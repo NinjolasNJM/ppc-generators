@@ -38,13 +38,13 @@ const images: ImageDef[] = [{ id: "Overlay", url: overlayAllayImage.src }];
 
 const textures: TextureDef[] = [
   {
-    id: "Skin1",
+    id: "Skin 1",
     url: getSkinUrl("Default", "Wide"),
     standardWidth: 64,
     standardHeight: 64,
   },
   {
-    id: "Skin2",
+    id: "Skin 2",
     url: getSkinUrl("Default", "Wide"),
     standardWidth: 64,
     standardHeight: 64,
@@ -719,9 +719,9 @@ const script: ScriptDef = (generator: Generator) => {
     );
   };
 
-  generator.defineSelectInput("Character 1 skin model type", ["Wide", "Slim"]);
+  generator.defineSelectInput("Skin 1 Model Type", ["Wide", "Slim"]);
 
-  generator.defineTextureInput("Skin1", {
+  generator.defineTextureInput("Skin 1", {
     standardWidth: 64,
     standardHeight: 64,
     choices: [],
@@ -729,11 +729,11 @@ const script: ScriptDef = (generator: Generator) => {
   });
 
   const isSlimModel1 =
-    generator.getSelectInputValue("Character 1 skin model type") === "Slim";
+    generator.getSelectInputValue("Skin 1 Model Type") === "Slim";
 
-  generator.defineSelectInput("Character 2 skin model type", ["Wide", "Slim"]);
+  generator.defineSelectInput("Skin 2 Model Type", ["Wide", "Slim"]);
 
-  generator.defineTextureInput("Skin2", {
+  generator.defineTextureInput("Skin 2", {
     standardWidth: 64,
     standardHeight: 64,
     choices: [],
@@ -741,37 +741,37 @@ const script: ScriptDef = (generator: Generator) => {
   });
 
   const isSlimModel2 =
-    generator.getSelectInputValue("Character 2 skin model type") === "Slim";
+    generator.getSelectInputValue("Skin 2 Model Type") === "Slim";
 
   // Skin 1
 
-  drawHead(62, 63, "Skin1");
-  drawBody(422, 84, "Skin1");
+  drawHead(62, 63, "Skin 1");
+  drawBody(422, 84, "Skin 1");
 
   if (isSlimModel1) {
-    drawRightArmAlex(186, 198, "Skin1");
-    drawLeftArmAlex(48, 198, "Skin1");
+    drawRightArmAlex(186, 198, "Skin 1");
+    drawLeftArmAlex(48, 198, "Skin 1");
   } else {
-    drawRightArm(186, 198, "Skin1");
-    drawLeftArm(48, 198, "Skin1");
+    drawRightArm(186, 198, "Skin 1");
+    drawLeftArm(48, 198, "Skin 1");
   }
 
-  drawLegs(279, 197, "Skin1");
+  drawLegs(279, 197, "Skin 1");
 
   // Skin 2
 
-  drawHead(62, 424, "Skin2");
-  drawBody(422, 445, "Skin2");
+  drawHead(62, 424, "Skin 2");
+  drawBody(422, 445, "Skin 2");
 
   if (isSlimModel2) {
-    drawRightArmAlex(186, 198 + 361, "Skin2");
-    drawLeftArmAlex(48, 198 + 361, "Skin2");
+    drawRightArmAlex(186, 198 + 361, "Skin 2");
+    drawLeftArmAlex(48, 198 + 361, "Skin 2");
   } else {
-    drawRightArm(186, 198 + 361, "Skin2");
-    drawLeftArm(48, 198 + 361, "Skin2");
+    drawRightArm(186, 198 + 361, "Skin 2");
+    drawLeftArm(48, 198 + 361, "Skin 2");
   }
 
-  drawLegs(278, 559, "Skin2");
+  drawLegs(278, 559, "Skin 2");
 
   generator.drawImage("Overlay", [0, 0]);
 };

@@ -67,7 +67,7 @@ const script: ScriptDef = (generator: Generator) => {
   const minecraftGenerator = new Minecraft(generator);
   // Define user inputs
 
-  generator.defineSelectInput("Skin Model", ["Wide", "Slim"]);
+  generator.defineSelectInput("Skin Model Type", ["Wide", "Slim"]);
 
   generator.defineTextureInput("Skin", {
     standardWidth: 64,
@@ -83,7 +83,7 @@ const script: ScriptDef = (generator: Generator) => {
   generator.defineBooleanInput("Hand Notches", true);
   generator.defineBooleanInput("Enable 3D Second Layers", true);
   // Get user variable values
-  const isSlimModel = generator.getSelectInputValue("Skin Model") === "Slim";
+  const isSlimModel = generator.getSelectInputValue("Skin Model Type") === "Slim";
 
   const showFolds = generator.getBooleanInputValue("Show Folds");
   const showLabels = generator.getBooleanInputValue("Show Labels");
