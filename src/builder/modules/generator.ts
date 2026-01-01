@@ -16,9 +16,11 @@ import { type TabOrientation, drawTab } from "./renderers/drawTab";
 import { fillBackgroundColor } from "./renderers/fillBackgroundColor";
 import { type Page } from "./modelPage";
 import { fillRect } from "./renderers/fillRect";
+import { Color, getCanvasWithContextPixelColor } from "./canvasWithContext";
 
 export type * from "./renderers/types";
 export type * from "./modelPage";
+export type { TexturePlugin } from "./renderers/drawTexture";
 
 export class Generator {
   model: Model;
@@ -70,7 +72,7 @@ export class Generator {
       max: number;
       value: number;
       step: number;
-    }
+    },
   ): void {
     this.model.addRangeControl(id, min, max, value, step);
   }
@@ -82,7 +84,7 @@ export class Generator {
       max: number;
       value: number;
       step: number;
-    }
+    },
   ): number {
     this.defineRangeInput(id, options);
     return this.getRangeInputValue(id);
@@ -94,7 +96,7 @@ export class Generator {
 
   defineCustomStringInput(
     id: string,
-    render: (onChange: (value: string) => void) => React.ReactNode
+    render: (onChange: (value: string) => void) => React.ReactNode,
   ): void {
     this.model.addCustomInputControl(id, render);
   }
@@ -185,11 +187,15 @@ export class Generator {
     page.canvasWithContext.context.drawImage(image.image, x, y);
   }
 
+  getTexture(id: string) {
+    return this.model.findTexture(id);
+  }
+
   drawTexture(
     id: string,
     source: Region,
     dest: Region,
-    options: DrawTextureOptions = {}
+    options: DrawTextureOptions = {},
   ): void {
     const currentPage = this.getCurrentPage();
     const texture = this.model.findTexture(id);
@@ -206,7 +212,7 @@ export class Generator {
     id: string,
     { x: sx, y: sy, w: sw, h: sh }: RegionLegacy,
     { x: dx, y: dy, w: dw, h: dh }: RegionLegacy,
-    options?: DrawTextureOptions
+    options?: DrawTextureOptions,
   ): void {
     this.drawTexture(id, [sx, sy, sw, sh], [dx, dy, dw, dh], options);
   }
@@ -230,7 +236,7 @@ export class Generator {
     rectangle: Rectangle,
     orientation: TabOrientation,
     showFoldLine?: boolean,
-    tabAngle?: number
+    tabAngle?: number,
   ): void {
     const currentPage = this.getCurrentPage();
     drawTab(
@@ -238,7 +244,51 @@ export class Generator {
       rectangle,
       orientation,
       showFoldLine,
-      tabAngle
+      tabAngle,
     );
+  }
+
+  getImagePixelColor(id: string, [x, y]: [number, number]): Color | null {
+    const image = this.model.findImage(id);
+
+    if (!image) {
+      return null;
+    }
+
+    return getCanvasWithContextPixelColor(image.canvasWithContext, x, y);
+  }
+
+  getTexturePixelColor(id: string, [x, y]: [number, number]): Color | null {
+    const texture = this.model.findTexture(id);
+
+    if (!texture) {
+      return null;
+    }
+
+    return getCanvasWithContextPixelColor(
+      texture.imageWithCanvas.canvasWithContext,
+      x,
+      y,
+    );
+  }
+
+  getPagePixelColor(id: string, [x, y]: [number, number]): Color | null {
+    const page = this.model.findPage(id);
+
+    if (!page) {
+      return null;
+    }
+
+    return getCanvasWithContextPixelColor(page.canvasWithContext, x, y);
+  }
+
+  getCurrentPagePixelColor([x, y]: [number, number]): Color | null {
+    const page = this.getCurrentPage();
+
+    if (!page) {
+      return null;
+    }
+
+    return getCanvasWithContextPixelColor(page.canvasWithContext, x, y);
   }
 }

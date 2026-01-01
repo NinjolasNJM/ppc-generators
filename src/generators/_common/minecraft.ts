@@ -2,6 +2,7 @@ import { type Generator } from "@genroot/builder/modules/generator";
 import {
   type Flip,
   type Blend,
+  type TexturePlugin,
 } from "@genroot/builder/modules/renderers/drawTexture";
 import { type TabOrientation } from "@genroot/builder/modules/renderers/drawTab";
 import {
@@ -18,7 +19,7 @@ export type RotationDegrees = 0 | 90 | 180 | 270;
 
 function addRotationDegrees(
   r1: RotationDegrees,
-  r2: RotationDegrees
+  r2: RotationDegrees,
 ): RotationDegrees {
   // Normally we should never use `as` but this is a special case where
   // we know that the result will always be a valid `RotationDegrees`.
@@ -27,7 +28,7 @@ function addRotationDegrees(
 
 function subtractRotationDegrees(
   r1: RotationDegrees,
-  r2: RotationDegrees
+  r2: RotationDegrees,
 ): RotationDegrees {
   // Normally we should never use `as` but this is a special case where
   // we know that the result will always be a valid `RotationDegrees`.
@@ -39,6 +40,7 @@ export type Face = {
   flip: Flip;
   rotate: RotationDegrees;
   blend: Blend;
+  plugin: TexturePlugin | null;
 };
 
 export function makeFace(rect: Rectangle): Face {
@@ -47,6 +49,7 @@ export function makeFace(rect: Rectangle): Face {
     flip: "None",
     rotate: 0,
     blend: { kind: "None" },
+    plugin: null,
   };
 }
 // Rotates the face using a point as an axis to rotate around. This is necessary because the faces of the cuboid need to rotate around the center of the cuboid and not their own centers.
@@ -64,6 +67,7 @@ function rotateOnAxis(face: Face, axis: Position, r: RotationDegrees): Face {
     flip: face.flip,
     rotate: addRotationDegrees(face.rotate, r),
     blend: face.blend,
+    plugin: face.plugin,
   };
 }
 
@@ -78,25 +82,26 @@ export function rotateFace(face: Face, r: RotationDegrees): Face {
     flip: face.flip,
     rotate: r0,
     blend: face.blend,
+    plugin: face.plugin,
   };
 }
 
 // rotate in relation to its own center. Uses rotateOnAxis with the axis as the face's center.
 export function rotateLocalFace(face: Face): Face {
-  const { rectangle, flip, rotate, blend } = face;
+  const { rectangle, flip, rotate, blend, plugin } = face;
   let [x, y, w, h] = rectangle;
 
   const newFace =
     rotate >= 360
       ? rotateOnAxis(
-          { rectangle, flip, rotate: 0, blend },
+          { rectangle, flip, rotate: 0, blend, plugin },
           [x - w / 2, y - h / 2],
-          rotate
+          rotate,
         )
       : rotateOnAxis(
-          { rectangle, flip, rotate: 0, blend },
+          { rectangle, flip, rotate: 0, blend, plugin },
           [x + w / 2, y + h / 2],
-          rotate
+          rotate,
         );
 
   [x, y, w, h] = newFace.rectangle;
@@ -118,12 +123,13 @@ export function rotateLocalFace(face: Face): Face {
     flip: newFace.flip,
     rotate: newFace.rotate,
     blend: newFace.blend,
+    plugin: newFace.plugin,
   };
 }
 
 export function flipFace(
   face: Face,
-  flip: "None" | "Vertical" | "Horizontal"
+  flip: "None" | "Vertical" | "Horizontal",
 ): Face {
   let newFlip: Flip = "None";
   let newRotate: RotationDegrees = 0;
@@ -145,8 +151,9 @@ export function flipFace(
       flip: newFlip,
       rotate: face.rotate,
       blend: face.blend,
+      plugin: face.plugin,
     },
-    newRotate
+    newRotate,
   );
 }
 
@@ -156,6 +163,7 @@ export function blendFace(face: Face, blend: Blend): Face {
     flip: face.flip,
     rotate: face.rotate,
     blend,
+    plugin: face.plugin,
   };
 }
 
@@ -165,6 +173,7 @@ export function translateFace(face: Face, position: [number, number]): Face {
     flip: face.flip,
     rotate: face.rotate,
     blend: face.blend,
+    plugin: face.plugin,
   };
 }
 
@@ -185,6 +194,16 @@ function translateDest(dest: Dest, position: Position): Dest {
     bottom: translateFace(dest.bottom, position),
     right: translateFace(dest.right, position),
     left: translateFace(dest.left, position),
+  };
+}
+
+function applyPluginToFace(face: Face, plugin: TexturePlugin): Face {
+  return {
+    rectangle: face.rectangle,
+    flip: face.flip,
+    rotate: face.rotate,
+    blend: face.blend,
+    plugin,
   };
 }
 
@@ -235,7 +254,7 @@ function makeDest([w, h, d]: Dimensions, orientation: Orientation): Dest {
 
 function adjustDimensionsForCenter(
   [w, h, d]: Dimensions,
-  center: Center
+  center: Center,
 ): Dimensions {
   switch (center) {
     case "Right":
@@ -252,7 +271,7 @@ function adjustDimensionsForCenter(
 
 function adjustOrientationForFlip(
   orientation: Orientation,
-  flip: Flip
+  flip: Flip,
 ): Orientation {
   switch (flip) {
     case "Horizontal": {
@@ -394,7 +413,7 @@ function getAxis([w, h, d]: Dimensions, orientation: Orientation): Position {
 function rotateCuboid(
   dest: Dest,
   axis: Position,
-  rotate: RotationDegrees
+  rotate: RotationDegrees,
 ): Dest {
   return {
     right: rotateOnAxis(dest.right, axis, rotate),
@@ -417,14 +436,20 @@ function adjustDestBlend(dest: Dest, blend: Blend): Dest {
   };
 }
 
-function setLayout(
-  dimensions: Dimensions,
-  orientation: Orientation,
-  center: Center,
-  flip: Flip,
-  rotate: RotationDegrees,
-  blend: Blend
-): Dest {
+function applyDestPlugin(dest: Dest, plugin: TexturePlugin): Dest {
+  return {
+    right: applyPluginToFace(dest.right, plugin),
+    front: applyPluginToFace(dest.front, plugin),
+    left: applyPluginToFace(dest.left, plugin),
+    back: applyPluginToFace(dest.back, plugin),
+    top: applyPluginToFace(dest.top, plugin),
+    bottom: applyPluginToFace(dest.bottom, plugin),
+  };
+}
+
+function setLayout(dimensions: Dimensions, options: DrawCuboidOptions): Dest {
+  const { orientation, center, flip, rotate, blend, plugin } = options;
+
   // Depending of the center face of the cuboid, the width, height and depth as found in dimensions will have to change.
   const dimensionsAdjusted = adjustDimensionsForCenter(dimensions, center);
   // Depending on the flip direction of the cuboid, the orientation will need to change.
@@ -443,14 +468,21 @@ function setLayout(
 
   // Place faces in proper places depending on the center face.
   dest = adjustDestCenter(dest, center);
+
   //actually rotate the faces
   dest = destRotateFaces(dest);
+
   // Rotate the destination by the given rotation, with the center of the center face as the axis
   const axis = getAxis(dimensionsAdjusted, orientationAdjusted);
   dest = rotateCuboid(dest, axis, rotate);
 
   // Blend each face
   dest = adjustDestBlend(dest, blend);
+
+  // Apply plugin to each face
+  if (plugin) {
+    dest = applyDestPlugin(dest, plugin);
+  }
 
   // Return the destination
   return dest;
@@ -464,6 +496,7 @@ export type DrawCuboidOptions = {
   flip: Flip;
   rotate: RotationDegrees;
   blend: Blend;
+  plugin: TexturePlugin | null;
 };
 
 export class Minecraft {
@@ -473,6 +506,8 @@ export class Minecraft {
     this.generator.drawTexture(textureId, source, dest.rectangle, {
       flip: dest.flip,
       rotateLegacy: dest.rotate,
+      blend: dest.blend,
+      plugin: dest.plugin ?? undefined,
     });
   }
 
@@ -481,19 +516,20 @@ export class Minecraft {
     source: Cuboid,
     position: Position,
     dimensions: Dimensions,
-    options: Partial<DrawCuboidOptions> = {}
+    options: Partial<DrawCuboidOptions> = {},
   ) {
-    const {
-      orientation = "West",
-      center = "Front",
-      flip = "None",
-      rotate = 0,
-      blend = { kind: "None" },
-    } = options;
+    const optionsWithDefaults: DrawCuboidOptions = {
+      orientation: options.orientation ?? "West",
+      center: options.center ?? "Front",
+      flip: options.flip ?? "None",
+      rotate: options.rotate ?? 0,
+      blend: options.blend ?? { kind: "None" },
+      plugin: options.plugin ?? null,
+    };
 
     const dest = translateDest(
-      setLayout(dimensions, orientation, center, flip, rotate, blend),
-      position
+      setLayout(dimensions, optionsWithDefaults),
+      position,
     );
     this.drawFaceTexture(textureId, source.front, dest.front);
     this.drawFaceTexture(textureId, source.back, dest.back);
@@ -516,7 +552,7 @@ export class Minecraft {
     face: Rectangle,
     side: TabOrientation,
     showFoldLine: boolean = true,
-    tabAngle?: number
+    tabAngle?: number,
   ) {
     const size = this.getTabSize();
     const [x, y, w, h] = face;
@@ -535,7 +571,7 @@ export class Minecraft {
     face: Rectangle,
     sides: TabOrientation[],
     showFoldLine: boolean = true,
-    tabAngle?: number
+    tabAngle?: number,
   ) {
     sides.forEach((side) => {
       this.drawFaceTab(face, side, showFoldLine, tabAngle);
