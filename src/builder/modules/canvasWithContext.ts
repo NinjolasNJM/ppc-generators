@@ -10,7 +10,7 @@ export type CanvasWithContext = {
 
 export function makeCanvasWithContext(
   width: number,
-  height: number,
+  height: number
 ): CanvasWithContext {
   const canvas = makeCanvas(width, height);
   const context = canvas.getContext("2d", {
@@ -39,7 +39,7 @@ export type Color = {
 export function getCanvasWithContextPixelColor(
   canvasWithContext: CanvasWithContext,
   x: number,
-  y: number,
+  y: number
 ): Color | null {
   const { width, height, contextWithAlpha } = canvasWithContext;
   const data = contextWithAlpha.getImageData(0, 0, width, height).data;

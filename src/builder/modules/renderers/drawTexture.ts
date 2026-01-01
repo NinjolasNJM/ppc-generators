@@ -54,7 +54,7 @@ export type Coordinates = {
 
 export type TexturePlugin = (
   coordinates: Coordinates,
-  canvasWithContext: CanvasWithContext,
+  canvasWithContext: CanvasWithContext
 ) => HTMLCanvasElement;
 
 function fit(sw: number, sh: number, dw: number, dh: number): Dimensions {
@@ -72,7 +72,7 @@ function preparePixelationCanvas(
   sw: number,
   sh: number,
   dw: number,
-  dh: number,
+  dh: number
 ): CanvasWithContext {
   const [sw2, sh2] = fit(sw, sh, dw, dh);
   const canvasWithContext = makeCanvasWithContext(sw2, sh2);
@@ -86,7 +86,7 @@ function preparePixelationCanvas(
     0,
     0,
     sw2,
-    sh2,
+    sh2
   );
   return canvasWithContext;
 }
@@ -144,11 +144,11 @@ function multiplyColors(base: Color, blend: Color): Color {
 function replaceColorsFromPalette(
   color: Color,
   palette: Color[],
-  replacements: Color[],
+  replacements: Color[]
 ): Color | undefined {
   const index = palette.findIndex(
     (c) =>
-      c.r === color.r && c.g === color.g && c.b === color.b && c.a === color.a,
+      c.r === color.r && c.g === color.g && c.b === color.b && c.a === color.a
   );
   return index !== -1 ? replacements[index] : undefined;
 }
@@ -156,7 +156,7 @@ function replaceColorsFromPalette(
 function makeInitialValues(
   texture: Texture,
   coordinates: Coordinates,
-  pixelate: boolean,
+  pixelate: boolean
 ) {
   if (pixelate) {
     const canvasWithContext = preparePixelationCanvas(
@@ -166,7 +166,7 @@ function makeInitialValues(
       coordinates.sw,
       coordinates.sh,
       coordinates.dw,
-      coordinates.dh,
+      coordinates.dh
     );
     const sx = 0;
     const sy = 0;
@@ -205,7 +205,7 @@ function drawNearestNeighbor(
   page: CanvasWithContext,
   texture: Texture,
   coordinates: Coordinates,
-  options: DrawNearestNeighborOptions,
+  options: DrawNearestNeighborOptions
 ): void {
   const rotateOption = options.rotate ?? { kind: "None" };
   const flipOption = options.flip ?? { kind: "None" };
@@ -243,10 +243,10 @@ function drawNearestNeighbor(
       blendOption.kind === "ReplaceHex"
         ? [
             blendOption.hex1.map(
-              (hex: string) => hexToColor(hex) ?? { r: 0, g: 0, b: 0, a: 255 },
+              (hex: string) => hexToColor(hex) ?? { r: 0, g: 0, b: 0, a: 255 }
             ),
             blendOption.hex2.map(
-              (hex: string) => hexToColor(hex) ?? { r: 0, g: 0, b: 0, a: 255 },
+              (hex: string) => hexToColor(hex) ?? { r: 0, g: 0, b: 0, a: 255 }
             ),
           ]
         : blendOption.kind === "ReplaceColor"
@@ -336,7 +336,7 @@ export function drawTexture(
   texture: Texture,
   [sx, sy, sw, sh]: Region,
   [dx, dy, dw, dh]: Region,
-  options: DrawTextureOptions,
+  options: DrawTextureOptions
 ): void {
   const rotate: Rotate = options.rotateLegacy
     ? rotateCorner(options.rotateLegacy)
@@ -375,7 +375,7 @@ export function drawTexture(
         dw,
         dh,
       },
-      drawNearestNeightbourOptions,
+      drawNearestNeightbourOptions
     );
   }
 }

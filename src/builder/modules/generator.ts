@@ -72,7 +72,7 @@ export class Generator {
       max: number;
       value: number;
       step: number;
-    },
+    }
   ): void {
     this.model.addRangeControl(id, min, max, value, step);
   }
@@ -84,7 +84,7 @@ export class Generator {
       max: number;
       value: number;
       step: number;
-    },
+    }
   ): number {
     this.defineRangeInput(id, options);
     return this.getRangeInputValue(id);
@@ -96,7 +96,7 @@ export class Generator {
 
   defineCustomStringInput(
     id: string,
-    render: (onChange: (value: string) => void) => React.ReactNode,
+    render: (onChange: (value: string) => void) => React.ReactNode
   ): void {
     this.model.addCustomInputControl(id, render);
   }
@@ -195,7 +195,7 @@ export class Generator {
     id: string,
     source: Region,
     dest: Region,
-    options: DrawTextureOptions = {},
+    options: DrawTextureOptions = {}
   ): void {
     const currentPage = this.getCurrentPage();
     const texture = this.model.findTexture(id);
@@ -212,7 +212,7 @@ export class Generator {
     id: string,
     { x: sx, y: sy, w: sw, h: sh }: RegionLegacy,
     { x: dx, y: dy, w: dw, h: dh }: RegionLegacy,
-    options?: DrawTextureOptions,
+    options?: DrawTextureOptions
   ): void {
     this.drawTexture(id, [sx, sy, sw, sh], [dx, dy, dw, dh], options);
   }
@@ -236,7 +236,7 @@ export class Generator {
     rectangle: Rectangle,
     orientation: TabOrientation,
     showFoldLine?: boolean,
-    tabAngle?: number,
+    tabAngle?: number
   ): void {
     const currentPage = this.getCurrentPage();
     drawTab(
@@ -244,7 +244,7 @@ export class Generator {
       rectangle,
       orientation,
       showFoldLine,
-      tabAngle,
+      tabAngle
     );
   }
 
@@ -268,7 +268,7 @@ export class Generator {
     return getCanvasWithContextPixelColor(
       texture.imageWithCanvas.canvasWithContext,
       x,
-      y,
+      y
     );
   }
 

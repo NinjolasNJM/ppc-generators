@@ -673,7 +673,7 @@ type GlintPluginOptions = {
 
 const makeGlintPlugin: (
   texture: Texture,
-  options: GlintPluginOptions,
+  options: GlintPluginOptions
 ) => TexturePlugin = (glintTexture, glintOptions) => (coordinates, context) => {
   const { sx, sy, sw, sh, dw, dh } = coordinates;
   const { opacity, xOffset, yOffset } = glintOptions;
@@ -712,7 +712,7 @@ const makeGlintPlugin: (
     0,
     0,
     dw,
-    dh,
+    dh
   );
 
   glintLayer.context.restore();
@@ -845,7 +845,7 @@ const script: ScriptDef = (generator: Generator) => {
     textureId: string,
     showHeadOverlay: boolean,
     blend: Blend,
-    enchanted: boolean,
+    enchanted: boolean
   ) {
     const ox = 41;
     const oy = 21;
@@ -861,7 +861,7 @@ const script: ScriptDef = (generator: Generator) => {
       steveLegacy.base.head,
       [ox, oy],
       dimensions,
-      { blend, plugin },
+      { blend, plugin }
     );
 
     if (showHeadOverlay) {
@@ -870,7 +870,7 @@ const script: ScriptDef = (generator: Generator) => {
         steveLegacy.overlay.head,
         [ox, oy],
         dimensions,
-        { blend, plugin },
+        { blend, plugin }
       );
     }
   }
@@ -879,7 +879,7 @@ const script: ScriptDef = (generator: Generator) => {
     textureId: string,
     showHeadOverlay: boolean,
     blend: Blend,
-    enchanted: boolean,
+    enchanted: boolean
   ) {
     const ox = 329;
     const oy = 37;
@@ -895,7 +895,7 @@ const script: ScriptDef = (generator: Generator) => {
       steveLegacy.base.head,
       [ox, oy],
       dimensions,
-      { blend, rotate: 90, plugin },
+      { blend, rotate: 90, plugin }
     );
 
     generator.drawTexture(textureId, [0, 8, 8, 1], [ox + 100, oy + 28, 64, 8], {
@@ -912,7 +912,7 @@ const script: ScriptDef = (generator: Generator) => {
         blend: blend,
         rotate: 90,
         plugin,
-      },
+      }
     );
 
     if (showHeadOverlay) {
@@ -921,7 +921,7 @@ const script: ScriptDef = (generator: Generator) => {
         steveLegacy.overlay.head,
         [ox, oy],
         dimensions,
-        { blend, rotate: 90 },
+        { blend, rotate: 90 }
       );
 
       generator.drawTexture(
@@ -932,7 +932,7 @@ const script: ScriptDef = (generator: Generator) => {
           blend,
           rotate: 90,
           plugin,
-        },
+        }
       );
 
       generator.drawTexture(
@@ -943,7 +943,7 @@ const script: ScriptDef = (generator: Generator) => {
           blend: blend,
           rotate: 90,
           plugin,
-        },
+        }
       );
     }
   }
@@ -951,7 +951,7 @@ const script: ScriptDef = (generator: Generator) => {
   function drawChestplateBody(
     textureId: string,
     blend: Blend,
-    enchanted: boolean,
+    enchanted: boolean
   ) {
     const ox = 185;
     const oy = 309;
@@ -967,7 +967,7 @@ const script: ScriptDef = (generator: Generator) => {
       steveLegacy.base.body,
       [ox, oy],
       dimensions,
-      { blend, plugin },
+      { blend, plugin }
     );
     generator.drawTexture(
       textureId,
@@ -977,7 +977,7 @@ const script: ScriptDef = (generator: Generator) => {
         rotate: 180,
         blend: blend,
         plugin,
-      },
+      }
     ); // Back texture that goes around over the head
     generator.drawTexture(
       textureId,
@@ -987,7 +987,7 @@ const script: ScriptDef = (generator: Generator) => {
         rotate: 180,
         blend: blend,
         plugin,
-      },
+      }
     ); // Tab that goes inside the back face
     generator.drawTexture(textureId, [20, 22, 8, 1], [ox + 48, oy, 64, 48], {
       blend: blend,
@@ -1016,7 +1016,7 @@ const script: ScriptDef = (generator: Generator) => {
     textureId: string,
     blend: Blend,
     shoulderOverlay: boolean,
-    enchanted: boolean,
+    enchanted: boolean
   ) {
     const ox = -27;
     const oy = 233;
@@ -1036,7 +1036,7 @@ const script: ScriptDef = (generator: Generator) => {
           blend: blend,
           rotate: 270,
           plugin,
-        },
+        }
       );
     }
     minecraftGenerator.drawCuboid(
@@ -1048,7 +1048,7 @@ const script: ScriptDef = (generator: Generator) => {
         blend: blend,
         rotate: 90,
         plugin,
-      },
+      }
     );
     generator.drawTexture(
       textureId,
@@ -1058,7 +1058,7 @@ const script: ScriptDef = (generator: Generator) => {
         blend: blend,
         rotate: 270,
         plugin,
-      },
+      }
     );
     generator.drawTexture(
       textureId,
@@ -1068,7 +1068,7 @@ const script: ScriptDef = (generator: Generator) => {
         blend: blend,
         rotate: 270,
         plugin,
-      },
+      }
     );
   }
 
@@ -1076,7 +1076,7 @@ const script: ScriptDef = (generator: Generator) => {
     textureId: string,
     blend: Blend,
     shoulderOverlay: boolean,
-    enchanted: boolean,
+    enchanted: boolean
   ) {
     const ox = 445;
     const oy = 233;
@@ -1097,7 +1097,7 @@ const script: ScriptDef = (generator: Generator) => {
           flip: "Horizontal",
           rotate: 90,
           plugin,
-        },
+        }
       );
     }
     minecraftGenerator.drawCuboid(
@@ -1110,7 +1110,7 @@ const script: ScriptDef = (generator: Generator) => {
         flip: "Horizontal",
         rotate: 270,
         plugin,
-      },
+      }
     );
     generator.drawTexture(
       textureId,
@@ -1121,7 +1121,7 @@ const script: ScriptDef = (generator: Generator) => {
         flip: "Horizontal",
         rotate: 90,
         plugin,
-      },
+      }
     );
     generator.drawTexture(
       textureId,
@@ -1132,14 +1132,14 @@ const script: ScriptDef = (generator: Generator) => {
         flip: "Horizontal",
         rotate: 90,
         plugin,
-      },
+      }
     );
   }
 
   function drawLeggingsBody(
     textureId: string,
     blend: Blend,
-    enchanted: boolean,
+    enchanted: boolean
   ) {
     const ox = 193;
     const oy = 385;
@@ -1162,21 +1162,21 @@ const script: ScriptDef = (generator: Generator) => {
         blend,
         flip: "Horizontal",
         plugin,
-      },
+      }
     );
     minecraftGenerator.drawCuboid(
       textureId,
       steveLegacy.base.body,
       [ox, oy],
       dimensions,
-      { blend, plugin },
+      { blend, plugin }
     );
   }
 
   function drawRightLegging(
     textureId: string,
     blend: Blend,
-    enchanted: boolean,
+    enchanted: boolean
   ) {
     const ox = 49;
     const oy = 541;
@@ -1192,7 +1192,7 @@ const script: ScriptDef = (generator: Generator) => {
       steveLegacy.base.rightLeg,
       [ox, oy],
       dimensions,
-      { blend, plugin },
+      { blend, plugin }
     );
     generator.drawTexture(textureId, [16, 20, 4, 12], [ox, oy - 55, 40, 104], {
       blend,
@@ -1202,20 +1202,20 @@ const script: ScriptDef = (generator: Generator) => {
       textureId,
       [0, 20, 4, 4],
       [ox + 72, oy + 20, 40, 34],
-      { blend, plugin },
+      { blend, plugin }
     );
     generator.drawTexture(
       textureId,
       [16, 20, 4, 12],
       [ox + 72, oy - 75, 40, 104],
-      { blend, plugin },
+      { blend, plugin }
     );
   }
 
   function drawLeftLegging(
     textureId: string,
     blend: Blend,
-    enchanted: boolean,
+    enchanted: boolean
   ) {
     const ox = 401;
     const oy = 541;
@@ -1235,13 +1235,13 @@ const script: ScriptDef = (generator: Generator) => {
         blend: blend,
         flip: "Horizontal",
         plugin,
-      },
+      }
     );
     generator.drawTexture(
       textureId,
       [28, 20, 4, 12],
       [ox + 104, oy - 55, 40, 104],
-      { blend, plugin },
+      { blend, plugin }
     );
     generator.drawTexture(
       textureId,
@@ -1251,7 +1251,7 @@ const script: ScriptDef = (generator: Generator) => {
         blend: blend,
         flip: "Horizontal",
         plugin,
-      },
+      }
     );
     generator.drawTexture(
       textureId,
@@ -1261,7 +1261,7 @@ const script: ScriptDef = (generator: Generator) => {
         blend: blend,
         flip: "Horizontal",
         plugin,
-      },
+      }
     );
   }
 
@@ -1280,7 +1280,7 @@ const script: ScriptDef = (generator: Generator) => {
       steveLegacy.base.rightLeg,
       [ox, oy],
       dimensions,
-      { blend: tint, plugin },
+      { blend: tint, plugin }
     );
     minecraftGenerator.drawCuboid(
       textureId,
@@ -1292,7 +1292,7 @@ const script: ScriptDef = (generator: Generator) => {
         rotate: 270,
         center: "Back",
         plugin,
-      },
+      }
     );
   }
 
@@ -1315,7 +1315,7 @@ const script: ScriptDef = (generator: Generator) => {
         blend: blend,
         flip: "Horizontal",
         plugin,
-      },
+      }
     );
     minecraftGenerator.drawCuboid(
       textureId,
@@ -1328,7 +1328,7 @@ const script: ScriptDef = (generator: Generator) => {
         center: "Back",
         flip: "Horizontal",
         plugin,
-      },
+      }
     );
   }
 
@@ -1372,13 +1372,13 @@ const script: ScriptDef = (generator: Generator) => {
         "Helmet Overlay",
         showHeadOverlay,
         { kind: "None" },
-        enchantHelmet,
+        enchantHelmet
       );
       drawHelmetLiner(
         "Helmet Overlay",
         showHeadOverlay,
         { kind: "None" },
-        enchantHelmet,
+        enchantHelmet
       );
     }
 
@@ -1399,7 +1399,7 @@ const script: ScriptDef = (generator: Generator) => {
 
     const tintChestplate = generator.defineAndGetBooleanInput(
       "Tint Chestplate",
-      false,
+      false
     );
     const tint: Blend = tintChestplate
       ? getTint("Chestplate Color")
@@ -1418,19 +1418,19 @@ const script: ScriptDef = (generator: Generator) => {
       drawChestplateBody(
         "Chestplate Overlay",
         { kind: "None" },
-        enchantChestplate,
+        enchantChestplate
       );
       drawLeftShoulder(
         "Chestplate Overlay",
         { kind: "None" },
         true,
-        enchantChestplate,
+        enchantChestplate
       );
       drawRightShoulder(
         "Chestplate Overlay",
         { kind: "None" },
         true,
-        enchantChestplate,
+        enchantChestplate
       );
     }
     generator.defineRegionInput([185, 213, 224, 240], () => {
@@ -1453,7 +1453,7 @@ const script: ScriptDef = (generator: Generator) => {
 
     const tintLeggings = generator.defineAndGetBooleanInput(
       "Tint Leggings",
-      false,
+      false
     );
     const tint: Blend = tintLeggings
       ? getTint("Leggings Color")
@@ -1531,13 +1531,13 @@ const script: ScriptDef = (generator: Generator) => {
       "Helmet Trim",
       showHeadOverlay,
       { kind: "ReplaceColor", color1: baseColors, color2: colors },
-      enchantHelmet,
+      enchantHelmet
     );
     drawHelmetLiner(
       "Helmet Trim",
       showHeadOverlay,
       { kind: "ReplaceColor", color1: baseColors, color2: colors },
-      enchantHelmet,
+      enchantHelmet
     );
   }
 
@@ -1556,19 +1556,19 @@ const script: ScriptDef = (generator: Generator) => {
     drawChestplateBody(
       "Chestplate Trim",
       { kind: "ReplaceColor", color1: baseColors, color2: colors },
-      enchantChestplate,
+      enchantChestplate
     );
     drawLeftShoulder(
       "Chestplate Trim",
       { kind: "ReplaceColor", color1: baseColors, color2: colors },
       true,
-      enchantChestplate,
+      enchantChestplate
     ); // shoulderOverlay functionality disabled for now
     drawRightShoulder(
       "Chestplate Trim",
       { kind: "ReplaceColor", color1: baseColors, color2: colors },
       true,
-      enchantChestplate,
+      enchantChestplate
     );
   }
 
@@ -1587,17 +1587,17 @@ const script: ScriptDef = (generator: Generator) => {
     drawLeggingsBody(
       "Leggings Trim",
       { kind: "ReplaceColor", color1: baseColors, color2: colors },
-      enchantLeggings,
+      enchantLeggings
     );
     drawRightLegging(
       "Leggings Trim",
       { kind: "ReplaceColor", color1: baseColors, color2: colors },
-      enchantLeggings,
+      enchantLeggings
     );
     drawLeftLegging(
       "Leggings Trim",
       { kind: "ReplaceColor", color1: baseColors, color2: colors },
-      enchantLeggings,
+      enchantLeggings
     );
   }
 
@@ -1616,12 +1616,12 @@ const script: ScriptDef = (generator: Generator) => {
     drawLeftBoot(
       "Boots Trim",
       { kind: "ReplaceColor", color1: baseColors, color2: colors },
-      enchantBoots,
+      enchantBoots
     );
     drawRightBoot(
       "Boots Trim",
       { kind: "ReplaceColor", color1: baseColors, color2: colors },
-      enchantBoots,
+      enchantBoots
     );
   }
 
@@ -1636,14 +1636,14 @@ const script: ScriptDef = (generator: Generator) => {
 
   const showHeadOverlay = generator.getBooleanInputValueWithDefault(
     "Show Head Overlay",
-    true,
+    true
   );
 
   // Draw
   // Helmet
   const enchantHelmet = generator.getBooleanInputValueWithDefault(
     "Enchant Helmet",
-    false,
+    false
   );
   drawHelmet(showHeadOverlay, enchantHelmet);
   const trimHelmet = generator.defineAndGetBooleanInput("Trim Helmet", false);
@@ -1654,12 +1654,12 @@ const script: ScriptDef = (generator: Generator) => {
   // Chestplate
   const enchantChestplate = generator.getBooleanInputValueWithDefault(
     "Enchant Chestplate",
-    false,
+    false
   );
   drawChestplate(enchantChestplate);
   const trimChestplate = generator.defineAndGetBooleanInput(
     "Trim Chestplate",
-    false,
+    false
   );
   if (trimChestplate) {
     drawChestplateTrim(enchantChestplate);
@@ -1668,12 +1668,12 @@ const script: ScriptDef = (generator: Generator) => {
   // Leggings
   const enchantLeggings = generator.getBooleanInputValueWithDefault(
     "Enchant Leggings",
-    false,
+    false
   );
   drawLeggings(enchantLeggings);
   const trimLeggings = generator.defineAndGetBooleanInput(
     "Trim Leggings",
-    false,
+    false
   );
   if (trimLeggings) {
     drawLeggingsTrim(enchantLeggings);
@@ -1682,7 +1682,7 @@ const script: ScriptDef = (generator: Generator) => {
   // Boots
   const enchantBoots = generator.getBooleanInputValueWithDefault(
     "Enchant Boots",
-    false,
+    false
   );
   drawBoots(enchantBoots);
   const trimBoots = generator.defineAndGetBooleanInput("Trim Boots", false);
