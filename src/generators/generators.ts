@@ -71,6 +71,7 @@ export const mob: GeneratorDef[] = [
 export const utility: GeneratorDef[] = [
   minecraftBlockGenerator,
   minecraftItemGenerator,
+  minecraftArmorGenerator,
   minecraftCapeAndElytraGenerator,
   minecraftCharacterHeadsGenerator,
 ];
@@ -84,7 +85,7 @@ export const other: GeneratorDef[] = [amogusBendableGenerator];
 
 // Incomplete and in development
 export const dev: GeneratorDef[] = isDevEnvironment
-  ? [minecraftWitherGenerator, minecraftArmorGenerator]
+  ? [minecraftWitherGenerator]
   : [];
 
 export const test: GeneratorDef[] = isDevEnvironment
