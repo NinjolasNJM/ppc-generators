@@ -8,9 +8,7 @@ import type {
   ScriptDef,
   ThumbnailDef,
 } from "@genroot/builder/modules/generatorDef";
-import {
-  type Generator,
-} from "@genroot/builder/modules/generator";
+import { type Generator } from "@genroot/builder/modules/generator";
 import { Dimensions, steveLegacy } from "../_common/minecraftCharacter";
 import thumbnailImage from "./thumbnail/v2-thumbnail-256.jpg";
 
