@@ -31,6 +31,7 @@ import { generator as minecraftVillagerGenerator } from "@genroot/generators/min
 import { generator as minecraftVillagerCharacterGenerator } from "@genroot/generators/minecraftVillagerCharacter/minecraftVillagerCharacterGenerator";
 import { generator as minecraftWitherGenerator } from "@genroot/generators/minecraftWither/minecraftWitherGenerator";
 import { generator as minecraftWolfCharacterGenerator } from "@genroot/generators/minecraftWolfCharacter/minecraftWolfCharacterGenerator";
+import { generator as minecraftArmorGenerator } from "@genroot/generators/minecraftArmor/minecraftArmorGenerator";
 
 const isDevEnvironment: boolean = process.env.NODE_ENV === "development";
 
@@ -83,7 +84,7 @@ export const other: GeneratorDef[] = [amogusBendableGenerator];
 
 // Incomplete and in development
 export const dev: GeneratorDef[] = isDevEnvironment
-  ? [minecraftWitherGenerator]
+  ? [minecraftWitherGenerator, minecraftArmorGenerator]
   : [];
 
 export const test: GeneratorDef[] = isDevEnvironment
