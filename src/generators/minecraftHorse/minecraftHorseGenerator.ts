@@ -31,10 +31,12 @@ import horseMarkingsBlackDotsTexture from "./textures/horse_markings_blackdots.p
 import horseMarkingsWhiteTexture from "./textures/horse_markings_white.png";
 import horseMarkingsWhiteDotsTexture from "./textures/horse_markings_whitedots.png";
 import horseMarkingsWhiteFieldTexture from "./textures/horse_markings_whitefield.png";
-import horseArmorLeatherTexture from "./textures/horse_armor_leather.png";
-import horseArmorGoldTexture from "./textures/horse_armor_gold.png";
-import horseArmorIronTexture from "./textures/horse_armor_iron.png";
-import horseArmorDiamondTexture from "./textures/horse_armor_diamond.png";
+import leatherTexture from "./textures/leather.png";
+import leatherOverlayTexture from "./textures/leather_overlay.png";
+import goldTexture from "./textures/gold.png";
+import ironTexture from "./textures/iron.png";
+import diamondTexture from "./textures/diamond.png";
+import netheriteTexture from "./textures/netherite.png";
 
 const id = "minecraft-horse";
 
@@ -72,6 +74,12 @@ const images: ImageDef[] = [
 ];
 
 const textures: TextureDef[] = [
+    {
+    id: "Horse",
+    url: horseWhiteTexture.src,
+    standardWidth: 64,
+    standardHeight: 64,
+  },
   {
     id: "Black Horse",
     url: horseBlackTexture.src,
@@ -164,25 +172,35 @@ const textures: TextureDef[] = [
   },
   {
     id: "Leather",
-    url: horseArmorLeatherTexture.src,
+    url: leatherTexture.src,
+    standardWidth: 64,
+    standardHeight: 64,
+  },
+  {    id: "Leather Overlay",
+    url: leatherOverlayTexture.src,
     standardWidth: 64,
     standardHeight: 64,
   },
   {
     id: "Gold",
-    url: horseArmorGoldTexture.src,
+    url: goldTexture.src,
     standardWidth: 64,
     standardHeight: 64,
   },
   {
     id: "Iron",
-    url: horseArmorIronTexture.src,
+    url: ironTexture.src,
     standardWidth: 64,
     standardHeight: 64,
   },
   {
     id: "Diamond",
-    url: horseArmorDiamondTexture.src,
+    url: diamondTexture.src,
+    standardWidth: 64,
+    standardHeight: 64,
+  },
+  {    id: "Netherite",
+    url: netheriteTexture.src,
     standardWidth: 64,
     standardHeight: 64,
   },
@@ -218,7 +236,7 @@ const script: ScriptDef = (generator: Generator) => {
   generator.defineTextureInput("Armor", {
     standardWidth: 64,
     standardHeight: 64,
-    choices: ["Leather", "Gold", "Iron", "Diamond"],
+    choices: ["Leather", "Gold", "Iron", "Diamond", "Netherite"],
   });
 
   // Define user variables
