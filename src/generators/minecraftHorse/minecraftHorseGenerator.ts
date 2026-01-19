@@ -396,7 +396,9 @@ const script: ScriptDef = (generator: Generator) => {
 
   generator.defineBooleanInput("Show Folds", true);
   generator.defineBooleanInput("Show Labels", true);
-  generator.defineBooleanInput("Donkey / Mule Model", false);
+  generator.defineRegionInput([256, 249, 124, 72], () => {
+    generator.setBooleanInputValue("Donkey / Mule Model", !muleModel);
+  });
 
   // Get user variable values
 
