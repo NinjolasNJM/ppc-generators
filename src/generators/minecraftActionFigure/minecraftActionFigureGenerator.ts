@@ -10,7 +10,7 @@ import type {
 } from "@genroot/builder/modules/generatorDef";
 import { type Generator } from "@genroot/builder/modules/generator";
 import { steve, alex } from "../_common/minecraftCharacter";
-import { Center, cycleCenter, type Dimensions, Minecraft } from "../_common/minecraft";
+import { type Dimensions, Minecraft } from "../_common/minecraft";
 
 import thumbnailImage from "./thumbnail/thumbnail-256.jpeg";
 import foldsAlexImage from "./images/Folds-Alex.png";
@@ -20,8 +20,6 @@ import foregroundAlexImage from "./images/Foreground-Alex.png";
 import foregroundSteveImage from "./images/Foreground-Steve.png";
 import foregroundM16Image from "./images/Foreground-M16.png";
 import labelsImage from "./images/Labels.png";
-import skin64x64SteveImage from "../_common/skins/wide/steve.png";
-import alexImage from "../_common/skins/slim/alex.png";
 import { getSkinUrl } from "../_common/skins";
 
 const id = "minecraft-action-figure";
@@ -81,14 +79,14 @@ const script: ScriptDef = (generator: Generator) => {
   generator.defineBooleanInput("Show Folds", true);
   generator.defineBooleanInput("Show Labels", true);
   generator.defineBooleanInput("Hand Notches", true);
-  generator.defineBooleanInput("Enable 3D Second Layers", true);
+  //generator.defineBooleanInput("Enable 3D Second Layers", true);
   // Get user variable values
   const isSlimModel = generator.getSelectInputValue("Skin Model Type") === "Slim";
 
   const showFolds = generator.getBooleanInputValue("Show Folds");
   const showLabels = generator.getBooleanInputValue("Show Labels");
   const handNotches = generator.getBooleanInputValue("Hand Notches");
-  const enable3DSecondLayers = generator.getBooleanInputValue("Enable 3D Second Layers");
+  //const enable3DSecondLayers = generator.getBooleanInputValue("Enable 3D Second Layers");
 
   /* 
     Redefine how overlay works:
@@ -129,14 +127,14 @@ const script: ScriptDef = (generator: Generator) => {
   );
 
   // 3D second layer center face toggles
-
+ /*
 const headOverlayCenter = (generator.getSelectInputValue("Head Center") ?? "Front") as Center;
 const bodyOverlayCenter = (generator.getSelectInputValue("Body Center") ?? "Front") as Center;
 const rightArmOverlayCenter = (generator.getSelectInputValue("Right Arm Center") ?? "Front") as Center;
 const leftArmOverlayCenter = (generator.getSelectInputValue("Left Arm Center") ?? "Front") as Center;
 const rightLegOverlayCenter = (generator.getSelectInputValue("Right Leg Center") ?? "Front") as Center;
 const leftLegOverlayCenter = (generator.getSelectInputValue("Left Leg Center") ?? "Front") as Center;
-
+*/
   const m16Mode = generator.getBooleanInputValueWithDefault("M16 Mode", false);
 
   const char = isSlimModel ? alex : steve;
@@ -385,7 +383,7 @@ const leftLegOverlayCenter = (generator.getSelectInputValue("Left Leg Center") ?
   }
 
   // Second Layers for second page. Stolen from character gen and modified to let you change the center.
-  function draw3DHead([ox, oy]: [number, number], center: Center) {
+  /*function draw3DHead([ox, oy]: [number, number], center: Center) {
     const dimensions: Dimensions = [64, 64, 64];
     minecraftGenerator.drawCuboid("Skin", char.overlay.head, [ox, oy], dimensions, { center });
   }
@@ -435,7 +433,7 @@ const leftLegOverlayCenter = (generator.getSelectInputValue("Left Leg Center") ?
       dimensions,
       { orientation: "East", center }
     );
-  }
+  } */
 
   function drawNotch([ox, oy]: [number, number], isLeftSide: boolean) {
     const dir = isLeftSide ? 1 : 0;
@@ -614,7 +612,7 @@ const leftLegOverlayCenter = (generator.getSelectInputValue("Left Leg Center") ?
   }
 
   // Second Layer Page
-  if (enable3DSecondLayers && (  !showHeadOverlay ||  !showBodyOverlay ||
+  /*if (enable3DSecondLayers && (  !showHeadOverlay ||  !showBodyOverlay ||
       !showLeftArmOverlay ||
       !showRightArmOverlay ||
       !showLeftLegOverlay ||
@@ -690,7 +688,7 @@ const leftLegOverlayCenter = (generator.getSelectInputValue("Left Leg Center") ?
   generator.setSelectInputValue("Left Leg Center", cycleCenter(generator.getSelectInputValue("Left Leg Center")));
 });
     }
-  }
+  } */
 };
 
 export const generator: GeneratorDef = {
