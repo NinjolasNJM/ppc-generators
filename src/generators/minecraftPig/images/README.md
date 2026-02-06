@@ -4,15 +4,17 @@ The root folder contains the sprite sheets and the separated folder contain the 
 DO NOT try to edit the images from the sprite files. Instead follow the procedure below after modifying the specific image.
 
 ##To generate a sprite sheet and JSON
-  - Go to [ZeroSprites.com](http://zerosprites.com/)
-  - Drag all the images in one of the folders to the site
-  - Set padding to 0 pixels and optimize to true
-  - Press the Pack buton
-  - Save the image that is generated
-  - Copy the CSS and use [this converter I made](http://codepen.io/TepigMC/pen/MYXGew) to convert the CSS into JSON that the generator can use
-  - Now you can use `Generator.drawSprite()` and `Generator.drawSpriteSized()`
+
+- Go to [ZeroSprites.com](http://zerosprites.com/)
+- Drag all the images in one of the folders to the site
+- Set padding to 0 pixels and optimize to true
+- Press the Pack buton
+- Save the image that is generated
+- Copy the CSS and use [this converter I made](http://codepen.io/TepigMC/pen/MYXGew) to convert the CSS into JSON that the generator can use
+- Now you can use `Generator.drawSprite()` and `Generator.drawSpriteSized()`
 
 ###CSS Before:
+
 ```css
     .sprites { background: url(sprites.png) no-repeat; } <-- Remove this line
     .body { width: 312px; height: 304px; background-position: 0 0; }
@@ -22,6 +24,7 @@ DO NOT try to edit the images from the sprite files. Instead follow the procedur
 ```
 
 ###JSON After:
+
 ```javascript
     var bgSprites = {
       body: { w:312, h:304, x:0, y:0 },
