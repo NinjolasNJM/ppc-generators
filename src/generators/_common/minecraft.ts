@@ -211,21 +211,6 @@ export type Orientation = "East" | "West" | "North" | "South";
 
 export type Center = "Right" | "Front" | "Left" | "Back" | "Top" | "Bottom";
 
-export const centers: Center[] = [
-  "Right",
-  "Front",
-  "Left",
-  "Back",
-  "Top",
-  "Bottom",
-];
-
-export function cycleCenter(value: string | null | undefined): Center {
-  const idx = centers.indexOf((value ?? "") as Center);
-  const nextIndex = idx === -1 ? 0 : (idx + 1) % centers.length;
-  return centers[nextIndex] as Center;
-}
-
 function makeDest([w, h, d]: Dimensions, orientation: Orientation): Dest {
   switch (orientation) {
     case "West":
