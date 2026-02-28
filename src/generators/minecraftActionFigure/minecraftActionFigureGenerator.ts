@@ -79,28 +79,12 @@ const script: ScriptDef = (generator: Generator) => {
   generator.defineBooleanInput("Show Folds", true);
   generator.defineBooleanInput("Show Labels", true);
   generator.defineBooleanInput("Hand Notches", true);
-  //generator.defineBooleanInput("Enable 3D Second Layers", true);
   // Get user variable values
   const isSlimModel = generator.getSelectInputValue("Skin Model Type") === "Slim";
 
   const showFolds = generator.getBooleanInputValue("Show Folds");
   const showLabels = generator.getBooleanInputValue("Show Labels");
   const handNotches = generator.getBooleanInputValue("Hand Notches");
-  //const enable3DSecondLayers = generator.getBooleanInputValue("Enable 3D Second Layers");
-
-  /* 
-    Redefine how overlay works:
-    each variable can be true, false, or separate
-    separate ones are drawn on a second page, and then each one needs to be cycling between different center faces
-    meaning that there can either be a rework of how the toggle works, or there can be the same first toggle where it does what you think, but when false...
-    it enables the second page, and that ones toggle is for the center faces instead.
-    How it looks like:
-    - add a toggle in menu for "enable Enable 3d second layers"
-    - this makes it so that when an overlay is false, it goes to the second page
-    - second page draws in basic way(?) but wih need for center faces cycling.
-    - currently no folds, labels or tabs on second page, in case the layer needs to be slightly bigger or a discrete layout needs to be thought through.
-    also to anticiptate generating specific tab layouts if that ends up being needed.
-  */
   const showHeadOverlay = generator.getBooleanInputValueWithDefault(
     "Show Head Overlay",
     true
@@ -126,15 +110,6 @@ const script: ScriptDef = (generator: Generator) => {
     true
   );
 
-  // 3D second layer center face toggles
- /*
-const headOverlayCenter = (generator.getSelectInputValue("Head Center") ?? "Front") as Center;
-const bodyOverlayCenter = (generator.getSelectInputValue("Body Center") ?? "Front") as Center;
-const rightArmOverlayCenter = (generator.getSelectInputValue("Right Arm Center") ?? "Front") as Center;
-const leftArmOverlayCenter = (generator.getSelectInputValue("Left Arm Center") ?? "Front") as Center;
-const rightLegOverlayCenter = (generator.getSelectInputValue("Right Leg Center") ?? "Front") as Center;
-const leftLegOverlayCenter = (generator.getSelectInputValue("Left Leg Center") ?? "Front") as Center;
-*/
   const m16Mode = generator.getBooleanInputValueWithDefault("M16 Mode", false);
 
   const char = isSlimModel ? alex : steve;
@@ -382,72 +357,17 @@ const leftLegOverlayCenter = (generator.getSelectInputValue("Left Leg Center") ?
     }
   }
 
-  // Second Layers for second page. Stolen from character gen and modified to let you change the center.
-  /*function draw3DHead([ox, oy]: [number, number], center: Center) {
-    const dimensions: Dimensions = [64, 64, 64];
-    minecraftGenerator.drawCuboid("Skin", char.overlay.head, [ox, oy], dimensions, { center });
-  }
-
-  function draw3DBody([ox, oy]: [number, number], center: Center) {
-    const dimensions: Dimensions = [64, 96, 32];
-    minecraftGenerator.drawCuboid("Skin", char.overlay.body, [ox, oy], dimensions, { center });
-  }
-
-  function draw3DRightArm([ox, oy]: [number, number], center: Center) {
-    const dimensions: Dimensions = char === alex ? [24, 96, 32] : [32, 96, 32];
-    minecraftGenerator.drawCuboid(
-      "Skin",
-      char.overlay.rightArm,
-      [ox, oy],
-      dimensions, { center }
-    );
-  }
-
-  function draw3DLeftArm([ox, oy]: [number, number], center: Center) {
-    const dimensions: Dimensions = char === alex ? [24, 96, 32] : [32, 96, 32];
-    minecraftGenerator.drawCuboid(
-      "Skin",
-      char.overlay.leftArm,
-      [ox, oy],
-      dimensions,
-      { orientation: "East", center }
-    );
-  }
-
-  function draw3DRightLeg([ox, oy]: [number, number], center: Center) {
-    const dimensions: Dimensions = [32, 96, 32];
-    minecraftGenerator.drawCuboid(
-      "Skin",
-      char.overlay.rightLeg,
-      [ox, oy],
-      dimensions, { center }
-    );
-  }
-
-  function draw3DLeftLeg([ox, oy]: [number, number], center: Center) {
-    const dimensions: Dimensions = [32, 96, 32];
-    minecraftGenerator.drawCuboid(
-      "Skin",
-      char.overlay.leftLeg,
-      [ox, oy],
-      dimensions,
-      { orientation: "East", center }
-    );
-  } */
-
   function drawNotch([ox, oy]: [number, number], isLeftSide: boolean) {
     const dir = isLeftSide ? 1 : 0;
     const [x, y, w, h] = [ox + dir, oy, 8, 24];
 
     const color = "#7b7b7b";
-    //Generator.fillRect((x - dir, y, w, h), "#ff0000")
     generator.drawLine([x, y - 1], [x + w - 1, y - 1], { color });
     generator.drawLine([x + w - 10 * dir, y], [x + w - 10 * dir, y + h], {
       color,
       lineDash: [7, 1],
     });
     generator.drawLine([x + w - 1, y + h + 1], [x, y + h + 1], { color });
-    //Generator.drawFoldLine((x, y + h), (x, y))
   }
 
   // The foreground was designed on a 32px grid with an offset of (9, 5) that makes the cells more centered. This function makes finding the [ox, oy] much easier as you only need to count the cells instead of find the actual coordinates.
@@ -611,84 +531,6 @@ const leftLegOverlayCenter = (generator.getSelectInputValue("Left Leg Center") ?
     generator.drawImage("Labels", [0, 0]);
   }
 
-  // Second Layer Page
-  /*if (enable3DSecondLayers && (  !showHeadOverlay ||  !showBodyOverlay ||
-      !showLeftArmOverlay ||
-      !showRightArmOverlay ||
-      !showLeftLegOverlay ||
-      !showRightLegOverlay)) {
-    generator.usePage("Second Layer");
-
-    // Head
-    [ox, oy] = getGridOrigin(1, 1);
-
-    if (!showHeadOverlay) {
-      draw3DHead([ox, oy], headOverlayCenter);
-      generator.defineRegionInput([ox, oy, 256, 192], () => {
-  generator.setSelectInputValue("Head Center", cycleCenter(generator.getSelectInputValue("Head Center")));
-});
-    }
-
-    // Body
-
-    [ox, oy] = getGridOrigin(7, 6);
-
-    if (!showBodyOverlay) {
-      draw3DBody([ox, oy], bodyOverlayCenter);
-      generator.defineRegionInput([ox, oy, 192, 160], () => {
-  generator.setSelectInputValue("Body Center", cycleCenter(generator.getSelectInputValue("Body Center")));
-});
-    }
-
-    // Arms
-
-
-    // Right Arm
-
-    [ox, oy] = getGridOrigin(1, 10);
-    ox = isSlimModel ? ox + 8 : ox;
-
-    if (!showRightArmOverlay) {
-      draw3DRightArm([ox, oy], rightArmOverlayCenter);
-      generator.defineRegionInput([ox, oy, isSlimModel ? 112 : 128, 160], () => {
-  generator.setSelectInputValue("Right Arm Center", cycleCenter(generator.getSelectInputValue("Right Arm Center")));
-});
-    }
-
-    // Left Arm
-
-    [ox, oy] = getGridOrigin(13, 10);
-    ox = isSlimModel ? ox + 8 : ox;
-
-    if (!showLeftArmOverlay) {
-      draw3DLeftArm([ox, oy], leftArmOverlayCenter);
-      generator.defineRegionInput([ox, oy, isSlimModel ? 112 : 128, 166], () => {
-  generator.setSelectInputValue("Left Arm Center", cycleCenter(generator.getSelectInputValue("Left Arm Center")));
-});
-    }
-
-    // Right Leg
-
-    [ox, oy] = getGridOrigin(1, 18);
-
-    if (!showRightLegOverlay) {
-      draw3DRightLeg([ox, oy], rightLegOverlayCenter);
-      generator.defineRegionInput([ox, oy - 48, 128, 208], () => {
-  generator.setSelectInputValue("Right Leg Center", cycleCenter(generator.getSelectInputValue("Right Leg Center")));
-});
-    }
-
-    // Left Leg
-
-    [ox, oy] = getGridOrigin(13, 18);
-
-    if (!showLeftLegOverlay) {
-      draw3DLeftLeg([ox, oy], leftLegOverlayCenter);
-      generator.defineRegionInput([ox, oy - 48, 128, 208], () => {
-  generator.setSelectInputValue("Left Leg Center", cycleCenter(generator.getSelectInputValue("Left Leg Center")));
-});
-    }
-  } */
 };
 
 export const generator: GeneratorDef = {
