@@ -19,8 +19,6 @@ import colorsAlexImage from "./images/Colors-Alex.png";
 import foldsSteveImage from "./images/Folds-Steve.png";
 import foldsAlexImage from "./images/Folds-Alex.png";
 import labelsImage from "./images/Labels.png";
-import skin64x64SteveImage from "../_common/skins/wide/steve.png";
-import alexImage from "../_common/skins/slim/alex.png";
 import { getSkinUrl } from "../_common/skins";
 
 const id = "minecraft-ultimate-bendable";

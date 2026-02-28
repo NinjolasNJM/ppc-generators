@@ -19,8 +19,6 @@ import page4Image from "./images/Page4.png";
 import hole1Image from "./images/Hole1.png";
 import hole2Image from "./images/Hole2.png";
 import hole3Image from "./images/Hole3.png";
-import steveTexture from "../_common/skins/wide/steve.png";
-import alexImage from "../_common/skins/slim/alex.png";
 import { getSkinUrl } from "../_common/skins";
 
 const id = "minecraft-mutant-character";

@@ -14,8 +14,6 @@ import thumbnailImage from "./thumbnail/v3-thumbnail-256.jpeg";
 import backgroundImage from "./images/Background.png";
 import foldsImage from "./images/Folds.png";
 import labelsImage from "./images/Labels.png";
-import steveTexture from "../_common/skins/wide/steve.png";
-import alexImage from "../_common/skins/slim/alex.png";
 import { getSkinUrl } from "../_common/skins";
 
 const id = "minecraft-villager-character";

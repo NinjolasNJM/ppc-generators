@@ -32,8 +32,6 @@ import chainmailArmorFaithfulTexture from "./textures/faithful/chainmail-armor.p
 import ironArmorFaithfulTexture from "./textures/faithful/iron-armor.png";
 import saddleSpacePigTexture from "./textures/space-pig/saddle.png";
 import armorSpacePigTexture from "./textures/space-pig/armor.png";
-import steveTexture from "../_common/skins/wide/steve.png";
-import alexImage from "../_common/skins/slim/alex.png";
 import { getSkinUrl } from "../_common/skins";
 
 const id = "minecraft-pig-character";

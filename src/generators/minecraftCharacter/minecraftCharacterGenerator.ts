@@ -20,8 +20,6 @@ import backgroundImage from "./images/Background.png";
 import labelsImage from "./images/Labels.png";
 import steveFoldsImage from "./images/SteveFolds.png";
 import steveTabsImage from "./images/SteveTabs.png";
-import skinAlex64Image from "../_common/skins/slim/alex.png";
-import skinSteve64Image from "../_common/skins/wide/steve.png";
 import { getSkinUrl } from "../_common/skins";
 
 const id = "minecraft-character";

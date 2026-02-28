@@ -17,8 +17,6 @@ import backgroundImage from "./images/Background.png";
 import foldsImage from "./images/Folds.png";
 import actionFigureImage from "./images/Action-Figure.png";
 import tabsImage from "./images/Tabs.png";
-import steveImage from "./textures/Steve.png";
-import alexImage from "./textures/Alex.png";
 import { getSkinUrl } from "../_common/skins";
 import zombieImage from "./textures/Zombie.png";
 import endermanImage from "./textures/Enderman.png";

@@ -22,8 +22,6 @@ import thumbnailImage from "./thumbnail/thumbnail-256.jpeg";
 import backgroundImage from "./images/Background.png";
 import foldsImage from "./images/Folds.png";
 import labelsImage from "./images/Labels.png";
-import steveImage from "../_common/skins/wide/steve.png";
-import alexImage from "../_common/skins/slim/alex.png";
 import { getSkinUrl } from "../_common/skins";
 import axolotlBlueImage from "./textures/axolotl_blue.png";
 import axolotlCyanImage from "./textures/axolotl_cyan.png";

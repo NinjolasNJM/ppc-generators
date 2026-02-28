@@ -19,7 +19,7 @@ import labelsImage from "./images/Labels.png";
 import actionFigureImage from "./images/Action-Figure.png";
 import actionFigureFoldsImage from "./images/Action-Figure-Folds.png";
 import actionFigureLabelsImage from "./images/Action-Figure-Labels.png";
-import steveImage from "../_common/skins/wide/default.png";
+// TODO: Verify if this alexImage import needs to be updated.
 import alexImage from "../_common/skins/slim/default.png";
 import { getSkinUrl } from "../_common/skins";
 

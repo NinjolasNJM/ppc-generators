@@ -23,8 +23,6 @@ import {
 import thumbnailImage from "./thumbnail/v2-thumbnail-256.jpeg";
 import foregroundImage from "./images/Foreground.png";
 import titleImage from "./images/Title.png";
-import steveSkin from "../_common/skins/wide/steve.png";
-import alexSkin from "../_common/skins/slim/alex.png";
 import { getSkinUrl } from "../_common/skins";
 
 const id = "minecraft-character-mini";

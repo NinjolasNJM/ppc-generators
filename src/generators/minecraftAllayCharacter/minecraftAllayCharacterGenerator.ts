@@ -14,8 +14,6 @@ import { steve, alex } from "@genroot/generators/_common/minecraftCharacter";
 
 import thumbnailImage from "./thumbnail/thumbnail-256.jpeg";
 import overlayAllayImage from "./images/OverlayAllay.png";
-import steveImage from "../_common/skins/wide/steve.png";
-import alexImage from "../_common/skins/slim/alex.png";
 import { getSkinUrl } from "../_common/skins";
 
 const id = "minecraft-allay-character";
