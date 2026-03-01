@@ -20,7 +20,7 @@ import steveSlim from "./slim/steve.png";
 import sunnySlim from "./slim/sunny.png";
 import zuriSlim from "./slim/zuri.png";
 
-export const DEFAULT_SKIN_NAMES = [
+export const defaultSkinNames = [
   "Alex",
   "Ari",
   "Efe",
@@ -56,6 +56,6 @@ export function getSkinUrl(name: string, modelType: ModelType): string {
   }
 
   // Treat anything with 'Slim' as slim, otherwise wide
-  const wantsSlim = String(modelType) === "Slim";
+  const wantsSlim = modelType === "Slim";
   return wantsSlim ? entry.slim : entry.wide;
 }

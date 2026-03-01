@@ -8,7 +8,7 @@ import {
 import { makeImageFromUrl } from "@genroot/builder/modules/image";
 import { convertToStandardSkin } from "@genroot/builder/modules/minecraftSkinConverter";
 import { fetchSkinImage } from "@genroot/builder/modules/minecraftSkin";
-import { DEFAULT_SKIN_NAMES } from "@genroot/generators/_common/skins";
+import { defaultSkinNames } from "@genroot/generators/_common/skins";
 import { type SelectOption, Select } from "../form/select";
 import { Button, type ButtonState } from "../button/button";
 import { ArrowPathIconWithSpin } from "../icon";
@@ -36,7 +36,9 @@ function MinecraftSkinFetchInput({
   onError: () => void;
 }) {
   const [value, setValue] = React.useState("");
-  const [fetchState, setFetchState] = React.useState<FetchState>({ kind: "Idle" });
+  const [fetchState, setFetchState] = React.useState<FetchState>({
+    kind: "Idle",
+  });
 
   const username = value.trim();
 
@@ -84,7 +86,11 @@ function MinecraftSkinFetchInput({
           ) : null}
         </div>
 
-        <Button size="Small" state={buttonState} onClick={() => void onFetchSkin()}>
+        <Button
+          size="Small"
+          state={buttonState}
+          onClick={() => void onFetchSkin()}
+        >
           Fetch skin
         </Button>
       </div>
@@ -124,7 +130,7 @@ export function MinecraftSkinControl({
     onChangeRef.current = onChange;
   }, [onChange]);
 
-  const defaultSet = React.useMemo(() => new Set<string>(DEFAULT_SKIN_NAMES), []);
+  const defaultSet = React.useMemo(() => new Set<string>(defaultSkinNames), []);
   const additionalChoices = React.useMemo(
     () => choices.filter((choice) => !defaultSet.has(choice)),
     [choices, defaultSet]
@@ -132,7 +138,7 @@ export function MinecraftSkinControl({
 
   const selectChoices: SelectOption[] = [
     { id: "", label: "None" },
-    ...DEFAULT_SKIN_NAMES.map((name) => ({ id: name, label: name })),
+    ...defaultSkinNames.map((name) => ({ id: name, label: name })),
     ...additionalChoices.map((choice) => ({ id: choice, label: choice })),
   ];
 
@@ -141,7 +147,11 @@ export function MinecraftSkinControl({
       try {
         setLoadError(null);
         const url = resolveBundledMinecraftSkin(presetName, currentModelType);
-        const texture = await makeTextureFromUrl(url, standardWidth, standardHeight);
+        const texture = await makeTextureFromUrl(
+          url,
+          standardWidth,
+          standardHeight
+        );
         onChangeRef.current(texture);
       } catch (error) {
         console.error(error);
@@ -154,7 +164,11 @@ export function MinecraftSkinControl({
   const onCustomImage = React.useCallback(
     async (image: HTMLImageElement) => {
       const converted = await convertToStandardSkin(image);
-      const texture = makeTextureFromImage(converted, standardWidth, standardHeight);
+      const texture = makeTextureFromImage(
+        converted,
+        standardWidth,
+        standardHeight
+      );
       setSelection(selectCustom());
       setLoadError(null);
       onChangeRef.current(texture);
