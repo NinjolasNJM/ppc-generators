@@ -88,7 +88,7 @@ const textures: TextureDef[] = [
     standardWidth: 64,
     standardHeight: 32,
   },
- 
+
   {
     id: "Saddle (Vanilla)",
     url: saddleTexture.src,
@@ -416,7 +416,8 @@ const script: ScriptDef = (generator: Generator) => {
   generator.defineBooleanInput("Show Titles", true);
   generator.defineBooleanInput("Transparent Background", false);
 
-  const isSlimModel = generator.getSelectInputValue("Skin Model Type") === "Slim";
+  const isSlimModel =
+    generator.getSelectInputValue("Skin Model Type") === "Slim";
   const showFolds = generator.getBooleanInputValue("Show Folds");
   const showLabels = generator.getBooleanInputValue("Show Labels");
   const showTitles = generator.getBooleanInputValue("Show Titles");
@@ -1447,7 +1448,18 @@ const script: ScriptDef = (generator: Generator) => {
     !hideRightSleeve,
     isSlimModel
   ); // Right Arm
-  drawLeg(skinTexture, 32, 48, 48, 48, 392, 288, 2, !hideLeftSleeve, isSlimModel); // Left Arm
+  drawLeg(
+    skinTexture,
+    32,
+    48,
+    48,
+    48,
+    392,
+    288,
+    2,
+    !hideLeftSleeve,
+    isSlimModel
+  ); // Left Arm
   drawLeg(skinTexture, 0, 16, 0, 32, 392, 472, 3, !hideRightPant, false); // Right Leg
   drawLeg(skinTexture, 16, 48, 0, 48, 240, 584, 4, !hideLeftPant, false); // Left Leg
 

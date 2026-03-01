@@ -71,7 +71,8 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Get user variable values
 
-  const isSlimModel = generator.getSelectInputValue("Skin Model Type") === "Slim";
+  const isSlimModel =
+    generator.getSelectInputValue("Skin Model Type") === "Slim";
   const showFolds = generator.getBooleanInputValue("Show Folds");
   const showLabels = generator.getBooleanInputValue("Show Labels");
 

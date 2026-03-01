@@ -49,7 +49,7 @@ const textures: TextureDef[] = [
     standardWidth: 64,
     standardHeight: 64,
   },
- 
+
   {
     id: "Angry Wolf",
     url: wolfAngryTexture.src,
@@ -91,7 +91,8 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Get user variables
 
-  const isSlimModel = generator.getSelectInputValue("Skin Model Type") === "Slim";
+  const isSlimModel =
+    generator.getSelectInputValue("Skin Model Type") === "Slim";
   const showFolds = generator.getBooleanInputValue("Show Folds");
   const showLabels = generator.getBooleanInputValue("Show Labels");
   const showRedEyes = generator.getBooleanInputValue("Show Red Eyes");

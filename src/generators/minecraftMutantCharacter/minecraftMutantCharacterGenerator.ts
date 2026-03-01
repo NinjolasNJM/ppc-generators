@@ -56,7 +56,6 @@ const textures: TextureDef[] = [
     standardWidth: 64,
     standardHeight: 64,
   },
- 
 ];
 
 const script: ScriptDef = (generator: Generator) => {
@@ -70,7 +69,8 @@ const script: ScriptDef = (generator: Generator) => {
 
   generator.defineSelectInput("Skin Model Type", ["Wide", "Slim"]);
 
-  const isSlimModel = generator.getSelectInputValue("Skin Model Type") === "Slim";
+  const isSlimModel =
+    generator.getSelectInputValue("Skin Model Type") === "Slim";
 
   generator.usePage("Page 1");
   generator.drawImage("Page1", [0, 0]);

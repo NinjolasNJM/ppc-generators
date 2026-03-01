@@ -49,7 +49,12 @@ const images: ImageDef[] = [
 ];
 
 const textures: TextureDef[] = [
-  { id: "Skin", url: getSkinUrl("Default", "Wide"), standardWidth: 64, standardHeight: 64 },
+  {
+    id: "Skin",
+    url: getSkinUrl("Default", "Wide"),
+    standardWidth: 64,
+    standardHeight: 64,
+  },
   { id: "Poppy", url: poppyTexture.src, standardWidth: 16, standardHeight: 16 },
   { id: "Rose", url: roseTexture.src, standardWidth: 16, standardHeight: 16 },
   {
@@ -100,7 +105,8 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Get user variable values
 
-  const isSlimModel = generator.getSelectInputValue("Skin Model Type") === "Slim";
+  const isSlimModel =
+    generator.getSelectInputValue("Skin Model Type") === "Slim";
   const showFolds = generator.getBooleanInputValue("Show Folds");
   const showLabels = generator.getBooleanInputValue("Show Labels");
 

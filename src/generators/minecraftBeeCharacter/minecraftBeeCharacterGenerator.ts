@@ -52,7 +52,6 @@ const textures: TextureDef[] = [
     standardWidth: 64,
     standardHeight: 64,
   },
- 
 ];
 
 const script: ScriptDef = (generator: Generator) => {

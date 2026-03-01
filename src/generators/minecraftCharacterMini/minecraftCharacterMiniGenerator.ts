@@ -65,7 +65,6 @@ const textures: TextureDef[] = [
     standardHeight: 64,
   },
   // Steve texture choice
- 
 ];
 
 const script: ScriptDef = (generator: Generator) => {
