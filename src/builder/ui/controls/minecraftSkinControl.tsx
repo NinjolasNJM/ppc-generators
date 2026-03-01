@@ -118,6 +118,11 @@ export function MinecraftSkinControl({
 }) {
   const [selection, setSelection] = React.useState(initialSkinSelectionState);
   const [loadError, setLoadError] = React.useState<string | null>(null);
+  const onChangeRef = React.useRef(onChange);
+
+  React.useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
 
   const defaultSet = React.useMemo(() => new Set<string>(DEFAULT_SKIN_NAMES), []);
   const additionalChoices = React.useMemo(
@@ -137,13 +142,13 @@ export function MinecraftSkinControl({
         setLoadError(null);
         const url = resolveBundledMinecraftSkin(presetName, currentModelType);
         const texture = await makeTextureFromUrl(url, standardWidth, standardHeight);
-        onChange(texture);
+        onChangeRef.current(texture);
       } catch (error) {
         console.error(error);
         setLoadError("Failed to load bundled skin preset.");
       }
     },
-    [onChange, standardHeight, standardWidth]
+    [standardHeight, standardWidth]
   );
 
   const onCustomImage = React.useCallback(
@@ -152,9 +157,9 @@ export function MinecraftSkinControl({
       const texture = makeTextureFromImage(converted, standardWidth, standardHeight);
       setSelection(selectCustom());
       setLoadError(null);
-      onChange(texture);
+      onChangeRef.current(texture);
     },
-    [onChange, standardHeight, standardWidth]
+    [standardHeight, standardWidth]
   );
 
   const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -187,27 +192,26 @@ export function MinecraftSkinControl({
     if (choice.id === "") {
       setSelection(selectCustom());
       setLoadError(null);
-      onChange(null);
+      onChangeRef.current(null);
       return;
     }
 
     if (defaultSet.has(choice.id)) {
       setSelection(selectPreset(choice.id));
-      void loadPreset(choice.id, modelType);
       return;
     }
 
     setSelection(selectCustom());
     setLoadError(null);
     const texture = textures.get(choice.id) ?? null;
-    onChange(texture);
+    onChangeRef.current(texture);
   };
 
   React.useEffect(() => {
     if (selection.source === "preset" && selection.presetName) {
       void loadPreset(selection.presetName, modelType);
     }
-  }, [loadPreset, modelType, selection]);
+  }, [loadPreset, modelType, selection.presetName, selection.source]);
 
   return (
     <>
