@@ -13,11 +13,6 @@ import { type SelectOption, Select } from "../form/select";
 import { Button, type ButtonState } from "../button/button";
 import { ArrowPathIconWithSpin } from "../icon";
 import {
-  initialSkinSelectionState,
-  selectCustom,
-  selectPreset,
-} from "./minecraftSkinState";
-import {
   type ModelType,
   resolveBundledMinecraftSkin,
 } from "./minecraftSkinResolver";
@@ -122,9 +117,39 @@ export function MinecraftSkinControl({
   textures: Map<string, Texture>;
   onChange: (image: Texture | null) => void;
 }) {
-  const [selection, setSelection] = React.useState(initialSkinSelectionState);
-  const [loadError, setLoadError] = React.useState<string | null>(null);
+  const currentTexture = textures.get(id) ?? null;
   const onChangeRef = React.useRef(onChange);
+
+  const inferredPresetName = React.useMemo(() => {
+    if (!currentTexture) {
+      return null;
+    }
+
+    const loadedImageUrl = currentTexture.imageWithCanvas.image.src;
+    const modelTypes: ModelType[] = ["Wide", "Slim"];
+
+    for (const presetName of defaultSkinNames) {
+      for (const candidateModelType of modelTypes) {
+        const bundledSkinUrl = resolveBundledMinecraftSkin(
+          presetName,
+          candidateModelType
+        );
+        if (
+          loadedImageUrl === bundledSkinUrl ||
+          loadedImageUrl.endsWith(bundledSkinUrl) ||
+          bundledSkinUrl.endsWith(loadedImageUrl)
+        ) {
+          return presetName;
+        }
+      }
+    }
+
+    return null;
+  }, [currentTexture]);
+  const [selectedChoiceId, setSelectedChoiceId] = React.useState(
+    inferredPresetName ?? ""
+  );
+  const [loadError, setLoadError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     onChangeRef.current = onChange;
@@ -141,6 +166,20 @@ export function MinecraftSkinControl({
     ...defaultSkinNames.map((name) => ({ id: name, label: name })),
     ...additionalChoices.map((choice) => ({ id: choice, label: choice })),
   ];
+  const selectedChoice =
+    selectChoices.find((choice) => choice.id === selectedChoiceId) ??
+    selectChoices[0];
+
+  React.useEffect(() => {
+    if (!inferredPresetName) {
+      return;
+    }
+    setSelectedChoiceId((previousChoiceId) =>
+      previousChoiceId === inferredPresetName
+        ? previousChoiceId
+        : inferredPresetName
+    );
+  }, [inferredPresetName]);
 
   const loadPreset = React.useCallback(
     async (presetName: string, currentModelType: ModelType) => {
@@ -169,7 +208,7 @@ export function MinecraftSkinControl({
         standardWidth,
         standardHeight
       );
-      setSelection(selectCustom());
+      setSelectedChoiceId("");
       setLoadError(null);
       onChangeRef.current(texture);
     },
@@ -203,36 +242,37 @@ export function MinecraftSkinControl({
   };
 
   const onChoiceChange = (choice: SelectOption) => {
+    setSelectedChoiceId(choice.id);
+
     if (choice.id === "") {
-      setSelection(selectCustom());
       setLoadError(null);
       onChangeRef.current(null);
       return;
     }
 
-    if (defaultSet.has(choice.id)) {
-      setSelection(selectPreset(choice.id));
-      return;
+    if (!defaultSet.has(choice.id)) {
+      setLoadError(null);
+      const texture = textures.get(choice.id) ?? null;
+      onChangeRef.current(texture);
     }
-
-    setSelection(selectCustom());
-    setLoadError(null);
-    const texture = textures.get(choice.id) ?? null;
-    onChangeRef.current(texture);
   };
 
   React.useEffect(() => {
-    if (selection.source === "preset" && selection.presetName) {
-      void loadPreset(selection.presetName, modelType);
+    if (defaultSet.has(selectedChoiceId)) {
+      void loadPreset(selectedChoiceId, modelType);
     }
-  }, [loadPreset, modelType, selection.presetName, selection.source]);
+  }, [defaultSet, loadPreset, modelType, selectedChoiceId]);
 
   return (
     <>
       <div className="font-bold mb-1">{id}</div>
       <div className="flex flex-wrap">
         <div className="flex mb-4 space-x-4 items-center mr-4">
-          <Select choices={selectChoices} onChange={onChoiceChange} />
+          <Select
+            choices={selectChoices}
+            value={selectedChoice}
+            onChange={onChoiceChange}
+          />
           <div>or</div>
           <input
             className="border border-gray-300 p-1 bg-white text-gray-400"
