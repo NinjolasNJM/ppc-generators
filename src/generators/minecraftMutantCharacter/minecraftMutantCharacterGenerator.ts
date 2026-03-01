@@ -20,6 +20,10 @@ import hole1Image from "./images/Hole1.png";
 import hole2Image from "./images/Hole2.png";
 import hole3Image from "./images/Hole3.png";
 import { getSkinUrl } from "../_common/skins";
+import {
+  defaultMinecraftSkinInitialSelection,
+  makeDefaultMinecraftSkinOptions,
+} from "../_common/skins/options";
 
 const id = "minecraft-mutant-character";
 
@@ -59,7 +63,8 @@ const script: ScriptDef = (generator: Generator) => {
   generator.defineMinecraftSkinInput("Skin", {
     standardWidth: 64,
     standardHeight: 64,
-    choices: [],
+    options: makeDefaultMinecraftSkinOptions(),
+    initialSelection: defaultMinecraftSkinInitialSelection,
     modelTypeInputId: "Skin Model Type",
   });
 

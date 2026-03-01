@@ -21,6 +21,10 @@ import foregroundSteveImage from "./images/Foreground-Steve.png";
 import foregroundM16Image from "./images/Foreground-M16.png";
 import labelsImage from "./images/Labels.png";
 import { getSkinUrl } from "../_common/skins";
+import {
+  defaultMinecraftSkinInitialSelection,
+  makeDefaultMinecraftSkinOptions,
+} from "../_common/skins/options";
 
 const id = "minecraft-action-figure";
 
@@ -70,7 +74,8 @@ const script: ScriptDef = (generator: Generator) => {
   generator.defineMinecraftSkinInput("Skin", {
     standardWidth: 64,
     standardHeight: 64,
-    choices: [],
+    options: makeDefaultMinecraftSkinOptions(),
+    initialSelection: defaultMinecraftSkinInitialSelection,
     modelTypeInputId: "Skin Model Type",
   });
 

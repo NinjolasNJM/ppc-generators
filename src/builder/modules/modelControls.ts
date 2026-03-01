@@ -35,9 +35,36 @@ export type TextureInputControl = {
 export type MinecraftSkinInputControlProps = {
   standardWidth: number;
   standardHeight: number;
-  choices: string[];
+  options: MinecraftSkinOption[];
   modelTypeInputId: string;
+  initialSelection?: MinecraftSkinInitialSelection;
 };
+
+export type MinecraftSkinPresetOption = {
+  kind: "preset";
+  id: string;
+  label: string;
+  urls: {
+    wide: string;
+    slim: string;
+  };
+};
+
+export type MinecraftSkinTextureChoiceOption = {
+  kind: "textureChoice";
+  id: string;
+  label: string;
+  textureId: string;
+};
+
+export type MinecraftSkinOption =
+  | MinecraftSkinPresetOption
+  | MinecraftSkinTextureChoiceOption;
+
+export type MinecraftSkinInitialSelection =
+  | { kind: "none" }
+  | { kind: "preset"; presetName: string }
+  | { kind: "textureChoice"; textureId: string };
 
 export type MinecraftSkinInputControl = {
   kind: "MinecraftSkinInput";

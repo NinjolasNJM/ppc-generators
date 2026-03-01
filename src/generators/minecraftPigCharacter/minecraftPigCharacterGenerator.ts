@@ -33,6 +33,11 @@ import ironArmorFaithfulTexture from "./textures/faithful/iron-armor.png";
 import saddleSpacePigTexture from "./textures/space-pig/saddle.png";
 import armorSpacePigTexture from "./textures/space-pig/armor.png";
 import { getSkinUrl } from "../_common/skins";
+import {
+  defaultMinecraftSkinInitialSelection,
+  makeDefaultMinecraftSkinOptions,
+  makeTextureOption,
+} from "../_common/skins/options";
 
 const id = "minecraft-pig-character";
 
@@ -312,7 +317,11 @@ const script: ScriptDef = (generator: Generator) => {
       generator.defineMinecraftSkinInput(texture, {
         standardWidth: width,
         standardHeight: height,
-        choices: choices,
+        options: [
+          ...makeDefaultMinecraftSkinOptions(),
+          ...choices.map((choice) => makeTextureOption(choice)),
+        ],
+        initialSelection: defaultMinecraftSkinInitialSelection,
         modelTypeInputId: texture + " Model Type",
       });
       return;

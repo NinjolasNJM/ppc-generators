@@ -11,6 +11,10 @@ import type {
   InstructionsDef,
 } from "@genroot/builder/modules/generatorDef";
 import { type Generator } from "@genroot/builder/modules/generator";
+import {
+  defaultMinecraftSkinInitialSelection,
+  makeDefaultMinecraftSkinOptions,
+} from "../_common/skins/options";
 
 import thumbnailImage from "./thumbnail/thumbnail.jpeg";
 import amogusImage from "./instructions/amogus-100.png";
@@ -86,7 +90,8 @@ const script: ScriptDef = (generator: Generator) => {
   generator.defineMinecraftSkinInput("Skin", {
     standardWidth: 64,
     standardHeight: 64,
-    choices: [],
+    options: makeDefaultMinecraftSkinOptions(),
+    initialSelection: defaultMinecraftSkinInitialSelection,
     modelTypeInputId: "Skin Model Type",
   });
 

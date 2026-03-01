@@ -24,6 +24,10 @@ import thumbnailImage from "./thumbnail/v2-thumbnail-256.jpeg";
 import foregroundImage from "./images/Foreground.png";
 import titleImage from "./images/Title.png";
 import { getSkinUrl } from "../_common/skins";
+import {
+  defaultMinecraftSkinInitialSelection,
+  makeDefaultMinecraftSkinOptions,
+} from "../_common/skins/options";
 
 const id = "minecraft-character-mini";
 
@@ -305,7 +309,8 @@ const script: ScriptDef = (generator: Generator) => {
     generator.defineMinecraftSkinInput(textureId, {
       standardWidth: 64,
       standardHeight: 64,
-      choices: [],
+      options: makeDefaultMinecraftSkinOptions(),
+      initialSelection: defaultMinecraftSkinInitialSelection,
       modelTypeInputId: modelTypeName,
     });
 

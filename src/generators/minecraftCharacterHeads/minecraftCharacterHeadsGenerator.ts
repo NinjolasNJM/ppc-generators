@@ -18,6 +18,11 @@ import foldsImage from "./images/Folds.png";
 import actionFigureImage from "./images/Action-Figure.png";
 import tabsImage from "./images/Tabs.png";
 import { getSkinUrl } from "../_common/skins";
+import {
+  defaultMinecraftSkinInitialSelection,
+  makeDefaultMinecraftSkinOptions,
+  makeTextureOption,
+} from "../_common/skins/options";
 import zombieImage from "./textures/Zombie.png";
 import endermanImage from "./textures/Enderman.png";
 import skeletonImage from "./textures/Skeleton.png";
@@ -104,16 +109,16 @@ const script: ScriptDef = (generator: Generator) => {
     generator.defineMinecraftSkinInput(textureId, {
       standardWidth: 64,
       standardHeight: 64,
-      choices: [
-        "Steve",
-        "Alex",
-        "Zombie",
-        "Enderman",
-        "Skeleton",
-        "Wither Skeleton",
-        "Creeper",
-        "Blaze",
+      options: [
+        ...makeDefaultMinecraftSkinOptions(),
+        makeTextureOption("Zombie"),
+        makeTextureOption("Enderman"),
+        makeTextureOption("Skeleton"),
+        makeTextureOption("Wither Skeleton"),
+        makeTextureOption("Creeper"),
+        makeTextureOption("Blaze"),
       ],
+      initialSelection: defaultMinecraftSkinInitialSelection,
       modelTypeInputId: textureId + " Model Type",
     });
   }

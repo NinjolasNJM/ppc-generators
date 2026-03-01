@@ -11,6 +11,7 @@ import { TextControl } from "./textControl";
 import { MinecraftSkinControl } from "./minecraftSkinControl";
 import {
   type SkinSelection,
+  defaultMinecraftSkinSelection,
   getMinecraftSkinSelectionKey,
   parseMinecraftSkinSelection,
   serializeMinecraftSkinSelection,
@@ -104,15 +105,19 @@ export function Controls({
             const modelTypeId = control.props.modelTypeInputId;
             const modelTypeValue = model.getStringVariable(modelTypeId);
             const modelType = modelTypeValue === "Slim" ? "Slim" : "Wide";
-            const selection = parseMinecraftSkinSelection(
+            const storedSelection = parseMinecraftSkinSelection(
               model.getStringVariable(getMinecraftSkinSelectionKey(control.id))
             );
+            const selection =
+              storedSelection ??
+              control.props.initialSelection ??
+              defaultMinecraftSkinSelection;
 
             return (
               <MinecraftSkinControl
                 key={control.id}
                 id={control.id}
-                choices={control.props.choices}
+                options={control.props.options}
                 standardWidth={control.props.standardWidth}
                 standardHeight={control.props.standardHeight}
                 modelType={modelType}

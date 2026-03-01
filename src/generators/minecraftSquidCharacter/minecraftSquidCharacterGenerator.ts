@@ -14,6 +14,10 @@ import thumbnailImage from "./thumbnail/v3-thumbnail-256.jpeg";
 import backgroundImage from "./images/Background.png";
 import foldsImage from "./images/Folds.png";
 import { getSkinUrl } from "../_common/skins";
+import {
+  defaultMinecraftSkinInitialSelection,
+  makeDefaultMinecraftSkinOptions,
+} from "../_common/skins/options";
 import squidTexture from "./textures/Squid.png";
 
 const id = "minecraft-squid-character";
@@ -67,7 +71,8 @@ const script: ScriptDef = (generator: Generator) => {
   generator.defineMinecraftSkinInput("Skin", {
     standardWidth: 64,
     standardHeight: 64,
-    choices: [],
+    options: makeDefaultMinecraftSkinOptions(),
+    initialSelection: defaultMinecraftSkinInitialSelection,
     modelTypeInputId: "Skin Model Type",
   });
 

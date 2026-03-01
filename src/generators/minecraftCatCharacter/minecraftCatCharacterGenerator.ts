@@ -15,6 +15,10 @@ import backgroundImage from "./images/Background.png";
 import foldsImage from "./images/Folds.png";
 import labelsImage from "./images/Labels.png";
 import { getSkinUrl } from "../_common/skins";
+import {
+  defaultMinecraftSkinInitialSelection,
+  makeDefaultMinecraftSkinOptions,
+} from "../_common/skins/options";
 
 const id = "minecraft-cat-character";
 
@@ -65,7 +69,8 @@ const script: ScriptDef = (generator: Generator) => {
   generator.defineMinecraftSkinInput("Skin", {
     standardWidth: 64,
     standardHeight: 64,
-    choices: [],
+    options: makeDefaultMinecraftSkinOptions(),
+    initialSelection: defaultMinecraftSkinInitialSelection,
     modelTypeInputId: "Skin Model Type",
   });
   // Define user variables

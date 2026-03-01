@@ -2,19 +2,14 @@
 // This is a discriminated union (`kind`) so callers can branch safely by mode.
 export type SkinSelection =
   | { kind: "none" } // No skin should be applied.
-  | { kind: "preset"; presetName: string } // One of the built-in bundled presets (for example: Default, Alex, etc.).
-  | { kind: "textureChoice"; textureId: string } // A non-default texture chosen from available texture ids.
+  | { kind: "preset"; presetName: string } // One of the configured preset options.
+  | { kind: "textureChoice"; textureId: string } // A texture-choice option mapped to an existing texture id.
   | { kind: "custom" }; // A user-provided skin (uploaded file or fetched by username).
 
 // Prefix used to build stable, namespaced persistence keys per control id.
 export const MINECRAFT_SKIN_SELECTION_KEY_PREFIX = "__minecraftSkinSelection:";
 
-// Fallback selection when nothing has been stored yet or stored data is invalid.
-// Using a concrete default keeps startup behavior deterministic.
-export const defaultMinecraftSkinSelection: SkinSelection = {
-  kind: "preset",
-  presetName: "Default",
-};
+export const defaultMinecraftSkinSelection: SkinSelection = { kind: "none" };
 
 // Builds the persisted key for this control instance.
 // `id` lets multiple Minecraft skin controls coexist without key collisions.
@@ -27,10 +22,9 @@ export function getMinecraftSkinSelectionKey(id: string): string {
 // can be missing, malformed, or from older app versions.
 export function parseMinecraftSkinSelection(
   value: string | null
-): SkinSelection {
-  // Keep default behavior deterministic when no selection metadata exists yet.
+): SkinSelection | null {
   if (!value) {
-    return defaultMinecraftSkinSelection;
+    return null;
   }
 
   try {
@@ -39,7 +33,7 @@ export function parseMinecraftSkinSelection(
 
     // Non-object JSON values (string/number/array/null) are invalid here.
     if (!parsed || typeof parsed !== "object") {
-      return defaultMinecraftSkinSelection;
+      return null;
     }
 
     // Pull discriminator in a safe way before narrowing.
@@ -71,7 +65,7 @@ export function parseMinecraftSkinSelection(
     // Ignore malformed persisted values and fall back to the safe default.
   }
 
-  return defaultMinecraftSkinSelection;
+  return null;
 }
 
 // Serializes the validated selection shape for persistence.

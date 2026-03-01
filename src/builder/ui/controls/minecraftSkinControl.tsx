@@ -8,7 +8,9 @@ import {
 import { makeImageFromUrl } from "@genroot/builder/modules/image";
 import { convertToStandardSkin } from "@genroot/builder/modules/minecraftSkinConverter";
 import { fetchSkinImage } from "@genroot/builder/modules/minecraftSkin";
-import { defaultSkinNames, getSkinUrl } from "@genroot/generators/_common/skins";
+import {
+  type MinecraftSkinOption,
+} from "@genroot/builder/modules/modelControls";
 import { type SelectOption, Select } from "../form/select";
 import { Button, type ButtonState } from "../button/button";
 import { ArrowPathIconWithSpin } from "../icon";
@@ -118,7 +120,7 @@ function MinecraftSkinFetchInput({
 
 export function MinecraftSkinControl({
   id,
-  choices,
+  options,
   standardWidth,
   standardHeight,
   modelType,
@@ -128,7 +130,7 @@ export function MinecraftSkinControl({
   onChange,
 }: {
   id: string;
-  choices: string[];
+  options: MinecraftSkinOption[];
   standardWidth: number;
   standardHeight: number;
   modelType: ModelType;
@@ -148,22 +150,15 @@ export function MinecraftSkinControl({
     onChangeRef.current = onChange;
   }, [onChange]);
 
-  // Built-in preset names (Default, Alex, etc.) are treated specially:
-  // they have model-type variants and auto-swap when model type changes.
-  const defaultSet = React.useMemo(() => new Set<string>(defaultSkinNames), []);
-
-  // External choices that are not bundled defaults.
-  const additionalChoices = React.useMemo(
-    () => choices.filter((choice) => !defaultSet.has(choice)),
-    [choices, defaultSet]
+  const optionById = React.useMemo(
+    () => new Map(options.map((option) => [option.id, option])),
+    [options]
   );
 
-  // The Select combines:
-  // 1) "None" option, 2) built-in presets, 3) additional texture choices.
+  // The Select combines "None" and all provided options.
   const selectChoices: SelectOption[] = [
     { id: "", label: "None" },
-    ...defaultSkinNames.map((name) => ({ id: name, label: name })),
-    ...additionalChoices.map((choice) => ({ id: choice, label: choice })),
+    ...options.map((option) => ({ id: option.id, label: option.label })),
   ];
 
   // Map the discriminated selection union into a Select option id.
@@ -172,33 +167,17 @@ export function MinecraftSkinControl({
     selection.kind === "preset"
       ? selection.presetName
       : selection.kind === "textureChoice"
-      ? selection.textureId
+      ? options.find(
+          (option) =>
+            option.kind === "textureChoice" &&
+            option.textureId === selection.textureId
+        )?.id ?? ""
       : "";
 
   // Fallback to the first option ("None") if the id is not present.
   const selectedChoice =
     selectChoices.find((choice) => choice.id === selectedChoiceId) ??
     selectChoices[0];
-
-  const loadPreset = React.useCallback(
-    async (presetName: string, currentModelType: ModelType) => {
-      try {
-        setLoadError(null);
-        // Bundled presets resolve to a URL based on both name and model type.
-        const url = getSkinUrl(presetName, currentModelType);
-        const texture = await makeTextureFromUrl(
-          url,
-          standardWidth,
-          standardHeight
-        );
-        onChangeRef.current(texture);
-      } catch (error) {
-        console.error(error);
-        setLoadError("Failed to load bundled skin preset.");
-      }
-    },
-    [standardHeight, standardWidth]
-  );
 
   const onCustomImage = React.useCallback(
     async (image: HTMLImageElement) => {
@@ -256,34 +235,99 @@ export function MinecraftSkinControl({
       return;
     }
 
-    // Built-in presets are loaded by effect so model-type swaps stay centralized.
-    if (defaultSet.has(choice.id)) {
-      onSelectionChange({ kind: "preset", presetName: choice.id });
+    const option = optionById.get(choice.id);
+    if (!option) {
       return;
     }
 
-    // Non-default dropdown choices map directly to existing textures.
-    onSelectionChange({ kind: "textureChoice", textureId: choice.id });
-    setLoadError(null);
+    if (option.kind === "preset") {
+      // Presets are loaded by effect so model-type swaps stay centralized.
+      onSelectionChange({ kind: "preset", presetName: option.id });
+      return;
+    }
 
-    const texture = textures.get(choice.id) ?? null;
+    onSelectionChange({ kind: "textureChoice", textureId: option.textureId });
+    setLoadError(null);
+    const texture = textures.get(option.textureId) ?? null;
     onChangeRef.current(texture);
   };
 
   // Preset swapping behavior:
-  // - Bundled presets (Default, Alex, etc.) have Wide and Slim variants.
-  // - When model type changes, swap to the matching bundled variant automatically.
-  // - Custom/uploaded/non-bundled textures do not auto-swap because there is no
-  //   guaranteed paired Wide/Slim asset.
-  const selectedPresetName =
-    selection.kind === "preset" ? selection.presetName : null;
+  // - Preset options provide both Wide and Slim URLs.
+  // - When model type changes, swap to the matching preset variant automatically.
+  // - Custom uploads and texture-choice options do not auto-swap because there is
+  //   no guaranteed paired Wide/Slim asset.
+  const selectedPresetWideUrl =
+    selection.kind === "preset"
+      ? (() => {
+          const option = optionById.get(selection.presetName);
+          if (!option || option.kind !== "preset") {
+            return null;
+          }
+          return option.urls.wide;
+        })()
+      : null;
+  const selectedPresetSlimUrl =
+    selection.kind === "preset"
+      ? (() => {
+          const option = optionById.get(selection.presetName);
+          if (!option || option.kind !== "preset") {
+            return null;
+          }
+          return option.urls.slim;
+        })()
+      : null;
+  const selectedTextureId =
+    selection.kind === "textureChoice" ? selection.textureId : null;
 
   React.useEffect(() => {
-    // Keep bundled preset texture in sync with the selected model type.
-    if (selectedPresetName) {
-      void loadPreset(selectedPresetName, modelType);
+    if (!selectedPresetWideUrl || !selectedPresetSlimUrl) {
+      return;
     }
-  }, [loadPreset, modelType, selectedPresetName]);
+
+    let canceled = false;
+
+    const loadPreset = async () => {
+      try {
+        setLoadError(null);
+        const url =
+          modelType === "Slim" ? selectedPresetSlimUrl : selectedPresetWideUrl;
+        const texture = await makeTextureFromUrl(
+          url,
+          standardWidth,
+          standardHeight
+        );
+
+        if (!canceled) {
+          onChangeRef.current(texture);
+        }
+      } catch (error) {
+        if (!canceled) {
+          console.error(error);
+          setLoadError("Failed to load preset skin.");
+        }
+      }
+    };
+
+    void loadPreset();
+
+    return () => {
+      canceled = true;
+    };
+  }, [
+    modelType,
+    selectedPresetWideUrl,
+    selectedPresetSlimUrl,
+    standardHeight,
+    standardWidth,
+  ]);
+
+  React.useEffect(() => {
+    if (selectedTextureId) {
+      setLoadError(null);
+      onChangeRef.current(textures.get(selectedTextureId) ?? null);
+    }
+  }, [selectedTextureId, textures]);
 
   return (
     <>
