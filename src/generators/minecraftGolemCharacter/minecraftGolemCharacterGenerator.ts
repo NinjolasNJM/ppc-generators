@@ -16,7 +16,6 @@ import foldsImage from "./images/Folds.png";
 import labelsImage from "./images/Labels.png";
 import { getSkinUrl } from "../_common/skins";
 import {
-  minecraftSkinSelectionPresetDefault,
   makeDefaultMinecraftSkinPresetOptions,
 } from "../_common/skins/options";
 import poppyTexture from "./textures/Flower-Poppy.png";
@@ -78,14 +77,11 @@ const script: ScriptDef = (generator: Generator) => {
   let oy: number;
 
   // Define input textures
-
-  generator.defineSelectInput("Skin Model Type", ["Wide", "Slim"]);
   generator.defineMinecraftSkinInput("Skin", {
     standardWidth: 64,
     standardHeight: 64,
     options: makeDefaultMinecraftSkinPresetOptions(),
-    initialSelectedOption: minecraftSkinSelectionPresetDefault,
-    modelTypeInputId: "Skin Model Type",
+    showModelType: true,
   });
   generator.defineTextureInput("Flower", {
     standardWidth: 16,
@@ -106,7 +102,7 @@ const script: ScriptDef = (generator: Generator) => {
   // Get user variable values
 
   const isSlimModel =
-    generator.getSelectInputValue("Skin Model Type") === "Slim";
+    generator.getMinecraftSkinInputModelType("Skin") === "Slim";
   const showFolds = generator.getBooleanInputValue("Show Folds");
   const showLabels = generator.getBooleanInputValue("Show Labels");
 

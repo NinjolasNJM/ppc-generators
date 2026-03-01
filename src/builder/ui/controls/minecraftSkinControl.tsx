@@ -8,15 +8,14 @@ import {
 import { makeImageFromUrl } from "@genroot/builder/modules/image";
 import { convertToStandardSkin } from "@genroot/builder/modules/minecraftSkinConverter";
 import { fetchSkinImage } from "@genroot/builder/modules/minecraftSkin";
+import { type MinecraftSkinOption } from "@genroot/builder/modules/modelControls";
 import {
-  type MinecraftSkinOption,
-} from "@genroot/builder/modules/modelControls";
+  type MinecraftModelType,
+  type MinecraftSkinInputValue,
+} from "@genroot/builder/modules/minecraftSkinInputValue";
 import { type SelectOption, Select } from "../form/select";
 import { Button, type ButtonState } from "../button/button";
 import { ArrowPathIconWithSpin } from "../icon";
-import { type MinecraftSkinSelection } from "./minecraftSkinSelection";
-
-type ModelType = "Wide" | "Slim";
 
 // UI state for username-based skin fetching.
 // This is intentionally explicit rather than a boolean so rendering and
@@ -123,20 +122,20 @@ export function MinecraftSkinControl({
   options,
   standardWidth,
   standardHeight,
-  modelType,
-  selection,
+  showModelType,
+  value,
   textures,
-  onSelectionChange,
+  onValueChange,
   onChange,
 }: {
   id: string;
   options: MinecraftSkinOption[];
   standardWidth: number;
   standardHeight: number;
-  modelType: ModelType;
-  selection: MinecraftSkinSelection;
+  showModelType: boolean;
+  value: MinecraftSkinInputValue;
   textures: Map<string, Texture>;
-  onSelectionChange: (selection: MinecraftSkinSelection) => void;
+  onValueChange: (value: MinecraftSkinInputValue) => void;
   onChange: (image: Texture | null) => void;
 }) {
   // Keep the latest onChange callback in a ref so async work can safely use it
@@ -163,16 +162,18 @@ export function MinecraftSkinControl({
 
   // Map the discriminated selection union into a Select option id.
   // Custom uploads do not correspond to a dropdown option, so they map to "None".
-  const selectedChoiceId =
-    selection.kind === "preset"
-      ? selection.presetName
-      : selection.kind === "texture"
-      ? options.find(
-          (option) =>
-            option.kind === "texture" &&
-            option.textureId === selection.textureId
-        )?.id ?? ""
-      : "";
+  let selectedChoiceId = "";
+  if (value.selection.kind === "preset") {
+    selectedChoiceId = value.selection.presetName;
+  } else if (value.selection.kind === "texture") {
+    const selectedTextureId = value.selection.textureId;
+    selectedChoiceId =
+      options.find(
+        (option) =>
+          option.kind === "texture" &&
+          option.textureId === selectedTextureId
+      )?.id ?? "";
+  }
 
   // Fallback to the first option ("None") if the id is not present.
   const selectedChoice =
@@ -191,11 +192,14 @@ export function MinecraftSkinControl({
       );
 
       // Custom input supersedes dropdown selection.
-      onSelectionChange({ kind: "custom" });
+      onValueChange({
+        ...value,
+        selection: { kind: "custom" },
+      });
       setLoadError(null);
       onChangeRef.current(texture);
     },
-    [onSelectionChange, standardHeight, standardWidth]
+    [onValueChange, standardHeight, standardWidth, value]
   );
 
   const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -229,7 +233,10 @@ export function MinecraftSkinControl({
   const onChoiceChange = (choice: SelectOption) => {
     // "None" clears both selected skin metadata and active texture.
     if (choice.id === "") {
-      onSelectionChange({ kind: "none" });
+      onValueChange({
+        ...value,
+        selection: { kind: "none" },
+      });
       setLoadError(null);
       onChangeRef.current(null);
       return;
@@ -242,14 +249,37 @@ export function MinecraftSkinControl({
 
     if (option.kind === "preset") {
       // Presets are loaded by effect so model-type swaps stay centralized.
-      onSelectionChange({ kind: "preset", presetName: option.id });
+      onValueChange({
+        ...value,
+        selection: { kind: "preset", presetName: option.id },
+      });
       return;
     }
 
-    onSelectionChange({ kind: "texture", textureId: option.textureId });
+    onValueChange({
+      ...value,
+      selection: { kind: "texture", textureId: option.textureId },
+    });
     setLoadError(null);
     const texture = textures.get(option.textureId) ?? null;
     onChangeRef.current(texture);
+  };
+
+  const modelTypeChoices: SelectOption[] = [
+    { id: "Wide", label: "Wide" },
+    { id: "Slim", label: "Slim" },
+  ];
+
+  const selectedModelTypeChoice =
+    modelTypeChoices.find((choice) => choice.id === value.modelType) ??
+    modelTypeChoices[0];
+
+  const onModelTypeChange = (choice: SelectOption) => {
+    const modelType: MinecraftModelType = choice.id === "Slim" ? "Slim" : "Wide";
+    onValueChange({
+      ...value,
+      modelType,
+    });
   };
 
   // Preset swapping behavior:
@@ -258,9 +288,9 @@ export function MinecraftSkinControl({
   // - Custom uploads and texture options do not auto-swap because there is
   //   no guaranteed paired Wide/Slim asset.
   const selectedPresetWideUrl =
-    selection.kind === "preset"
+    value.selection.kind === "preset"
       ? (() => {
-          const option = optionById.get(selection.presetName);
+          const option = optionById.get(value.selection.presetName);
           if (!option || option.kind !== "preset") {
             return null;
           }
@@ -268,9 +298,9 @@ export function MinecraftSkinControl({
         })()
       : null;
   const selectedPresetSlimUrl =
-    selection.kind === "preset"
+    value.selection.kind === "preset"
       ? (() => {
-          const option = optionById.get(selection.presetName);
+          const option = optionById.get(value.selection.presetName);
           if (!option || option.kind !== "preset") {
             return null;
           }
@@ -278,7 +308,7 @@ export function MinecraftSkinControl({
         })()
       : null;
   const selectedTextureId =
-    selection.kind === "texture" ? selection.textureId : null;
+    value.selection.kind === "texture" ? value.selection.textureId : null;
 
   React.useEffect(() => {
     if (!selectedPresetWideUrl || !selectedPresetSlimUrl) {
@@ -291,7 +321,9 @@ export function MinecraftSkinControl({
       try {
         setLoadError(null);
         const url =
-          modelType === "Slim" ? selectedPresetSlimUrl : selectedPresetWideUrl;
+          value.modelType === "Slim"
+            ? selectedPresetSlimUrl
+            : selectedPresetWideUrl;
         const texture = await makeTextureFromUrl(
           url,
           standardWidth,
@@ -315,7 +347,7 @@ export function MinecraftSkinControl({
       canceled = true;
     };
   }, [
-    modelType,
+    value.modelType,
     selectedPresetWideUrl,
     selectedPresetSlimUrl,
     standardHeight,
@@ -332,13 +364,26 @@ export function MinecraftSkinControl({
   return (
     <>
       <div className="font-bold mb-1">{id}</div>
-      <div className="flex flex-wrap">
-        <div className="flex mb-4 space-x-4 items-center mr-4">
+      <div className="space-y-4 mb-4">
+        <div className="flex flex-wrap items-center gap-4">
           <Select
             choices={selectChoices}
             value={selectedChoice}
             onChange={onChoiceChange}
           />
+          {showModelType ? (
+            <>
+              <div>and</div>
+              <Select
+                choices={modelTypeChoices}
+                value={selectedModelTypeChoice}
+                onChange={onModelTypeChange}
+              />
+            </>
+          ) : null}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-4">
           <div>or</div>
           <input
             className="border border-gray-300 p-1 bg-white text-gray-400"
@@ -347,7 +392,7 @@ export function MinecraftSkinControl({
           />
         </div>
 
-        <div className="flex mb-4 space-x-4 items-center">
+        <div className="flex flex-wrap items-center gap-4">
           <div>or</div>
 
           {/* Alternate input path: load by Minecraft username instead of file. */}

@@ -34,7 +34,6 @@ import saddleSpacePigTexture from "./textures/space-pig/saddle.png";
 import armorSpacePigTexture from "./textures/space-pig/armor.png";
 import { getSkinUrl } from "../_common/skins";
 import {
-  minecraftSkinSelectionPresetDefault,
   makeDefaultMinecraftSkinPresetOptions,
   makeMinecraftSkinTextureOption,
 } from "../_common/skins/options";
@@ -321,8 +320,7 @@ const script: ScriptDef = (generator: Generator) => {
           ...makeDefaultMinecraftSkinPresetOptions(),
           ...choices.map((choice) => makeMinecraftSkinTextureOption(choice)),
         ],
-        initialSelectedOption: minecraftSkinSelectionPresetDefault,
-        modelTypeInputId: texture + " Model Type",
+        showModelType: true,
       });
       return;
     }
@@ -335,9 +333,6 @@ const script: ScriptDef = (generator: Generator) => {
   };
 
   // Define user inputs
-
-  generator.defineSelectInput("Skin Model Type", ["Wide", "Slim"]);
-
   makeTextureInput({
     texture: skinTexture,
     width: 64,
@@ -417,7 +412,7 @@ const script: ScriptDef = (generator: Generator) => {
   generator.defineBooleanInput("Transparent Background", false);
 
   const isSlimModel =
-    generator.getSelectInputValue("Skin Model Type") === "Slim";
+    generator.getMinecraftSkinInputModelType("Skin") === "Slim";
   const showFolds = generator.getBooleanInputValue("Show Folds");
   const showLabels = generator.getBooleanInputValue("Show Labels");
   const showTitles = generator.getBooleanInputValue("Show Titles");

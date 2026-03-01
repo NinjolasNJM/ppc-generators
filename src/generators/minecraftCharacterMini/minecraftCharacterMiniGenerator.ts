@@ -25,7 +25,6 @@ import foregroundImage from "./images/Foreground.png";
 import titleImage from "./images/Title.png";
 import { getSkinUrl } from "../_common/skins";
 import {
-  minecraftSkinSelectionPresetDefault,
   makeDefaultMinecraftSkinPresetOptions,
 } from "../_common/skins/options";
 
@@ -303,20 +302,15 @@ const script: ScriptDef = (generator: Generator) => {
   }
 
   const drawMini = (textureId: string, x: number, y: number) => {
-    const modelTypeName = textureId + " Model Type";
-
     generator.defineMinecraftSkinInput(textureId, {
       standardWidth: 64,
       standardHeight: 64,
       options: makeDefaultMinecraftSkinPresetOptions(),
-      initialSelectedOption: minecraftSkinSelectionPresetDefault,
-      modelTypeInputId: modelTypeName,
+      showModelType: true,
     });
 
     if (generator.hasTexture(textureId)) {
-      generator.defineSelectInput(modelTypeName, ["Wide", "Slim"]);
-
-      const modelType = generator.getSelectInputValue(modelTypeName);
+      const modelType = generator.getMinecraftSkinInputModelType(textureId);
 
       const showFolds = generator.defineAndGetBooleanInput(
         "Show " + textureId + " Folds",

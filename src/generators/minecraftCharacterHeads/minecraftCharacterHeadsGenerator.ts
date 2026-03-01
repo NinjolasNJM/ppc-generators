@@ -19,7 +19,6 @@ import actionFigureImage from "./images/Action-Figure.png";
 import tabsImage from "./images/Tabs.png";
 import { getSkinUrl } from "../_common/skins";
 import {
-  minecraftSkinSelectionPresetDefault,
   makeDefaultMinecraftSkinPresetOptions,
   makeMinecraftSkinTextureOption,
 } from "../_common/skins/options";
@@ -118,8 +117,7 @@ const script: ScriptDef = (generator: Generator) => {
         makeMinecraftSkinTextureOption("Creeper"),
         makeMinecraftSkinTextureOption("Blaze"),
       ],
-      initialSelectedOption: minecraftSkinSelectionPresetDefault,
-      modelTypeInputId: textureId + " Model Type",
+      showModelType: false,
     });
   }
 

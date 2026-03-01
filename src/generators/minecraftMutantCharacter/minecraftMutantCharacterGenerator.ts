@@ -21,7 +21,6 @@ import hole2Image from "./images/Hole2.png";
 import hole3Image from "./images/Hole3.png";
 import { getSkinUrl } from "../_common/skins";
 import {
-  minecraftSkinSelectionPresetDefault,
   makeDefaultMinecraftSkinPresetOptions,
 } from "../_common/skins/options";
 
@@ -63,14 +62,10 @@ const script: ScriptDef = (generator: Generator) => {
     standardWidth: 64,
     standardHeight: 64,
     options: makeDefaultMinecraftSkinPresetOptions(),
-    initialSelectedOption: minecraftSkinSelectionPresetDefault,
-    modelTypeInputId: "Skin Model Type",
+    showModelType: true,
   });
-
-  generator.defineSelectInput("Skin Model Type", ["Wide", "Slim"]);
-
   const isSlimModel =
-    generator.getSelectInputValue("Skin Model Type") === "Slim";
+    generator.getMinecraftSkinInputModelType("Skin") === "Slim";
 
   generator.usePage("Page 1");
   generator.drawImage("Page1", [0, 0]);

@@ -36,8 +36,7 @@ export type MinecraftSkinInputControlProps = {
   standardWidth: number;
   standardHeight: number;
   options: MinecraftSkinOption[];
-  modelTypeInputId: string;
-  initialSelectedOption: MinecraftSkinSelection;
+  showModelType: boolean;
 };
 
 export type MinecraftSkinOptionPreset = {
@@ -60,11 +59,6 @@ export type MinecraftSkinOptionTexture = {
 export type MinecraftSkinOption =
   | MinecraftSkinOptionPreset
   | MinecraftSkinOptionTexture;
-
-export type MinecraftSkinSelection =
-  | { kind: "none" }
-  | { kind: "preset"; presetName: string }
-  | { kind: "texture"; textureId: string };
 
 export type MinecraftSkinInputControl = {
   kind: "MinecraftSkinInput";
@@ -109,3 +103,9 @@ export type Control =
   | SelectInputControl
   | RangeControl
   | ButtonControl;
+
+export type {
+  MinecraftModelType,
+  MinecraftSkinInputValue,
+  MinecraftSkinSelection,
+} from "./minecraftSkinInputValue";

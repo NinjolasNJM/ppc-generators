@@ -22,7 +22,6 @@ import steveFoldsImage from "./images/SteveFolds.png";
 import steveTabsImage from "./images/SteveTabs.png";
 import { getSkinUrl } from "../_common/skins";
 import {
-  minecraftSkinSelectionPresetDefault,
   makeDefaultMinecraftSkinPresetOptions,
 } from "../_common/skins/options";
 
@@ -79,12 +78,8 @@ const script: ScriptDef = (generator: Generator) => {
     standardWidth: 64,
     standardHeight: 64,
     options: makeDefaultMinecraftSkinPresetOptions(),
-    initialSelectedOption: minecraftSkinSelectionPresetDefault,
-    modelTypeInputId: "Skin Model Type",
+    showModelType: true,
   });
-
-  generator.defineSelectInput("Skin Model Type", ["Wide", "Slim"]);
-
   generator.defineBooleanInput("Show Folds", true);
 
   generator.defineBooleanInput("Show Labels", true);
@@ -96,7 +91,7 @@ const script: ScriptDef = (generator: Generator) => {
   // Draw
 
   const isSlimModel =
-    generator.getSelectInputValue("Skin Model Type") === "Slim";
+    generator.getMinecraftSkinInputModelType("Skin") === "Slim";
 
   const showFolds = generator.getBooleanInputValue("Show Folds");
 

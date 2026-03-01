@@ -2,6 +2,12 @@ import {
   type MinecraftSkinInputControlProps,
   type TextureInputControlProps,
 } from "./modelControls";
+import {
+  getDefaultMinecraftSkinInputValue,
+  getMinecraftSkinInputValueKey,
+  parseMinecraftSkinInputValue,
+  type MinecraftModelType,
+} from "./minecraftSkinInputValue";
 import { type Model } from "./model";
 import {
   type Position,
@@ -45,6 +51,22 @@ export class Generator {
     props: MinecraftSkinInputControlProps
   ): void {
     this.model.addMinecraftSkinControl(id, props);
+  }
+
+  getMinecraftSkinInputModelType(id: string): MinecraftModelType {
+    const control = this.model.getMinecraftSkinControl(id);
+    if (!control) {
+      return "Wide";
+    }
+
+    const value = parseMinecraftSkinInputValue(
+      this.model.getStringVariable(getMinecraftSkinInputValueKey(id))
+    );
+    if (value) {
+      return value.modelType;
+    }
+
+    return getDefaultMinecraftSkinInputValue(control.props.options).modelType;
   }
 
   defineBooleanInput(id: string, initialValue: boolean): void {

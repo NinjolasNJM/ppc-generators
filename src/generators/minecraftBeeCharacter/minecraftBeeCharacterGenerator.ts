@@ -17,7 +17,6 @@ import overlayBeeImage from "./images/OverlayBee.png";
 
 import { getSkinUrl } from "../_common/skins";
 import {
-  minecraftSkinSelectionPresetDefault,
   makeDefaultMinecraftSkinPresetOptions,
 } from "../_common/skins/options";
 
@@ -568,19 +567,15 @@ const script: ScriptDef = (generator: Generator) => {
       );
     },
   };
-
-  generator.defineSelectInput("Skin 1 Model Type", ["Wide", "Slim"]);
-
   generator.defineMinecraftSkinInput("Skin 1", {
     standardWidth: 64,
     standardHeight: 64,
     options: makeDefaultMinecraftSkinPresetOptions(),
-    initialSelectedOption: minecraftSkinSelectionPresetDefault,
-    modelTypeInputId: "Skin 1 Model Type",
+    showModelType: true,
   });
 
   const isSlimModel1 =
-    generator.getSelectInputValue("Skin 1 Model Type") === "Slim";
+    generator.getMinecraftSkinInputModelType("Skin 1") === "Slim";
 
   generator.defineRangeInput("Head Size 1", {
     min: 0,
@@ -590,19 +585,15 @@ const script: ScriptDef = (generator: Generator) => {
   });
 
   const headmultiplier1 = generator.getRangeInputValue("Head Size 1");
-
-  generator.defineSelectInput("Skin 2 Model Type", ["Wide", "Slim"]);
-
   generator.defineMinecraftSkinInput("Skin 2", {
     standardWidth: 64,
     standardHeight: 64,
     options: makeDefaultMinecraftSkinPresetOptions(),
-    initialSelectedOption: minecraftSkinSelectionPresetDefault,
-    modelTypeInputId: "Skin 2 Model Type",
+    showModelType: true,
   });
 
   const isSlimModel2 =
-    generator.getSelectInputValue("Skin 2 Model Type") === "Slim";
+    generator.getMinecraftSkinInputModelType("Skin 2") === "Slim";
 
   generator.defineRangeInput("Head Size 2", {
     min: 0,

@@ -16,7 +16,6 @@ import thumbnailImage from "./thumbnail/thumbnail-256.jpeg";
 import overlayAllayImage from "./images/OverlayAllay.png";
 import { getSkinUrl } from "../_common/skins";
 import {
-  minecraftSkinSelectionPresetDefault,
   makeDefaultMinecraftSkinPresetOptions,
 } from "../_common/skins/options";
 
@@ -719,32 +718,24 @@ const script: ScriptDef = (generator: Generator) => {
       { flip: "Horizontal" }
     );
   };
-
-  generator.defineSelectInput("Skin 1 Model Type", ["Wide", "Slim"]);
-
   generator.defineMinecraftSkinInput("Skin 1", {
     standardWidth: 64,
     standardHeight: 64,
     options: makeDefaultMinecraftSkinPresetOptions(),
-    initialSelectedOption: minecraftSkinSelectionPresetDefault,
-    modelTypeInputId: "Skin 1 Model Type",
+    showModelType: true,
   });
 
   const isSlimModel1 =
-    generator.getSelectInputValue("Skin 1 Model Type") === "Slim";
-
-  generator.defineSelectInput("Skin 2 Model Type", ["Wide", "Slim"]);
-
+    generator.getMinecraftSkinInputModelType("Skin 1") === "Slim";
   generator.defineMinecraftSkinInput("Skin 2", {
     standardWidth: 64,
     standardHeight: 64,
     options: makeDefaultMinecraftSkinPresetOptions(),
-    initialSelectedOption: minecraftSkinSelectionPresetDefault,
-    modelTypeInputId: "Skin 2 Model Type",
+    showModelType: true,
   });
 
   const isSlimModel2 =
-    generator.getSelectInputValue("Skin 2 Model Type") === "Slim";
+    generator.getMinecraftSkinInputModelType("Skin 2") === "Slim";
 
   // Skin 1
 

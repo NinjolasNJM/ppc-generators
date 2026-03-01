@@ -22,7 +22,6 @@ import actionFigureLabelsImage from "./images/Action-Figure-Labels.png";
 import alexImage from "../_common/skins/slim/default.png";
 import { getSkinUrl } from "../_common/skins";
 import {
-  minecraftSkinSelectionPresetDefault,
   makeDefaultMinecraftSkinPresetOptions,
   makeMinecraftSkinTextureOption,
 } from "../_common/skins/options";
@@ -80,8 +79,7 @@ const script: ScriptDef = (generator: Generator) => {
       ...makeDefaultMinecraftSkinPresetOptions(),
       makeMinecraftSkinTextureOption("Default (Slim)"),
     ],
-    initialSelectedOption: minecraftSkinSelectionPresetDefault,
-    modelTypeInputId: "Skin Model Type",
+    showModelType: false,
   });
 
   // Define user variables

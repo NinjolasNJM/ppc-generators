@@ -4,6 +4,7 @@ import { type Page, makePage } from "./modelPage";
 import { makeUUID } from "./uuid";
 import {
   type Control,
+  type MinecraftSkinInputControl,
   type MinecraftSkinInputControlProps,
   type TextureInputControlProps,
   type Region,
@@ -132,6 +133,14 @@ export class Model {
 
   findPage(id: string): Page | null {
     return this.pages.find((curr) => curr.id === id) || null;
+  }
+
+  getMinecraftSkinControl(id: string): MinecraftSkinInputControl | null {
+    const control = this.controls.find(
+      (candidate): candidate is MinecraftSkinInputControl =>
+        candidate.kind === "MinecraftSkinInput" && candidate.id === id
+    );
+    return control ?? null;
   }
 
   addImage(id: string, image: ImageWithCanvas) {

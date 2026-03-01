@@ -24,7 +24,6 @@ import foldsImage from "./images/Folds.png";
 import labelsImage from "./images/Labels.png";
 import { getSkinUrl } from "../_common/skins";
 import {
-  minecraftSkinSelectionPresetDefault,
   makeDefaultMinecraftSkinPresetOptions,
 } from "../_common/skins/options";
 import axolotlBlueImage from "./textures/axolotl_blue.png";
@@ -448,15 +447,11 @@ const script: ScriptDef = (generator: Generator) => {
   };
 
   // Define input textures
-
-  generator.defineSelectInput("Skin Model Type", ["Wide", "Slim"]);
-
   generator.defineMinecraftSkinInput("Skin", {
     standardWidth: 64,
     standardHeight: 64,
     options: makeDefaultMinecraftSkinPresetOptions(),
-    initialSelectedOption: minecraftSkinSelectionPresetDefault,
-    modelTypeInputId: "Skin Model Type",
+    showModelType: true,
   });
 
   generator.defineTextureInput("Head Fins Texture", {
@@ -486,7 +481,7 @@ const script: ScriptDef = (generator: Generator) => {
   // Get user variable values
 
   const isSlimModel =
-    generator.getSelectInputValue("Skin Model Type") === "Slim";
+    generator.getMinecraftSkinInputModelType("Skin") === "Slim";
   const showFolds = generator.getBooleanInputValue("Show Folds");
   const showLabels = generator.getBooleanInputValue("Show Labels");
   const showOverlay = generator.getBooleanInputValue("Show Overlay");

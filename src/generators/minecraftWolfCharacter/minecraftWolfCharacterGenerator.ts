@@ -16,7 +16,6 @@ import foldsImage from "./images/Folds.png";
 import labelsImage from "./images/Labels.png";
 import { getSkinUrl } from "../_common/skins";
 import {
-  minecraftSkinSelectionPresetDefault,
   makeDefaultMinecraftSkinPresetOptions,
 } from "../_common/skins/options";
 import wolfAngryTexture from "./textures/wolf_angry.png";
@@ -72,15 +71,11 @@ const script: ScriptDef = (generator: Generator) => {
   };
 
   // Define user inputs
-
-  generator.defineSelectInput("Skin Model Type", ["Wide", "Slim"]);
-
   generator.defineMinecraftSkinInput("Skin", {
     standardWidth: 64,
     standardHeight: 64,
     options: makeDefaultMinecraftSkinPresetOptions(),
-    initialSelectedOption: minecraftSkinSelectionPresetDefault,
-    modelTypeInputId: "Skin Model Type",
+    showModelType: true,
   });
 
   // Define user variables
@@ -92,7 +87,7 @@ const script: ScriptDef = (generator: Generator) => {
   // Get user variables
 
   const isSlimModel =
-    generator.getSelectInputValue("Skin Model Type") === "Slim";
+    generator.getMinecraftSkinInputModelType("Skin") === "Slim";
   const showFolds = generator.getBooleanInputValue("Show Folds");
   const showLabels = generator.getBooleanInputValue("Show Labels");
   const showRedEyes = generator.getBooleanInputValue("Show Red Eyes");

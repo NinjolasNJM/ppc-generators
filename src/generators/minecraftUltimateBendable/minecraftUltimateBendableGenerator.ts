@@ -21,7 +21,6 @@ import foldsAlexImage from "./images/Folds-Alex.png";
 import labelsImage from "./images/Labels.png";
 import { getSkinUrl } from "../_common/skins";
 import {
-  minecraftSkinSelectionPresetDefault,
   makeDefaultMinecraftSkinPresetOptions,
 } from "../_common/skins/options";
 
@@ -72,13 +71,10 @@ const script: ScriptDef = (generator: Generator) => {
     standardWidth: 64,
     standardHeight: 64,
     options: makeDefaultMinecraftSkinPresetOptions(),
-    initialSelectedOption: minecraftSkinSelectionPresetDefault,
-    modelTypeInputId: "Skin Model Type",
+    showModelType: true,
   });
 
   // Define user variables
-
-  generator.defineSelectInput("Skin Model Type", ["Wide", "Slim"]);
   generator.defineBooleanInput("Show Folds", true);
   generator.defineBooleanInput("Show Color Codes", true);
   generator.defineBooleanInput("Show Labels", true);
@@ -86,7 +82,7 @@ const script: ScriptDef = (generator: Generator) => {
   // Get user variable values
 
   const isSlimModel =
-    generator.getSelectInputValue("Skin Model Type") === "Slim";
+    generator.getMinecraftSkinInputModelType("Skin") === "Slim";
   const showFolds = generator.getBooleanInputValue("Show Folds");
   const showColorCodes = generator.getBooleanInputValue("Show Color Codes");
   const showLabels = generator.getBooleanInputValue("Show Labels");
