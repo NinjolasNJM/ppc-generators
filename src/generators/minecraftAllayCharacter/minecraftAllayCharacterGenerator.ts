@@ -719,11 +719,11 @@ const script: ScriptDef = (generator: Generator) => {
 
   generator.defineSelectInput("Skin 1 Model Type", ["Wide", "Slim"]);
 
-  generator.defineTextureInput("Skin 1", {
+  generator.defineMinecraftSkinInput("Skin 1", {
     standardWidth: 64,
     standardHeight: 64,
     choices: [],
-    enableMinecraftSkinInput: true,
+    modelTypeInputId: "Skin 1 Model Type",
   });
 
   const isSlimModel1 =
@@ -731,11 +731,11 @@ const script: ScriptDef = (generator: Generator) => {
 
   generator.defineSelectInput("Skin 2 Model Type", ["Wide", "Slim"]);
 
-  generator.defineTextureInput("Skin 2", {
+  generator.defineMinecraftSkinInput("Skin 2", {
     standardWidth: 64,
     standardHeight: 64,
     choices: [],
-    enableMinecraftSkinInput: true,
+    modelTypeInputId: "Skin 2 Model Type",
   });
 
   const isSlimModel2 =

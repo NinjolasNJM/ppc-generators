@@ -59,17 +59,3 @@ export function getSkinUrl(name: string, modelType: ModelType): string {
   const wantsSlim = String(modelType) === "Slim";
   return wantsSlim ? entry.slim : entry.wide;
 }
-
-export function getSkinNameForUrl(url: string): string | null {
-  if (!url) return null;
-  const base = url.split("/").pop() ?? url;
-  const names = Object.keys(SKIN_MAP);
-  for (const name of names) {
-    const entry = SKIN_MAP[name];
-    if (!entry) continue;
-    if (url === entry.wide || url === entry.slim) return name;
-    if ((entry.wide.split("/").pop() ?? "") === base) return name;
-    if ((entry.slim.split("/").pop() ?? "") === base) return name;
-  }
-  return null;
-}

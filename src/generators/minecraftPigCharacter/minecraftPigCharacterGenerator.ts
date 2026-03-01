@@ -300,19 +300,28 @@ const script: ScriptDef = (generator: Generator) => {
     width,
     height,
     choices,
-    enableMinecraftSkinInput,
+    useMinecraftSkinControl,
   }: {
     texture: string;
     width: number;
     height: number;
     choices: string[];
-    enableMinecraftSkinInput: boolean;
+    useMinecraftSkinControl: boolean;
   }) => {
+    if (useMinecraftSkinControl) {
+      generator.defineMinecraftSkinInput(texture, {
+        standardWidth: width,
+        standardHeight: height,
+        choices: choices,
+        modelTypeInputId: texture + " Model Type",
+      });
+      return;
+    }
+
     generator.defineTextureInput(texture, {
       standardWidth: width,
       standardHeight: height,
       choices: choices,
-      enableMinecraftSkinInput,
     });
   };
 
@@ -325,7 +334,7 @@ const script: ScriptDef = (generator: Generator) => {
     width: 64,
     height: 64,
     choices: [],
-    enableMinecraftSkinInput: true,
+    useMinecraftSkinControl: true,
   });
 
   makeTextureInput({
@@ -338,7 +347,7 @@ const script: ScriptDef = (generator: Generator) => {
       "Saddle (Faithful)",
       "Saddle (Space Pig)",
     ],
-    enableMinecraftSkinInput: false,
+    useMinecraftSkinControl: false,
   });
 
   makeTextureInput({
@@ -356,7 +365,7 @@ const script: ScriptDef = (generator: Generator) => {
       "Iron Armor (Faithful)",
       "Armor (Space Pig)",
     ],
-    enableMinecraftSkinInput: false,
+    useMinecraftSkinControl: false,
   });
 
   // Function to easily draw a section of a texture

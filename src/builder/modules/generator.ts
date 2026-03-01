@@ -1,4 +1,7 @@
-import { type TextureInputControlProps } from "./modelControls";
+import {
+  type MinecraftSkinInputControlProps,
+  type TextureInputControlProps,
+} from "./modelControls";
 import { type Model } from "./model";
 import {
   type Position,
@@ -35,6 +38,13 @@ export class Generator {
 
   defineTextureInput(id: string, props: TextureInputControlProps): void {
     this.model.addTextureControl(id, props);
+  }
+
+  defineMinecraftSkinInput(
+    id: string,
+    props: MinecraftSkinInputControlProps
+  ): void {
+    this.model.addMinecraftSkinControl(id, props);
   }
 
   defineBooleanInput(id: string, initialValue: boolean): void {

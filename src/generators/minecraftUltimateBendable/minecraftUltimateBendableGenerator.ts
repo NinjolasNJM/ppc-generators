@@ -64,11 +64,11 @@ const textures: TextureDef[] = [
 const script: ScriptDef = (generator: Generator) => {
   // Define user inputs
 
-  generator.defineTextureInput("Skin", {
+  generator.defineMinecraftSkinInput("Skin", {
     standardWidth: 64,
     standardHeight: 64,
     choices: [],
-    enableMinecraftSkinInput: true,
+    modelTypeInputId: "Skin Model Type",
   });
 
   // Define user variables

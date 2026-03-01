@@ -100,7 +100,8 @@ const script: ScriptDef = (generator: Generator) => {
   // Define user inputs
 
   for (let i = 1; i <= 8; i++) {
-    generator.defineTextureInput(`Skin ${i}`, {
+    const textureId = `Skin ${i}`;
+    generator.defineMinecraftSkinInput(textureId, {
       standardWidth: 64,
       standardHeight: 64,
       choices: [
@@ -113,7 +114,7 @@ const script: ScriptDef = (generator: Generator) => {
         "Creeper",
         "Blaze",
       ],
-      enableMinecraftSkinInput: true,
+      modelTypeInputId: textureId + " Model Type",
     });
   }
 

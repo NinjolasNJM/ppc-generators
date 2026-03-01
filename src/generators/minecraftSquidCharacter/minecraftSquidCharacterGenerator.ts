@@ -64,11 +64,11 @@ const script: ScriptDef = (generator: Generator) => {
 
   generator.defineSelectInput("Skin Model Type", ["Wide", "Slim"]);
 
-  generator.defineTextureInput("Skin", {
+  generator.defineMinecraftSkinInput("Skin", {
     standardWidth: 64,
     standardHeight: 64,
     choices: [],
-    enableMinecraftSkinInput: true,
+    modelTypeInputId: "Skin Model Type",
   });
 
   const hideHelmet = generator.getBooleanInputValue("Hide Helmet");

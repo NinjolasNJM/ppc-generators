@@ -51,11 +51,11 @@ const script: ScriptDef = (generator: Generator) => {
   // Define user inputs
 
   generator.defineSelectInput("Skin Model Type", ["Wide", "Slim"]);
-  generator.defineTextureInput("Skin", {
+  generator.defineMinecraftSkinInput("Skin", {
     standardWidth: 64,
     standardHeight: 64,
     choices: [],
-    enableMinecraftSkinInput: true,
+    modelTypeInputId: "Skin Model Type",
   });
 
   // Define user variables

@@ -8,6 +8,7 @@ import { SelectControl } from "./selectControl";
 import { RangeControl } from "./rangeControl";
 import { ButtonControl } from "./buttonControl";
 import { TextControl } from "./textControl";
+import { MinecraftSkinControl } from "./minecraftSkinControl";
 
 export function Controls({
   model,
@@ -77,16 +78,25 @@ export function Controls({
                 choices={control.props.choices}
                 standardWidth={control.props.standardWidth}
                 standardHeight={control.props.standardHeight}
-                enableMinecraftSkinInput={
-                  control.props.enableMinecraftSkinInput ?? false
-                }
                 textures={model.values.textures}
-                getModelSelectValue={(id: string) => model.getStringVariable(id)}
-                getModelStringValue={(id: string) => model.getStringVariable(id)}
-                setModelStringValue={(id: string, value: string | null) => {
-                  model.setStringVariable(id, value ?? "");
-                  onChange(model);
-                }}
+                onChange={(texture) => onTextureChange(control.id, texture)}
+              />
+            );
+          }
+          case "MinecraftSkinInput": {
+            const modelTypeId = control.props.modelTypeInputId;
+            const modelTypeValue = model.getStringVariable(modelTypeId);
+            const modelType = modelTypeValue === "Slim" ? "Slim" : "Wide";
+
+            return (
+              <MinecraftSkinControl
+                key={control.id}
+                id={control.id}
+                choices={control.props.choices}
+                standardWidth={control.props.standardWidth}
+                standardHeight={control.props.standardHeight}
+                modelType={modelType}
+                textures={model.values.textures}
                 onChange={(texture) => onTextureChange(control.id, texture)}
               />
             );

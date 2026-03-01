@@ -300,16 +300,16 @@ const script: ScriptDef = (generator: Generator) => {
   }
 
   const drawMini = (textureId: string, x: number, y: number) => {
-    generator.defineTextureInput(textureId, {
+    const modelTypeName = textureId + " Model Type";
+
+    generator.defineMinecraftSkinInput(textureId, {
       standardWidth: 64,
       standardHeight: 64,
       choices: [],
-      enableMinecraftSkinInput: true,
+      modelTypeInputId: modelTypeName,
     });
 
     if (generator.hasTexture(textureId)) {
-      const modelTypeName = textureId + " Model Type";
-
       generator.defineSelectInput(modelTypeName, ["Wide", "Slim"]);
 
       const modelType = generator.getSelectInputValue(modelTypeName);

@@ -4,12 +4,12 @@ import { type Page, makePage } from "./modelPage";
 import { makeUUID } from "./uuid";
 import {
   type Control,
+  type MinecraftSkinInputControlProps,
   type TextureInputControlProps,
   type Region,
 } from "./modelControls";
 import { type Variable } from "./variables";
 import { type Values } from "./modelValues";
-import { DEFAULT_SKIN_NAMES, getSkinUrl, getSkinNameForUrl } from "@genroot/generators/_common/skins";
 
 export class Model {
   controls: Control[];
@@ -59,6 +59,14 @@ export class Model {
   addTextureControl(id: string, props: TextureInputControlProps) {
     this.addControl({
       kind: "TextureInput",
+      id,
+      props,
+    });
+  }
+
+  addMinecraftSkinControl(id: string, props: MinecraftSkinInputControlProps) {
+    this.addControl({
+      kind: "MinecraftSkinInput",
       id,
       props,
     });
@@ -136,21 +144,6 @@ export class Model {
 
   addTexture(id: string, texture: Texture) {
     this.values.addTexture(id, texture);
-
-    // If this texture matches one of the bundled default skins, persist
-    // the chosen default name so UI controls can swap wide/slim variants
-    // when the model type changes. Don't overwrite an explicit user value.
-    try {
-      const src = texture.imageWithCanvas?.image?.src ?? "";
-      const name = getSkinNameForUrl(src);
-      const storedSkinVarId = `${id} Skin Name`;
-      const existing = this.getStringVariable(storedSkinVarId);
-      if (name && existing === null) {
-        this.setStringVariable(storedSkinVarId, name);
-      }
-    } catch (e) {
-      // swallow errors — detection is best-effort
-    }
   }
 
   findTexture(id: string): Texture | null {
@@ -159,39 +152,6 @@ export class Model {
 
   hasTexture(id: string): boolean {
     return this.findTexture(id) !== null;
-  }
-
-  /**
-   * isTextureDefaultBundle
-   * Check whether a given Texture object matches any of the bundled
-   * default skin URLs (wide/slim). Matching first tries full `src`
-   * equality, then falls back to comparing the filename/base name so
-   * hashed/static URLs still match.
-   */
-  isTextureDefaultBundle(texture: Texture): boolean {
-    const src = texture.imageWithCanvas?.image?.src ?? "";
-    if (!src) return false;
-    const base = src.split("/").pop() ?? src;
-    const names = Array.from(DEFAULT_SKIN_NAMES as unknown as string[]);
-    for (const name of names) {
-      const wide = getSkinUrl(name, "Wide");
-      const slim = getSkinUrl(name, "Slim");
-      if (src === wide || src === slim) return true;
-      if ((wide.split("/").pop() ?? "") === base) return true;
-      if ((slim.split("/").pop() ?? "") === base) return true;
-    }
-    return false;
-  }
-
-  /**
-   * isTextureDefaultBundleId
-   * Convenience wrapper that accepts a texture id and returns whether the
-   * corresponding texture (if present) matches a bundled default.
-   */
-  isTextureDefaultBundleId(id: string): boolean {
-    const texture = this.findTexture(id);
-    if (!texture) return false;
-    return this.isTextureDefaultBundle(texture);
   }
 
   removeTexture(id: string) {
