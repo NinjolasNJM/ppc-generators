@@ -21,6 +21,12 @@ type FetchState =
   | { kind: "Error" }
   | { kind: "Success" };
 
+type SkinSelection =
+  | { kind: "none" }
+  | { kind: "preset"; presetName: string }
+  | { kind: "textureChoice"; textureId: string }
+  | { kind: "custom" };
+
 function MinecraftSkinFetchInput({
   onImage,
   onError,
@@ -118,6 +124,8 @@ export function MinecraftSkinControl({
   const currentTexture = textures.get(id) ?? null;
   const onChangeRef = React.useRef(onChange);
 
+  // Infer whether the currently loaded texture is one of our bundled defaults
+  // so model-type changes can continue to drive preset swapping.
   const inferredPresetName = React.useMemo(() => {
     if (!currentTexture) {
       return null;
@@ -141,8 +149,11 @@ export function MinecraftSkinControl({
 
     return null;
   }, [currentTexture]);
-  const [selectedChoiceId, setSelectedChoiceId] = React.useState(
-    inferredPresetName ?? ""
+
+  const [selection, setSelection] = React.useState<SkinSelection>(() =>
+    inferredPresetName
+      ? { kind: "preset", presetName: inferredPresetName }
+      : { kind: "none" }
   );
   const [loadError, setLoadError] = React.useState<string | null>(null);
 
@@ -161,19 +172,34 @@ export function MinecraftSkinControl({
     ...defaultSkinNames.map((name) => ({ id: name, label: name })),
     ...additionalChoices.map((choice) => ({ id: choice, label: choice })),
   ];
+
+  const selectedChoiceId =
+    selection.kind === "preset"
+      ? selection.presetName
+      : selection.kind === "textureChoice"
+      ? selection.textureId
+      : "";
+
   const selectedChoice =
     selectChoices.find((choice) => choice.id === selectedChoiceId) ??
     selectChoices[0];
 
+  // Keep the Select control aligned with inferred bundled defaults from model state
+  // (e.g. initial `getSkinUrl("Default", "Wide")` texture).
   React.useEffect(() => {
     if (!inferredPresetName) {
       return;
     }
-    setSelectedChoiceId((previousChoiceId) =>
-      previousChoiceId === inferredPresetName
-        ? previousChoiceId
-        : inferredPresetName
-    );
+
+    setSelection((previousSelection) => {
+      if (
+        previousSelection.kind === "preset" &&
+        previousSelection.presetName === inferredPresetName
+      ) {
+        return previousSelection;
+      }
+      return { kind: "preset", presetName: inferredPresetName };
+    });
   }, [inferredPresetName]);
 
   const loadPreset = React.useCallback(
@@ -203,7 +229,7 @@ export function MinecraftSkinControl({
         standardWidth,
         standardHeight
       );
-      setSelectedChoiceId("");
+      setSelection({ kind: "custom" });
       setLoadError(null);
       onChangeRef.current(texture);
     },
@@ -237,26 +263,35 @@ export function MinecraftSkinControl({
   };
 
   const onChoiceChange = (choice: SelectOption) => {
-    setSelectedChoiceId(choice.id);
-
     if (choice.id === "") {
+      setSelection({ kind: "none" });
       setLoadError(null);
       onChangeRef.current(null);
       return;
     }
 
-    if (!defaultSet.has(choice.id)) {
-      setLoadError(null);
-      const texture = textures.get(choice.id) ?? null;
-      onChangeRef.current(texture);
+    if (defaultSet.has(choice.id)) {
+      setSelection({ kind: "preset", presetName: choice.id });
+      return;
     }
+
+    setSelection({ kind: "textureChoice", textureId: choice.id });
+    setLoadError(null);
+
+    const texture = textures.get(choice.id) ?? null;
+    onChangeRef.current(texture);
   };
 
+  // Preset swapping behavior:
+  // - Bundled presets (Default, Alex, etc.) have Wide and Slim variants.
+  // - When model type changes, swap to the matching bundled variant automatically.
+  // - Custom/uploaded/non-bundled textures do not auto-swap because there is no
+  //   guaranteed paired Wide/Slim asset.
   React.useEffect(() => {
-    if (defaultSet.has(selectedChoiceId)) {
-      void loadPreset(selectedChoiceId, modelType);
+    if (selection.kind === "preset") {
+      void loadPreset(selection.presetName, modelType);
     }
-  }, [defaultSet, loadPreset, modelType, selectedChoiceId]);
+  }, [loadPreset, modelType, selection]);
 
   return (
     <>
