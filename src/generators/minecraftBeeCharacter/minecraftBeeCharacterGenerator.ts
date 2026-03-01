@@ -18,7 +18,7 @@ import overlayBeeImage from "./images/OverlayBee.png";
 import { getSkinUrl } from "../_common/skins";
 import {
   defaultMinecraftSkinInitialSelection,
-  makeDefaultMinecraftSkinOptions,
+  makeDefaultMinecraftSkinPresetOptions,
 } from "../_common/skins/options";
 
 const id = "minecraft-bee-character";
@@ -575,7 +575,7 @@ const script: ScriptDef = (generator: Generator) => {
   generator.defineMinecraftSkinInput("Skin 1", {
     standardWidth: 64,
     standardHeight: 64,
-    options: makeDefaultMinecraftSkinOptions(),
+    options: makeDefaultMinecraftSkinPresetOptions(),
     initialSelection: defaultMinecraftSkinInitialSelection,
     modelTypeInputId: "Skin 1 Model Type",
   });
@@ -597,7 +597,7 @@ const script: ScriptDef = (generator: Generator) => {
   generator.defineMinecraftSkinInput("Skin 2", {
     standardWidth: 64,
     standardHeight: 64,
-    options: makeDefaultMinecraftSkinOptions(),
+    options: makeDefaultMinecraftSkinPresetOptions(),
     initialSelection: defaultMinecraftSkinInitialSelection,
     modelTypeInputId: "Skin 2 Model Type",
   });

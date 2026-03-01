@@ -40,7 +40,7 @@ export type MinecraftSkinInputControlProps = {
   initialSelection?: MinecraftSkinInitialSelection;
 };
 
-export type MinecraftSkinPresetOption = {
+export type MinecraftSkinOptionPreset = {
   kind: "preset";
   id: string;
   label: string;
@@ -50,21 +50,21 @@ export type MinecraftSkinPresetOption = {
   };
 };
 
-export type MinecraftSkinTextureChoiceOption = {
-  kind: "textureChoice";
+export type MinecraftSkinOptionTexture = {
+  kind: "texture";
   id: string;
   label: string;
   textureId: string;
 };
 
 export type MinecraftSkinOption =
-  | MinecraftSkinPresetOption
-  | MinecraftSkinTextureChoiceOption;
+  | MinecraftSkinOptionPreset
+  | MinecraftSkinOptionTexture;
 
 export type MinecraftSkinInitialSelection =
   | { kind: "none" }
   | { kind: "preset"; presetName: string }
-  | { kind: "textureChoice"; textureId: string };
+  | { kind: "texture"; textureId: string };
 
 export type MinecraftSkinInputControl = {
   kind: "MinecraftSkinInput";

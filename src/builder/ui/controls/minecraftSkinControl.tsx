@@ -166,10 +166,10 @@ export function MinecraftSkinControl({
   const selectedChoiceId =
     selection.kind === "preset"
       ? selection.presetName
-      : selection.kind === "textureChoice"
+      : selection.kind === "texture"
       ? options.find(
           (option) =>
-            option.kind === "textureChoice" &&
+            option.kind === "texture" &&
             option.textureId === selection.textureId
         )?.id ?? ""
       : "";
@@ -246,7 +246,7 @@ export function MinecraftSkinControl({
       return;
     }
 
-    onSelectionChange({ kind: "textureChoice", textureId: option.textureId });
+    onSelectionChange({ kind: "texture", textureId: option.textureId });
     setLoadError(null);
     const texture = textures.get(option.textureId) ?? null;
     onChangeRef.current(texture);
@@ -255,7 +255,7 @@ export function MinecraftSkinControl({
   // Preset swapping behavior:
   // - Preset options provide both Wide and Slim URLs.
   // - When model type changes, swap to the matching preset variant automatically.
-  // - Custom uploads and texture-choice options do not auto-swap because there is
+  // - Custom uploads and texture options do not auto-swap because there is
   //   no guaranteed paired Wide/Slim asset.
   const selectedPresetWideUrl =
     selection.kind === "preset"
@@ -278,7 +278,7 @@ export function MinecraftSkinControl({
         })()
       : null;
   const selectedTextureId =
-    selection.kind === "textureChoice" ? selection.textureId : null;
+    selection.kind === "texture" ? selection.textureId : null;
 
   React.useEffect(() => {
     if (!selectedPresetWideUrl || !selectedPresetSlimUrl) {

@@ -1,7 +1,7 @@
 import type {
   MinecraftSkinInitialSelection,
-  MinecraftSkinOption,
-  MinecraftSkinTextureChoiceOption,
+  MinecraftSkinOptionPreset,
+  MinecraftSkinOptionTexture,
 } from "@genroot/builder/modules/modelControls";
 import { defaultSkinNames, getSkinUrl } from "./index";
 
@@ -11,9 +11,9 @@ export const defaultMinecraftSkinInitialSelection: MinecraftSkinInitialSelection
     presetName: "Default",
   };
 
-export function makeDefaultMinecraftSkinOptions(): MinecraftSkinOption[] {
+export function makeDefaultMinecraftSkinPresetOptions(): MinecraftSkinOptionPreset[] {
   return defaultSkinNames.map(
-    (name): MinecraftSkinOption => ({
+    (name): MinecraftSkinOptionPreset => ({
       kind: "preset",
       id: name,
       label: name,
@@ -25,11 +25,11 @@ export function makeDefaultMinecraftSkinOptions(): MinecraftSkinOption[] {
   );
 }
 
-export function makeTextureOption(
+export function makeMinecraftSkinTextureOption(
   textureId: string
-): MinecraftSkinTextureChoiceOption {
+): MinecraftSkinOptionTexture {
   return {
-    kind: "textureChoice",
+    kind: "texture",
     id: textureId,
     label: textureId,
     textureId,

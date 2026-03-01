@@ -20,8 +20,8 @@ import tabsImage from "./images/Tabs.png";
 import { getSkinUrl } from "../_common/skins";
 import {
   defaultMinecraftSkinInitialSelection,
-  makeDefaultMinecraftSkinOptions,
-  makeTextureOption,
+  makeDefaultMinecraftSkinPresetOptions,
+  makeMinecraftSkinTextureOption,
 } from "../_common/skins/options";
 import zombieImage from "./textures/Zombie.png";
 import endermanImage from "./textures/Enderman.png";
@@ -110,13 +110,13 @@ const script: ScriptDef = (generator: Generator) => {
       standardWidth: 64,
       standardHeight: 64,
       options: [
-        ...makeDefaultMinecraftSkinOptions(),
-        makeTextureOption("Zombie"),
-        makeTextureOption("Enderman"),
-        makeTextureOption("Skeleton"),
-        makeTextureOption("Wither Skeleton"),
-        makeTextureOption("Creeper"),
-        makeTextureOption("Blaze"),
+        ...makeDefaultMinecraftSkinPresetOptions(),
+        makeMinecraftSkinTextureOption("Zombie"),
+        makeMinecraftSkinTextureOption("Enderman"),
+        makeMinecraftSkinTextureOption("Skeleton"),
+        makeMinecraftSkinTextureOption("Wither Skeleton"),
+        makeMinecraftSkinTextureOption("Creeper"),
+        makeMinecraftSkinTextureOption("Blaze"),
       ],
       initialSelection: defaultMinecraftSkinInitialSelection,
       modelTypeInputId: textureId + " Model Type",

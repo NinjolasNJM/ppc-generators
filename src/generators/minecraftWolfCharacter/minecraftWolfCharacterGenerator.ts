@@ -17,7 +17,7 @@ import labelsImage from "./images/Labels.png";
 import { getSkinUrl } from "../_common/skins";
 import {
   defaultMinecraftSkinInitialSelection,
-  makeDefaultMinecraftSkinOptions,
+  makeDefaultMinecraftSkinPresetOptions,
 } from "../_common/skins/options";
 import wolfAngryTexture from "./textures/wolf_angry.png";
 
@@ -78,7 +78,7 @@ const script: ScriptDef = (generator: Generator) => {
   generator.defineMinecraftSkinInput("Skin", {
     standardWidth: 64,
     standardHeight: 64,
-    options: makeDefaultMinecraftSkinOptions(),
+    options: makeDefaultMinecraftSkinPresetOptions(),
     initialSelection: defaultMinecraftSkinInitialSelection,
     modelTypeInputId: "Skin Model Type",
   });

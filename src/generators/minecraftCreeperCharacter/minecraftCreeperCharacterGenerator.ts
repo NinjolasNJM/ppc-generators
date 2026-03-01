@@ -23,8 +23,8 @@ import alexImage from "../_common/skins/slim/default.png";
 import { getSkinUrl } from "../_common/skins";
 import {
   defaultMinecraftSkinInitialSelection,
-  makeDefaultMinecraftSkinOptions,
-  makeTextureOption,
+  makeDefaultMinecraftSkinPresetOptions,
+  makeMinecraftSkinTextureOption,
 } from "../_common/skins/options";
 
 const id = "minecraft-creeper-character";
@@ -77,8 +77,8 @@ const script: ScriptDef = (generator: Generator) => {
     standardWidth: 64,
     standardHeight: 64,
     options: [
-      ...makeDefaultMinecraftSkinOptions(),
-      makeTextureOption("Default (Slim)"),
+      ...makeDefaultMinecraftSkinPresetOptions(),
+      makeMinecraftSkinTextureOption("Default (Slim)"),
     ],
     initialSelection: defaultMinecraftSkinInitialSelection,
     modelTypeInputId: "Skin Model Type",

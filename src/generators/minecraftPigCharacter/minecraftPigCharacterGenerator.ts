@@ -35,8 +35,8 @@ import armorSpacePigTexture from "./textures/space-pig/armor.png";
 import { getSkinUrl } from "../_common/skins";
 import {
   defaultMinecraftSkinInitialSelection,
-  makeDefaultMinecraftSkinOptions,
-  makeTextureOption,
+  makeDefaultMinecraftSkinPresetOptions,
+  makeMinecraftSkinTextureOption,
 } from "../_common/skins/options";
 
 const id = "minecraft-pig-character";
@@ -318,8 +318,8 @@ const script: ScriptDef = (generator: Generator) => {
         standardWidth: width,
         standardHeight: height,
         options: [
-          ...makeDefaultMinecraftSkinOptions(),
-          ...choices.map((choice) => makeTextureOption(choice)),
+          ...makeDefaultMinecraftSkinPresetOptions(),
+          ...choices.map((choice) => makeMinecraftSkinTextureOption(choice)),
         ],
         initialSelection: defaultMinecraftSkinInitialSelection,
         modelTypeInputId: texture + " Model Type",

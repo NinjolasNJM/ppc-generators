@@ -3,7 +3,7 @@
 export type SkinSelection =
   | { kind: "none" } // No skin should be applied.
   | { kind: "preset"; presetName: string } // One of the configured preset options.
-  | { kind: "textureChoice"; textureId: string } // A texture-choice option mapped to an existing texture id.
+  | { kind: "texture"; textureId: string } // A texture option mapped to an existing texture id.
   | { kind: "custom" }; // A user-provided skin (uploaded file or fetched by username).
 
 // Prefix used to build stable, namespaced persistence keys per control id.
@@ -53,13 +53,13 @@ export function parseMinecraftSkinSelection(
       return { kind: "preset", presetName: parsed.presetName };
     }
 
-    // `textureChoice` must include a string texture id.
+    // `texture` must include a string texture id.
     if (
-      kind === "textureChoice" &&
+      kind === "texture" &&
       "textureId" in parsed &&
       typeof parsed.textureId === "string"
     ) {
-      return { kind: "textureChoice", textureId: parsed.textureId };
+      return { kind: "texture", textureId: parsed.textureId };
     }
   } catch {
     // Ignore malformed persisted values and fall back to the safe default.
