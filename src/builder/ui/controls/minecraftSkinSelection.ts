@@ -1,20 +1,30 @@
+// Represents every supported way a Minecraft skin can be selected in the UI.
+// This is a discriminated union (`kind`) so callers can branch safely by mode.
 export type SkinSelection =
-  | { kind: "none" }
-  | { kind: "preset"; presetName: string }
-  | { kind: "textureChoice"; textureId: string }
-  | { kind: "custom" };
+  | { kind: "none" } // No skin should be applied.
+  | { kind: "preset"; presetName: string } // One of the built-in bundled presets (for example: Default, Alex, etc.).
+  | { kind: "textureChoice"; textureId: string } // A non-default texture chosen from available texture ids.
+  | { kind: "custom" }; // A user-provided skin (uploaded file or fetched by username).
 
+// Prefix used to build stable, namespaced persistence keys per control id.
 export const MINECRAFT_SKIN_SELECTION_KEY_PREFIX = "__minecraftSkinSelection:";
 
+// Fallback selection when nothing has been stored yet or stored data is invalid.
+// Using a concrete default keeps startup behavior deterministic.
 export const defaultMinecraftSkinSelection: SkinSelection = {
   kind: "preset",
   presetName: "Default",
 };
 
+// Builds the persisted key for this control instance.
+// `id` lets multiple Minecraft skin controls coexist without key collisions.
 export function getMinecraftSkinSelectionKey(id: string): string {
   return `${MINECRAFT_SKIN_SELECTION_KEY_PREFIX}${id}`;
 }
 
+// Parses persisted JSON into a validated `SkinSelection`.
+// Important: this function is intentionally defensive because persisted values
+// can be missing, malformed, or from older app versions.
 export function parseMinecraftSkinSelection(
   value: string | null
 ): SkinSelection {
@@ -24,18 +34,23 @@ export function parseMinecraftSkinSelection(
   }
 
   try {
+    // Parse as `unknown` first, then validate shape manually.
     const parsed: unknown = JSON.parse(value);
 
+    // Non-object JSON values (string/number/array/null) are invalid here.
     if (!parsed || typeof parsed !== "object") {
       return defaultMinecraftSkinSelection;
     }
 
+    // Pull discriminator in a safe way before narrowing.
     const kind = "kind" in parsed ? parsed.kind : null;
 
+    // `none` and `custom` require no extra payload fields.
     if (kind === "none" || kind === "custom") {
       return { kind };
     }
 
+    // `preset` must include a string preset name.
     if (
       kind === "preset" &&
       "presetName" in parsed &&
@@ -44,6 +59,7 @@ export function parseMinecraftSkinSelection(
       return { kind: "preset", presetName: parsed.presetName };
     }
 
+    // `textureChoice` must include a string texture id.
     if (
       kind === "textureChoice" &&
       "textureId" in parsed &&
@@ -58,6 +74,8 @@ export function parseMinecraftSkinSelection(
   return defaultMinecraftSkinSelection;
 }
 
+// Serializes the validated selection shape for persistence.
+// This mirrors `parseMinecraftSkinSelection` for read/write symmetry.
 export function serializeMinecraftSkinSelection(
   selection: SkinSelection
 ): string {
