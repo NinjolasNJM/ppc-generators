@@ -31,9 +31,9 @@ export const DEFAULT_SKIN_NAMES = [
   "Sunny",
   "Zuri",
   "Default",
-] as const;
+];
 
-type ModelType = "Steve" | "Alex" | string;
+type ModelType = string;
 
 const SKIN_MAP: Record<string, { wide: string; slim: string }> = {
   Alex: { wide: alexWide.src, slim: alexSlim.src },
@@ -47,10 +47,6 @@ const SKIN_MAP: Record<string, { wide: string; slim: string }> = {
   Sunny: { wide: sunnyWide.src, slim: sunnySlim.src },
   Zuri: { wide: zuriWide.src, slim: zuriSlim.src },
 };
-
-export function isDefaultSkin(name: string | null | undefined): boolean {
-  return !!name && Object.prototype.hasOwnProperty.call(SKIN_MAP, name);
-}
 
 export function getSkinUrl(name: string, modelType: ModelType): string {
   const entry = SKIN_MAP[name];

@@ -11,7 +11,10 @@ import { fetchSkinImage } from "@genroot/builder/modules/minecraftSkin";
 import { type SelectOption, Select } from "../form/select";
 import { Button, type ButtonState } from "../button/button";
 import { ArrowPathIconWithSpin } from "../icon";
-import { DEFAULT_SKIN_NAMES, getSkinUrl } from "@genroot/generators/_common/skins";
+import {
+  DEFAULT_SKIN_NAMES,
+  getSkinUrl,
+} from "@genroot/generators/_common/skins";
 
 type FetchState =
   | { kind: "Idle" }
@@ -119,15 +122,15 @@ export function TextureControl({
   // Merge defaults to the top of the choices, avoiding duplicates — but only
   // when `enableMinecraftSkinInput` is enabled. Otherwise present only the
   // generator-provided choices.
-  const defaultNames = enableMinecraftSkinInput
-    ? (DEFAULT_SKIN_NAMES as unknown as string[])
-    : [];
+  const defaultNames = enableMinecraftSkinInput ? DEFAULT_SKIN_NAMES : [];
   const defaultSet = new Set<string>(defaultNames);
   const additionalChoices = choices.filter((c) => !defaultSet.has(c));
 
   const selectChoices: SelectOption[] = [
     makeNoneChoice,
-    ...(enableMinecraftSkinInput ? Array.from(defaultSet).map((n) => ({ id: n, label: n })) : []),
+    ...(enableMinecraftSkinInput
+      ? Array.from(defaultSet).map((n) => ({ id: n, label: n }))
+      : []),
     ...additionalChoices.map((choice) => ({ id: choice, label: choice })),
   ];
 
@@ -143,7 +146,11 @@ export function TextureControl({
     try {
       const modelType = getCurrentModelType();
       const url = getSkinUrl(name, modelType);
-      const texture = await makeTextureFromUrl(url, standardWidth, standardHeight);
+      const texture = await makeTextureFromUrl(
+        url,
+        standardWidth,
+        standardHeight
+      );
       onChange(texture);
     } catch (error) {
       console.error(error);
@@ -213,13 +220,18 @@ export function TextureControl({
 
   // React to model type changes: if a stored default skin name exists, swap to the appropriate variant
   React.useEffect(() => {
-    const stored = getModelStringValue ? getModelStringValue(storedSkinVarId) : null;
+    const stored = getModelStringValue
+      ? getModelStringValue(storedSkinVarId)
+      : null;
     if (stored && defaultSet.has(stored)) {
       void loadDefaultSkin(stored);
     }
     // React when the per-texture model type changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [getModelSelectValue ? getModelSelectValue(`${id} Model Type`) : undefined, getModelStringValue ? getModelStringValue(storedSkinVarId) : undefined]);
+  }, [
+    getModelSelectValue ? getModelSelectValue(`${id} Model Type`) : undefined,
+    getModelStringValue ? getModelStringValue(storedSkinVarId) : undefined,
+  ]);
 
   return (
     <>
