@@ -31,13 +31,9 @@ type FetchState =
 // to the parent through callbacks.
 function MinecraftSkinFetchInput({
   onImage,
-  onError,
 }: {
   // Called after a skin image was fetched successfully.
   onImage: (image: HTMLImageElement) => Promise<void>;
-
-  // Called when fetch fails so the parent can show a global error message.
-  onError: () => void;
 }) {
   const [value, setValue] = React.useState("");
   const [fetchState, setFetchState] = React.useState<FetchState>({
@@ -64,7 +60,6 @@ function MinecraftSkinFetchInput({
       setFetchState({ kind: "Success" });
     } catch (error) {
       console.error(error);
-      onError();
       setFetchState({ kind: "Error" });
     }
   };
@@ -107,7 +102,7 @@ function MinecraftSkinFetchInput({
       </div>
       {/* Localized fetch error specific to username lookup failures. */}
       {fetchState.kind === "Error" ? (
-        <div className="text-red-500 absolute top-18">
+        <div className="text-red-500">
           There was a problem fetching the skin.
           <br />
           Check the username and try again.
@@ -170,8 +165,7 @@ export function MinecraftSkinControl({
     selectedChoiceId =
       options.find(
         (option) =>
-          option.kind === "texture" &&
-          option.textureId === selectedTextureId
+          option.kind === "texture" && option.textureId === selectedTextureId
       )?.id ?? "";
   }
 
@@ -275,7 +269,8 @@ export function MinecraftSkinControl({
     modelTypeChoices[0];
 
   const onModelTypeChange = (choice: SelectOption) => {
-    const modelType: MinecraftModelType = choice.id === "Slim" ? "Slim" : "Wide";
+    const modelType: MinecraftModelType =
+      choice.id === "Slim" ? "Slim" : "Wide";
     onValueChange({
       ...value,
       modelType,
@@ -396,10 +391,7 @@ export function MinecraftSkinControl({
           <div>or</div>
 
           {/* Alternate input path: load by Minecraft username instead of file. */}
-          <MinecraftSkinFetchInput
-            onImage={onCustomImage}
-            onError={() => setLoadError("Failed to fetch skin from username.")}
-          />
+          <MinecraftSkinFetchInput onImage={onCustomImage} />
         </div>
       </div>
 
