@@ -12,6 +12,7 @@ import { defaultSkinNames, getSkinUrl } from "@genroot/generators/_common/skins"
 import { type SelectOption, Select } from "../form/select";
 import { Button, type ButtonState } from "../button/button";
 import { ArrowPathIconWithSpin } from "../icon";
+import { type SkinSelection } from "./minecraftSkinSelection";
 
 type ModelType = "Wide" | "Slim";
 
@@ -20,12 +21,6 @@ type FetchState =
   | { kind: "Fetching" }
   | { kind: "Error" }
   | { kind: "Success" };
-
-type SkinSelection =
-  | { kind: "none" }
-  | { kind: "preset"; presetName: string }
-  | { kind: "textureChoice"; textureId: string }
-  | { kind: "custom" };
 
 function MinecraftSkinFetchInput({
   onImage,
@@ -110,7 +105,9 @@ export function MinecraftSkinControl({
   standardWidth,
   standardHeight,
   modelType,
+  selection,
   textures,
+  onSelectionChange,
   onChange,
 }: {
   id: string;
@@ -118,43 +115,12 @@ export function MinecraftSkinControl({
   standardWidth: number;
   standardHeight: number;
   modelType: ModelType;
+  selection: SkinSelection;
   textures: Map<string, Texture>;
+  onSelectionChange: (selection: SkinSelection) => void;
   onChange: (image: Texture | null) => void;
 }) {
-  const currentTexture = textures.get(id) ?? null;
   const onChangeRef = React.useRef(onChange);
-
-  // Infer whether the currently loaded texture is one of our bundled defaults
-  // so model-type changes can continue to drive preset swapping.
-  const inferredPresetName = React.useMemo(() => {
-    if (!currentTexture) {
-      return null;
-    }
-
-    const loadedImageUrl = currentTexture.imageWithCanvas.image.src;
-    const modelTypes: ModelType[] = ["Wide", "Slim"];
-
-    for (const presetName of defaultSkinNames) {
-      for (const candidateModelType of modelTypes) {
-        const bundledSkinUrl = getSkinUrl(presetName, candidateModelType);
-        if (
-          loadedImageUrl === bundledSkinUrl ||
-          loadedImageUrl.endsWith(bundledSkinUrl) ||
-          bundledSkinUrl.endsWith(loadedImageUrl)
-        ) {
-          return presetName;
-        }
-      }
-    }
-
-    return null;
-  }, [currentTexture]);
-
-  const [selection, setSelection] = React.useState<SkinSelection>(() =>
-    inferredPresetName
-      ? { kind: "preset", presetName: inferredPresetName }
-      : { kind: "none" }
-  );
   const [loadError, setLoadError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
@@ -184,24 +150,6 @@ export function MinecraftSkinControl({
     selectChoices.find((choice) => choice.id === selectedChoiceId) ??
     selectChoices[0];
 
-  // Keep the Select control aligned with inferred bundled defaults from model state
-  // (e.g. initial `getSkinUrl("Default", "Wide")` texture).
-  React.useEffect(() => {
-    if (!inferredPresetName) {
-      return;
-    }
-
-    setSelection((previousSelection) => {
-      if (
-        previousSelection.kind === "preset" &&
-        previousSelection.presetName === inferredPresetName
-      ) {
-        return previousSelection;
-      }
-      return { kind: "preset", presetName: inferredPresetName };
-    });
-  }, [inferredPresetName]);
-
   const loadPreset = React.useCallback(
     async (presetName: string, currentModelType: ModelType) => {
       try {
@@ -229,11 +177,11 @@ export function MinecraftSkinControl({
         standardWidth,
         standardHeight
       );
-      setSelection({ kind: "custom" });
+      onSelectionChange({ kind: "custom" });
       setLoadError(null);
       onChangeRef.current(texture);
     },
-    [standardHeight, standardWidth]
+    [onSelectionChange, standardHeight, standardWidth]
   );
 
   const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -264,18 +212,18 @@ export function MinecraftSkinControl({
 
   const onChoiceChange = (choice: SelectOption) => {
     if (choice.id === "") {
-      setSelection({ kind: "none" });
+      onSelectionChange({ kind: "none" });
       setLoadError(null);
       onChangeRef.current(null);
       return;
     }
 
     if (defaultSet.has(choice.id)) {
-      setSelection({ kind: "preset", presetName: choice.id });
+      onSelectionChange({ kind: "preset", presetName: choice.id });
       return;
     }
 
-    setSelection({ kind: "textureChoice", textureId: choice.id });
+    onSelectionChange({ kind: "textureChoice", textureId: choice.id });
     setLoadError(null);
 
     const texture = textures.get(choice.id) ?? null;
@@ -287,11 +235,14 @@ export function MinecraftSkinControl({
   // - When model type changes, swap to the matching bundled variant automatically.
   // - Custom/uploaded/non-bundled textures do not auto-swap because there is no
   //   guaranteed paired Wide/Slim asset.
+  const selectedPresetName =
+    selection.kind === "preset" ? selection.presetName : null;
+
   React.useEffect(() => {
-    if (selection.kind === "preset") {
-      void loadPreset(selection.presetName, modelType);
+    if (selectedPresetName) {
+      void loadPreset(selectedPresetName, modelType);
     }
-  }, [loadPreset, modelType, selection]);
+  }, [loadPreset, modelType, selectedPresetName]);
 
   return (
     <>
