@@ -37,7 +37,7 @@ export type MinecraftSkinInputControlProps = {
   standardHeight: number;
   options: MinecraftSkinOption[];
   modelTypeInputId: string;
-  initialSelection?: MinecraftSkinInitialSelection;
+  initialSelection: MinecraftSkinInitialSelection;
 };
 
 export type MinecraftSkinOptionPreset = {

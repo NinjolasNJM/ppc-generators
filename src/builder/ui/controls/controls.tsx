@@ -11,8 +11,8 @@ import { TextControl } from "./textControl";
 import { MinecraftSkinControl } from "./minecraftSkinControl";
 import {
   type SkinSelection,
-  defaultMinecraftSkinSelection,
   getMinecraftSkinSelectionKey,
+  minecraftSkinSelectionNone,
   parseMinecraftSkinSelection,
   serializeMinecraftSkinSelection,
 } from "./minecraftSkinSelection";
@@ -111,7 +111,7 @@ export function Controls({
             const selection =
               storedSelection ??
               control.props.initialSelection ??
-              defaultMinecraftSkinSelection;
+              minecraftSkinSelectionNone;
 
             return (
               <MinecraftSkinControl

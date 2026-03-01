@@ -9,7 +9,7 @@ export type SkinSelection =
 // Prefix used to build stable, namespaced persistence keys per control id.
 export const MINECRAFT_SKIN_SELECTION_KEY_PREFIX = "__minecraftSkinSelection:";
 
-export const defaultMinecraftSkinSelection: SkinSelection = { kind: "none" };
+export const minecraftSkinSelectionNone: SkinSelection = { kind: "none" };
 
 // Builds the persisted key for this control instance.
 // `id` lets multiple Minecraft skin controls coexist without key collisions.
