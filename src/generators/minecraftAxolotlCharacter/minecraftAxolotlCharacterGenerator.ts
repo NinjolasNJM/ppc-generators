@@ -24,7 +24,7 @@ import foldsImage from "./images/Folds.png";
 import labelsImage from "./images/Labels.png";
 import { getSkinUrl } from "../_common/skins";
 import {
-  defaultMinecraftSkinInitialSelection,
+  minecraftSkinSelectionPresetDefault,
   makeDefaultMinecraftSkinPresetOptions,
 } from "../_common/skins/options";
 import axolotlBlueImage from "./textures/axolotl_blue.png";
@@ -455,7 +455,7 @@ const script: ScriptDef = (generator: Generator) => {
     standardWidth: 64,
     standardHeight: 64,
     options: makeDefaultMinecraftSkinPresetOptions(),
-    initialSelection: defaultMinecraftSkinInitialSelection,
+    initialSelectedOption: minecraftSkinSelectionPresetDefault,
     modelTypeInputId: "Skin Model Type",
   });
 

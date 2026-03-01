@@ -10,7 +10,7 @@ import type {
 } from "@genroot/builder/modules/generatorDef";
 import { type Generator } from "@genroot/builder/modules/generator";
 import {
-  defaultMinecraftSkinInitialSelection,
+  minecraftSkinSelectionPresetDefault,
   makeDefaultMinecraftSkinPresetOptions,
 } from "../_common/skins/options";
 
@@ -70,7 +70,7 @@ const script: ScriptDef = (generator: Generator) => {
     standardWidth: 64,
     standardHeight: 64,
     options: makeDefaultMinecraftSkinPresetOptions(),
-    initialSelection: defaultMinecraftSkinInitialSelection,
+    initialSelectedOption: minecraftSkinSelectionPresetDefault,
     modelTypeInputId: "Skin Model Type",
   });
 

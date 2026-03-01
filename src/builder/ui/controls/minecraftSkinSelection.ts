@@ -1,6 +1,6 @@
 // Represents every supported way a Minecraft skin can be selected in the UI.
 // This is a discriminated union (`kind`) so callers can branch safely by mode.
-export type SkinSelection =
+export type MinecraftSkinSelection =
   | { kind: "none" } // No skin should be applied.
   | { kind: "preset"; presetName: string } // One of the configured preset options.
   | { kind: "texture"; textureId: string } // A texture option mapped to an existing texture id.
@@ -9,7 +9,9 @@ export type SkinSelection =
 // Prefix used to build stable, namespaced persistence keys per control id.
 export const MINECRAFT_SKIN_SELECTION_KEY_PREFIX = "__minecraftSkinSelection:";
 
-export const minecraftSkinSelectionNone: SkinSelection = { kind: "none" };
+export const minecraftSkinSelectionNone: MinecraftSkinSelection = {
+  kind: "none",
+};
 
 // Builds the persisted key for this control instance.
 // `id` lets multiple Minecraft skin controls coexist without key collisions.
@@ -22,7 +24,7 @@ export function getMinecraftSkinSelectionKey(id: string): string {
 // can be missing, malformed, or from older app versions.
 export function parseMinecraftSkinSelection(
   value: string | null
-): SkinSelection | null {
+): MinecraftSkinSelection | null {
   if (!value) {
     return null;
   }
@@ -71,7 +73,7 @@ export function parseMinecraftSkinSelection(
 // Serializes the validated selection shape for persistence.
 // This mirrors `parseMinecraftSkinSelection` for read/write symmetry.
 export function serializeMinecraftSkinSelection(
-  selection: SkinSelection
+  selection: MinecraftSkinSelection
 ): string {
   return JSON.stringify(selection);
 }

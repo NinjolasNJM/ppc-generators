@@ -14,7 +14,7 @@ import {
 import { type SelectOption, Select } from "../form/select";
 import { Button, type ButtonState } from "../button/button";
 import { ArrowPathIconWithSpin } from "../icon";
-import { type SkinSelection } from "./minecraftSkinSelection";
+import { type MinecraftSkinSelection } from "./minecraftSkinSelection";
 
 type ModelType = "Wide" | "Slim";
 
@@ -134,9 +134,9 @@ export function MinecraftSkinControl({
   standardWidth: number;
   standardHeight: number;
   modelType: ModelType;
-  selection: SkinSelection;
+  selection: MinecraftSkinSelection;
   textures: Map<string, Texture>;
-  onSelectionChange: (selection: SkinSelection) => void;
+  onSelectionChange: (selection: MinecraftSkinSelection) => void;
   onChange: (image: Texture | null) => void;
 }) {
   // Keep the latest onChange callback in a ref so async work can safely use it

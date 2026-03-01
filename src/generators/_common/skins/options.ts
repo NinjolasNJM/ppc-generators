@@ -1,11 +1,11 @@
 import type {
-  MinecraftSkinInitialSelection,
+  MinecraftSkinSelection,
   MinecraftSkinOptionPreset,
   MinecraftSkinOptionTexture,
 } from "@genroot/builder/modules/modelControls";
 import { defaultSkinNames, getSkinUrl } from "./index";
 
-export const defaultMinecraftSkinInitialSelection: MinecraftSkinInitialSelection =
+export const minecraftSkinSelectionPresetDefault: MinecraftSkinSelection =
   {
     kind: "preset",
     presetName: "Default",

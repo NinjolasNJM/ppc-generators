@@ -34,7 +34,7 @@ import saddleSpacePigTexture from "./textures/space-pig/saddle.png";
 import armorSpacePigTexture from "./textures/space-pig/armor.png";
 import { getSkinUrl } from "../_common/skins";
 import {
-  defaultMinecraftSkinInitialSelection,
+  minecraftSkinSelectionPresetDefault,
   makeDefaultMinecraftSkinPresetOptions,
   makeMinecraftSkinTextureOption,
 } from "../_common/skins/options";
@@ -321,7 +321,7 @@ const script: ScriptDef = (generator: Generator) => {
           ...makeDefaultMinecraftSkinPresetOptions(),
           ...choices.map((choice) => makeMinecraftSkinTextureOption(choice)),
         ],
-        initialSelection: defaultMinecraftSkinInitialSelection,
+        initialSelectedOption: minecraftSkinSelectionPresetDefault,
         modelTypeInputId: texture + " Model Type",
       });
       return;

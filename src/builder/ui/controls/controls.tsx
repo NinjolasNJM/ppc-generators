@@ -10,7 +10,7 @@ import { ButtonControl } from "./buttonControl";
 import { TextControl } from "./textControl";
 import { MinecraftSkinControl } from "./minecraftSkinControl";
 import {
-  type SkinSelection,
+  type MinecraftSkinSelection,
   getMinecraftSkinSelectionKey,
   minecraftSkinSelectionNone,
   parseMinecraftSkinSelection,
@@ -55,7 +55,7 @@ export function Controls({
 
   const onMinecraftSkinSelectionChange = (
     id: string,
-    selection: SkinSelection
+    selection: MinecraftSkinSelection
   ) => {
     model.setStringVariable(
       getMinecraftSkinSelectionKey(id),
@@ -110,7 +110,7 @@ export function Controls({
             );
             const selection =
               storedSelection ??
-              control.props.initialSelection ??
+              control.props.initialSelectedOption ??
               minecraftSkinSelectionNone;
 
             return (
