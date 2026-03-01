@@ -8,14 +8,12 @@ import {
 import { makeImageFromUrl } from "@genroot/builder/modules/image";
 import { convertToStandardSkin } from "@genroot/builder/modules/minecraftSkinConverter";
 import { fetchSkinImage } from "@genroot/builder/modules/minecraftSkin";
-import { defaultSkinNames } from "@genroot/generators/_common/skins";
+import { defaultSkinNames, getSkinUrl } from "@genroot/generators/_common/skins";
 import { type SelectOption, Select } from "../form/select";
 import { Button, type ButtonState } from "../button/button";
 import { ArrowPathIconWithSpin } from "../icon";
-import {
-  type ModelType,
-  resolveBundledMinecraftSkin,
-} from "./minecraftSkinResolver";
+
+type ModelType = "Wide" | "Slim";
 
 type FetchState =
   | { kind: "Idle" }
@@ -130,10 +128,7 @@ export function MinecraftSkinControl({
 
     for (const presetName of defaultSkinNames) {
       for (const candidateModelType of modelTypes) {
-        const bundledSkinUrl = resolveBundledMinecraftSkin(
-          presetName,
-          candidateModelType
-        );
+        const bundledSkinUrl = getSkinUrl(presetName, candidateModelType);
         if (
           loadedImageUrl === bundledSkinUrl ||
           loadedImageUrl.endsWith(bundledSkinUrl) ||
@@ -185,7 +180,7 @@ export function MinecraftSkinControl({
     async (presetName: string, currentModelType: ModelType) => {
       try {
         setLoadError(null);
-        const url = resolveBundledMinecraftSkin(presetName, currentModelType);
+        const url = getSkinUrl(presetName, currentModelType);
         const texture = await makeTextureFromUrl(
           url,
           standardWidth,
