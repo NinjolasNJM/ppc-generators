@@ -59,13 +59,13 @@ export type Horse = {
 
 export const horse: Horse = {
   head: translate(cuboid([6, 5, 7]), [0, 13]),
-    mouth: translate(cuboid([4, 5, 5]), [0, 25]),
-    neck: translate(cuboid([4, 12, 7]), [0, 35]),
-    mane: translate(cuboid([2, 16, 2]), [56, 36]),
-    tail: translate(cuboid([3, 14, 4]), [42, 36]),
-    horseEar: translate(cuboid([2, 2, 1]), [19, 16]),
-    muleEar: translate(cuboid([2, 7, 1]), [0, 12]),
-    body: translate(cuboid([10, 10, 22]), [0, 32]),
-    leg: translate(cuboid([4, 11, 4]), [48, 21]),
-    chest: translate(cuboid([8, 8, 3]), [26, 21]),
+  mouth: translate(cuboid([4, 5, 5]), [0, 25]),
+  neck: translate(cuboid([4, 12, 7]), [0, 35]),
+  mane: translate(cuboid([2, 16, 2]), [56, 36]),
+  tail: translate(cuboid([3, 14, 4]), [42, 36]),
+  horseEar: translate(cuboid([2, 2, 1]), [19, 16]),
+  muleEar: translate(cuboid([2, 7, 1]), [0, 12]),
+  body: translate(cuboid([10, 10, 22]), [0, 32]),
+  leg: translate(cuboid([4, 11, 4]), [48, 21]),
+  chest: translate(cuboid([8, 8, 3]), [26, 21]),
 };

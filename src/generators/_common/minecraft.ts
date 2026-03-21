@@ -452,7 +452,10 @@ function setLayout(dimensions: Dimensions, options: DrawCuboidOptions): Dest {
 
   // Depending of the center face of the cuboid, the width, height and depth as found in dimensions will have to change.
   const dimensionsAdjusted = adjustDimensionsForCenter(dimensions, center);
-  // Depending on the flip direction of the cuboid, the orientation will need to change.
+  // Flip is part of the cuboid layout, not just a final pixel-level mirror.
+  // Horizontal flip swaps East/West and vertical flip swaps North/South before
+  // the destination net is built, then face flipping/swapping is applied.
+  // When debugging mirrored nets, reason about orientation and flip together.
   const orientationAdjusted = adjustOrientationForFlip(orientation, flip);
 
   // Create destination with default layout

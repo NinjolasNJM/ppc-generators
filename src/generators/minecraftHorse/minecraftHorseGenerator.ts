@@ -189,7 +189,7 @@ const textures: TextureDef[] = [
     standardWidth: 64,
     standardHeight: 64,
   },
-    {
+  {
     id: "Armor Overlay",
     url: leatherOverlayTexture.src,
     standardWidth: 64,
@@ -520,7 +520,8 @@ const script: ScriptDef = (generator: Generator) => {
     dimensions = [32, 88, 32];
     minecraftGenerator.drawCuboid(texture, horse.leg, [ox, oy], dimensions, {
       blend,
-      orientation: "East",
+      flip: "Horizontal",
+      orientation: "West",
       plugin,
     });
 
@@ -528,7 +529,8 @@ const script: ScriptDef = (generator: Generator) => {
     [ox, oy] = [413, 436];
     minecraftGenerator.drawCuboid(texture, horse.leg, [ox, oy], dimensions, {
       blend,
-      orientation: "East",
+      flip: "Horizontal",
+      orientation: "West",
       plugin,
     });
 
