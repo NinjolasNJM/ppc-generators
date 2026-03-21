@@ -21,6 +21,7 @@
 *.pem
 /temp
 /makeTextures.sh
+/.worktrees
 
 # debug
 npm-debug.log*
