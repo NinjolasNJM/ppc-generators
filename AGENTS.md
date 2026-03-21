@@ -7,3 +7,4 @@ It includes many generators that turn characters, creatures, items, and other ga
 # Agent Rules
 
 - Always use the `gh` command for GitHub operations.
+- After creating a new git worktree for this repo, run `npm install` and then `npm run setup` in the new worktree before running checks or making changes.
