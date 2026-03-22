@@ -4,6 +4,7 @@ export default defineConfig({
   testDir: './tests/generators',
   testMatch: '**/*.spec.ts',
   updateSnapshots: 'none',
+  reporter: [['list'], ['html', { open: 'on-failure' }]],
   expect: {
     toHaveScreenshot: {
       pathTemplate:

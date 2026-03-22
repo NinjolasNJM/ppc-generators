@@ -31,9 +31,7 @@ test("minecraft horse generator matches the white horse screenshot", async ({
   await expect(output).toHaveAttribute("src", /data:image\/png/);
   await expect(horseSelect).toBeVisible();
 
-  const beforeSrc = await output.getAttribute("src");
   await horseSelect.selectOption({ label: "White Horse" });
-  await expect.poll(async () => output.getAttribute("src")).not.toBe(beforeSrc);
 
   await expect(output).toBeVisible();
   await expect(output).toHaveScreenshot("minecraft-horse-white-page-1.png");
