@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { renderImageAtNaturalSize } from "../_shared/screenshot";
 
 test("minecraft cape and elytra generator matches the default screenshot", async ({ page }) => {
   await page.goto("/generator/minecraft-cape-and-elytra");
@@ -11,6 +12,8 @@ test("minecraft cape and elytra generator matches the default screenshot", async
 
     await expect(outputPage).toBeVisible();
     await expect(outputPage).toHaveAttribute("src", /data:image\/png/);
+    await renderImageAtNaturalSize(outputPage);
+
     await expect(outputPage).toHaveScreenshot(
       "minecraft-cape-and-elytra-default-page-" + (index + 1) + ".png"
     );

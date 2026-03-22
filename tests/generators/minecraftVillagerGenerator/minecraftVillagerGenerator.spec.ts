@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { renderImageAtNaturalSize } from "../_shared/screenshot";
 
 test("minecraft villager generator matches the default screenshot", async ({ page }) => {
   await page.goto("/generator/minecraft-villager");
@@ -11,6 +12,8 @@ test("minecraft villager generator matches the default screenshot", async ({ pag
 
     await expect(outputPage).toBeVisible();
     await expect(outputPage).toHaveAttribute("src", /data:image\/png/);
+    await renderImageAtNaturalSize(outputPage);
+
     await expect(outputPage).toHaveScreenshot(
       "minecraft-villager-default-page-" + (index + 1) + ".png"
     );

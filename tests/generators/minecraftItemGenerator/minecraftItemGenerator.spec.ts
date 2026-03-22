@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { renderImageAtNaturalSize } from "../_shared/screenshot";
 
 test("minecraft item generator matches the default screenshots", async ({ page }) => {
   await page.goto("/generator/minecraft-item");
@@ -11,6 +12,8 @@ test("minecraft item generator matches the default screenshots", async ({ page }
 
     await expect(outputPage).toBeVisible();
     await expect(outputPage).toHaveAttribute("src", /data:image\/png/);
+    await renderImageAtNaturalSize(outputPage);
+
     await expect(outputPage).toHaveScreenshot(
       "minecraft-item-default-page-" + (index + 1) + ".png"
     );

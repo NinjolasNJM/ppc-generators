@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { renderImageAtNaturalSize } from "../_shared/screenshot";
 
 test("minecraft enderman character generator matches the default screenshot", async ({ page }) => {
   await page.goto("/generator/minecraft-enderman-character");
@@ -11,6 +12,8 @@ test("minecraft enderman character generator matches the default screenshot", as
 
     await expect(outputPage).toBeVisible();
     await expect(outputPage).toHaveAttribute("src", /data:image\/png/);
+    await renderImageAtNaturalSize(outputPage);
+
     await expect(outputPage).toHaveScreenshot(
       "minecraft-enderman-character-default-page-" + (index + 1) + ".png"
     );

@@ -7,6 +7,7 @@ export default defineConfig({
   reporter: [['list'], ['html', { open: 'on-failure' }]],
   expect: {
     toHaveScreenshot: {
+      threshold: 0,
       pathTemplate:
         '{testDir}/{testFileDir}/snapshots/{arg}-{projectName}-{platform}{ext}',
     },
@@ -17,6 +18,7 @@ export default defineConfig({
       use: {
         browserName: 'chromium',
         baseURL: 'http://127.0.0.1:3000',
+        viewport: { width: 1600, height: 1400 },
       },
     },
   ],
