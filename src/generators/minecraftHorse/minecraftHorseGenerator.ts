@@ -505,11 +505,13 @@ const script: ScriptDef = (generator: Generator) => {
     }
 
     // Body
-    [ox, oy] = [40, 452];
+    [ox, oy] = [-40, 452];
     dimensions = [80, 80, 176];
     minecraftGenerator.drawCuboid(texture, horse.body, [ox, oy], dimensions, {
       blend,
       center: "Top",
+      rotate: 180,
+      orientation: "East",
       plugin,
     });
 
