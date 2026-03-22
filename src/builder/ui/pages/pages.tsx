@@ -67,6 +67,7 @@ export function Pages({
                 ref={containerElRef}
                 className="border shadow-xl mb-8"
                 style={{ imageRendering: "pixelated" }}
+                data-testid="generator-page-image"
                 src={dataUrl}
                 alt=""
               />

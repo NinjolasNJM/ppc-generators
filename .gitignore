@@ -8,6 +8,8 @@
 
 # testing
 /coverage
+/test-results
+/playwright-report
 
 # next.js
 /.next/
@@ -21,6 +23,7 @@
 *.pem
 /temp
 /makeTextures.sh
+/.worktrees
 
 # debug
 npm-debug.log*

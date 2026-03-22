@@ -73,6 +73,12 @@ const images: ImageDef[] = [
 
 const textures: TextureDef[] = [
   {
+    id: "Horse",
+    url: horseWhiteTexture.src,
+    standardWidth: 64,
+    standardHeight: 64,
+  },
+  {
     id: "Black Horse",
     url: horseBlackTexture.src,
     standardWidth: 64,

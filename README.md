@@ -1,5 +1,13 @@
 # Pixel Papercraft Generators
 
+## Image Snapshot Tests
+
+Run `npm run test:generators` to verify the Playwright screenshot baselines for the current generator regression suite.
+
+If an intentional rendering change updates the output, run `npm run test:generators:update` and review the changed snapshot files before committing them.
+
+Playwright CLI can help inspect pages and selectors while authoring tests, but the checked-in regression suite uses Playwright Test as the automated runner.
+
 # Making a Generator
 
 - Start with an existing generator in the src/generators folder and duplicate it.

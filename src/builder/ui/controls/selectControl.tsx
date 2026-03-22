@@ -12,6 +12,8 @@ export function SelectControl({
   value: string;
   onChange: (value: string) => void;
 }) {
+  const selectId = React.useId();
+
   const onSelectChange = (choice: SelectOption) => {
     onChange(choice.id);
   };
@@ -27,8 +29,11 @@ export function SelectControl({
 
   return (
     <div className="mb-4">
-      <div className="font-bold mb-1">{id}</div>
+      <label className="font-bold mb-1 block" htmlFor={selectId}>
+        {id}
+      </label>
       <Select
+        id={selectId}
         choices={selectChoices}
         value={selectedChoice}
         onChange={onSelectChange}

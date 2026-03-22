@@ -21,6 +21,10 @@ export function TextureControl({
   textures: Map<string, Texture>;
   onChange: (image: Texture | null) => void;
 }) {
+  const baseId = React.useId();
+  const legendId = `${baseId}-legend`;
+  const selectId = `${baseId}-select`;
+  const fileInputId = `${baseId}-file`;
   const selectChoices: SelectOption[] =
     choices.length > 0
       ? [
@@ -58,24 +62,37 @@ export function TextureControl({
   };
 
   return (
-    <>
-      <div className="font-bold mb-1">{id}</div>
+    <fieldset className="mb-4 min-w-0">
+      <legend className="font-bold mb-1" id={legendId}>
+        {id}
+      </legend>
       <div className="flex flex-wrap">
         <div className="flex mb-4 space-x-4 items-center mr-4">
           {selectChoices.length > 0 ? (
             <>
-              <Select choices={selectChoices} onChange={onChoiceChange} />
+              <Select
+                id={selectId}
+                ariaLabelledBy={legendId}
+                choices={selectChoices}
+                onChange={onChoiceChange}
+              />
               <div>or</div>
             </>
           ) : null}
 
-          <input
-            className="border border-gray-300 p-1 bg-white text-gray-400"
-            type="file"
-            onChange={onInputChange}
-          />
+          <div>
+            <label className="sr-only" htmlFor={fileInputId}>
+              Upload {id} texture file
+            </label>
+            <input
+              id={fileInputId}
+              className="border border-gray-300 p-1 bg-white text-gray-400"
+              type="file"
+              onChange={onInputChange}
+            />
+          </div>
         </div>
       </div>
-    </>
+    </fieldset>
   );
 }
