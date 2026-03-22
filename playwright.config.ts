@@ -8,8 +8,7 @@ export default defineConfig({
   expect: {
     toHaveScreenshot: {
       threshold: 0,
-      pathTemplate:
-        '{testDir}/{testFileDir}/snapshots/{arg}-{projectName}-{platform}{ext}',
+      pathTemplate: '{testDir}/{testFileDir}/snapshots/{arg}{ext}',
     },
   },
   projects: [
