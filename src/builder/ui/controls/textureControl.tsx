@@ -17,8 +17,12 @@ type FetchState =
   | { kind: "Success"; image: HTMLImageElement };
 
 function MinecraftSkin({
+  inputId,
+  label,
   onChange,
 }: {
+  inputId: string;
+  label: string;
   onChange: (image: HTMLImageElement) => void;
 }) {
   const [value, setValue] = React.useState("");
@@ -55,7 +59,11 @@ function MinecraftSkin({
     <div className="relative">
       <div className="flex">
         <div className="relative">
+          <label className="sr-only" htmlFor={inputId}>
+            {label}
+          </label>
           <input
+            id={inputId}
             className="border border-gray-300 p-2 mr-2 w-60"
             placeholder="Enter username"
             value={value}
@@ -105,6 +113,12 @@ export function TextureControl({
   textures: Map<string, Texture>;
   onChange: (image: Texture | null) => void;
 }) {
+  const baseId = React.useId();
+  const legendId = `${baseId}-legend`;
+  const selectId = `${baseId}-select`;
+  const fileInputId = `${baseId}-file`;
+  const minecraftUsernameInputId = `${baseId}-minecraft-username`;
+
   const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files ? e.target.files[0] ?? null : null;
     if (!file) {
@@ -139,27 +153,42 @@ export function TextureControl({
       : [];
 
   return (
-    <>
-      <div className="font-bold mb-1">{id}</div>
+    <fieldset className="mb-4 min-w-0">
+      <legend className="font-bold mb-1" id={legendId}>
+        {id}
+      </legend>
       <div className="flex flex-wrap">
         <div className="flex mb-4 space-x-4 items-center mr-4">
           {selectChoices.length > 0 ? (
             <>
-              <Select choices={selectChoices} onChange={onChoiceChange} />
+              <Select
+                id={selectId}
+                ariaLabelledBy={legendId}
+                choices={selectChoices}
+                onChange={onChoiceChange}
+              />
               <div>or</div>
             </>
           ) : null}
 
-          <input
-            className="border border-gray-300 p-1 bg-white text-gray-400"
-            type="file"
-            onChange={onInputChange}
-          />
+          <div>
+            <label className="sr-only" htmlFor={fileInputId}>
+              Upload {id} texture file
+            </label>
+            <input
+              id={fileInputId}
+              className="border border-gray-300 p-1 bg-white text-gray-400"
+              type="file"
+              onChange={onInputChange}
+            />
+          </div>
         </div>
         {enableMinecraftSkinInput ? (
           <div className="flex mb-4 space-x-4 items-center">
             <div>or</div>
             <MinecraftSkin
+              inputId={minecraftUsernameInputId}
+              label={`Minecraft username for ${id}`}
               onChange={(image) => {
                 const texture = makeTextureFromImage(image, 64, 64);
                 onChange(texture);
@@ -168,6 +197,6 @@ export function TextureControl({
           </div>
         ) : null}
       </div>
-    </>
+    </fieldset>
   );
 }

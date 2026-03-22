@@ -9,12 +9,16 @@ export function BooleanControl({
   checked: boolean;
   onChange: (checked: boolean) => void;
 }) {
+  const inputId = React.useId();
   const onInputChange = () => onChange(!checked);
 
   return (
     <div className="mb-4">
       <div className="flex flex-col">
-        <label className="mt-3 inline-flex items-center cursor-pointer">
+        <label
+          className="mt-3 inline-flex items-center cursor-pointer"
+          htmlFor={inputId}
+        >
           <span className="relative">
             <span className="block w-10 h-6 bg-gray-300 rounded-full shadow-inner" />
             <span
@@ -23,8 +27,10 @@ export function BooleanControl({
               }`}
             >
               <input
+                id={inputId}
                 type="checkbox"
                 className="absolute opacity-0 w-0 h-0"
+                checked={checked}
                 onChange={onInputChange}
               />
             </span>

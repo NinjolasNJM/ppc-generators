@@ -15,14 +15,19 @@ export function RangeControl({
   value: number;
   onChange: (value: number) => void;
 }) {
+  const inputId = React.useId();
+
   const onRangeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onChange(parseInt(e.target.value));
   };
 
   return (
     <div className="mb-4">
-      <div className="font-bold mb-1">{id}</div>
+      <label className="font-bold mb-1 block" htmlFor={inputId}>
+        {id}
+      </label>
       <input
+        id={inputId}
         type="range"
         min={min}
         max={max}

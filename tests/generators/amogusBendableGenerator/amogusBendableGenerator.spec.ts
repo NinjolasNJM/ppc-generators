@@ -1,6 +1,14 @@
 import { expect, test } from "@playwright/test";
 import { renderImageAtNaturalSize } from "../_shared/screenshot";
 
+test("amogus bendable generator exposes the color selector by label", async ({
+  page,
+}) => {
+  await page.goto("/generator/amogus-bendable");
+
+  await expect(page.getByLabel("Color")).toBeVisible();
+});
+
 test("amogus bendable generator matches the default screenshot", async ({ page }) => {
   await page.goto("/generator/amogus-bendable");
 

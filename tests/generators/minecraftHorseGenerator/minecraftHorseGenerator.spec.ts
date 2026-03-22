@@ -1,6 +1,14 @@
 import { expect, test } from "@playwright/test";
 import { renderImageAtNaturalSize } from "../_shared/screenshot";
 
+test("minecraft horse generator exposes the horse texture selector by label", async ({
+  page,
+}) => {
+  await page.goto("/generator/minecraft-horse");
+
+  await expect(page.getByLabel("Horse", { exact: true })).toBeVisible();
+});
+
 test("minecraft horse generator matches the default screenshot", async ({ page }) => {
   await page.goto("/generator/minecraft-horse");
 

@@ -21,18 +21,24 @@ function flattenChoices(choices: SelectOptionOrGroup[]): SelectOption[] {
 }
 
 export function Select({
+  id,
   choices,
   value,
   onChange,
+  ariaLabelledBy,
 }: {
+  id?: string;
   choices: SelectOptionOrGroup[];
   value?: SelectOption;
   onChange: (choice: SelectOption) => void;
+  ariaLabelledBy?: string;
 }) {
   const flatChoices = flattenChoices(choices);
   return (
     <select
+      id={id}
       className="p-2 outline outline-1 outline-gray-300 border-r-8 border-transparent"
+      aria-labelledby={ariaLabelledBy}
       value={value ? value.id : undefined}
       onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
         const id = e.currentTarget.value;
