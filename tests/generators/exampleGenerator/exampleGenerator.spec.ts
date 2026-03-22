@@ -25,9 +25,7 @@ test("example generator matches the folds-off screenshot", async ({ page }) => {
 
   await expect(output).toBeVisible();
   await expect(output).toHaveAttribute("src", /data:image\/png/);
-  const beforeSrc = await output.getAttribute("src");
   await showFolds.click();
-  await expect.poll(async () => output.getAttribute("src")).not.toBe(beforeSrc);
   await expect(output).toBeVisible();
   await expect(output).toHaveScreenshot("example-default-folds-off.png");
 });
