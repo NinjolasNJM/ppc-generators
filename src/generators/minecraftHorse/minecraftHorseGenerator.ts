@@ -247,39 +247,6 @@ const textures: TextureDef[] = [
 
 const script: ScriptDef = (generator: Generator) => {
   const minecraftGenerator = new Minecraft(generator);
-  generator.defineTextureInput("Enchanted Glint", {
-    standardWidth: 128,
-    standardHeight: 128,
-    choices: ["1.20+", "Pre-1.20"],
-  });
-
-  const glinta = generator.defineAndGetRangeInput("Glint Opacity", {
-    min: 0,
-    max: 255,
-    value: 255,
-    step: 1,
-  });
-  const glintx = generator.defineAndGetRangeInput("Glint X Offset", {
-    min: 0,
-    max: 128,
-    value: 0,
-    step: 1,
-  });
-  const glinty = generator.defineAndGetRangeInput("Glint Y Offset", {
-    min: 0,
-    max: 128,
-    value: 0,
-    step: 1,
-  });
-
-  const glintTexture = generator.getTexture("Enchanted Glint");
-
-  const glintPluginOptions: GlintPluginOptions = {
-    opacity: glinta / 255,
-    xOffset: glintx,
-    yOffset: glinty,
-  };
-
   // Tint functions. These should be in a central file but for now while there aren't any different color values, custom color etc it'll be here.
   function getTint(colorId: string): Blend {
     generator.defineSelectInput(colorId, [
@@ -377,6 +344,39 @@ const script: ScriptDef = (generator: Generator) => {
     standardHeight: 64,
     choices: ["Leather", "Gold", "Copper", "Iron", "Diamond", "Netherite"],
   });
+
+  generator.defineTextureInput("Enchanted Glint", {
+    standardWidth: 128,
+    standardHeight: 128,
+    choices: ["1.20+", "Pre-1.20"],
+  });
+
+  const glinta = generator.defineAndGetRangeInput("Glint Opacity", {
+    min: 0,
+    max: 255,
+    value: 255,
+    step: 1,
+  });
+  const glintx = generator.defineAndGetRangeInput("Glint X Offset", {
+    min: 0,
+    max: 128,
+    value: 0,
+    step: 1,
+  });
+  const glinty = generator.defineAndGetRangeInput("Glint Y Offset", {
+    min: 0,
+    max: 128,
+    value: 0,
+    step: 1,
+  });
+
+  const glintTexture = generator.getTexture("Enchanted Glint");
+
+  const glintPluginOptions: GlintPluginOptions = {
+    opacity: glinta / 255,
+    xOffset: glintx,
+    yOffset: glinty,
+  };
 
   // Define user variables
 
