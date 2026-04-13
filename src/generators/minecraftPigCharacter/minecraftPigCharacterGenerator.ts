@@ -32,7 +32,11 @@ import chainmailArmorFaithfulTexture from "./textures/faithful/chainmail-armor.p
 import ironArmorFaithfulTexture from "./textures/faithful/iron-armor.png";
 import saddleSpacePigTexture from "./textures/space-pig/saddle.png";
 import armorSpacePigTexture from "./textures/space-pig/armor.png";
-import steveTexture from "./textures/Steve.png";
+import { getSkinUrl } from "../_common/skins";
+import {
+  makeDefaultMinecraftSkinPresetOptions,
+  makeMinecraftSkinTextureOption,
+} from "../_common/skins/options";
 
 const id = "minecraft-pig-character";
 
@@ -83,6 +87,7 @@ const textures: TextureDef[] = [
     standardWidth: 64,
     standardHeight: 32,
   },
+
   {
     id: "Saddle (Vanilla)",
     url: saddleTexture.src,
@@ -163,7 +168,7 @@ const textures: TextureDef[] = [
   },
   {
     id: "Skin",
-    url: steveTexture.src,
+    url: getSkinUrl("Default", "Wide"),
     standardWidth: 64,
     standardHeight: 64,
   },
@@ -299,32 +304,41 @@ const script: ScriptDef = (generator: Generator) => {
     width,
     height,
     choices,
-    enableMinecraftSkinInput,
+    useMinecraftSkinControl,
   }: {
     texture: string;
     width: number;
     height: number;
     choices: string[];
-    enableMinecraftSkinInput: boolean;
+    useMinecraftSkinControl: boolean;
   }) => {
+    if (useMinecraftSkinControl) {
+      generator.defineMinecraftSkinInput(texture, {
+        standardWidth: width,
+        standardHeight: height,
+        options: [
+          ...makeDefaultMinecraftSkinPresetOptions(),
+          ...choices.map((choice) => makeMinecraftSkinTextureOption(choice)),
+        ],
+        showModelType: true,
+      });
+      return;
+    }
+
     generator.defineTextureInput(texture, {
       standardWidth: width,
       standardHeight: height,
       choices: choices,
-      enableMinecraftSkinInput,
     });
   };
 
   // Define user inputs
-
-  generator.defineSelectInput("Skin Model Type", ["Steve", "Alex"]);
-
   makeTextureInput({
     texture: skinTexture,
     width: 64,
     height: 64,
     choices: [],
-    enableMinecraftSkinInput: true,
+    useMinecraftSkinControl: true,
   });
 
   makeTextureInput({
@@ -337,7 +351,7 @@ const script: ScriptDef = (generator: Generator) => {
       "Saddle (Faithful)",
       "Saddle (Space Pig)",
     ],
-    enableMinecraftSkinInput: false,
+    useMinecraftSkinControl: false,
   });
 
   makeTextureInput({
@@ -355,7 +369,7 @@ const script: ScriptDef = (generator: Generator) => {
       "Iron Armor (Faithful)",
       "Armor (Space Pig)",
     ],
-    enableMinecraftSkinInput: false,
+    useMinecraftSkinControl: false,
   });
 
   // Function to easily draw a section of a texture
@@ -397,7 +411,8 @@ const script: ScriptDef = (generator: Generator) => {
   generator.defineBooleanInput("Show Titles", true);
   generator.defineBooleanInput("Transparent Background", false);
 
-  const alexModel = generator.getSelectInputValue("Skin Model Type") === "Alex";
+  const isSlimModel =
+    generator.getMinecraftSkinInputModelType("Skin") === "Slim";
   const showFolds = generator.getBooleanInputValue("Show Folds");
   const showLabels = generator.getBooleanInputValue("Show Labels");
   const showTitles = generator.getBooleanInputValue("Show Titles");
@@ -819,7 +834,7 @@ const script: ScriptDef = (generator: Generator) => {
     dy: number,
     labelID: number,
     showSecondLayer: boolean,
-    alexModel: boolean
+    isSlimModel: boolean
   ) => {
     drawSprite(bgSprite, bgSprites.leg, dx, dy);
     const drawLayer = (
@@ -828,9 +843,9 @@ const script: ScriptDef = (generator: Generator) => {
       sy: number,
       dx: number,
       dy: number,
-      alexModel: boolean
+      isSlimModel: boolean
     ) => {
-      if (alexModel) {
+      if (isSlimModel) {
         generator.drawTextureLegacy(
           texture,
           { x: sx, y: sy + 4, w: 4, h: 12 },
@@ -896,9 +911,9 @@ const script: ScriptDef = (generator: Generator) => {
         ); // Bottom
       }
     };
-    drawLayer(texture, sx, sy, dx, dy, alexModel); // First Layer
+    drawLayer(texture, sx, sy, dx, dy, isSlimModel); // First Layer
     if (showSecondLayer) {
-      drawLayer(texture, ox, oy, dx, dy, alexModel); // Second Layer
+      drawLayer(texture, ox, oy, dx, dy, isSlimModel); // Second Layer
     }
     if (showFolds) {
       drawSprite(foldSprite, foldSprites.leg, dx, dy);
@@ -1426,9 +1441,20 @@ const script: ScriptDef = (generator: Generator) => {
     104,
     1,
     !hideRightSleeve,
-    alexModel
+    isSlimModel
   ); // Right Arm
-  drawLeg(skinTexture, 32, 48, 48, 48, 392, 288, 2, !hideLeftSleeve, alexModel); // Left Arm
+  drawLeg(
+    skinTexture,
+    32,
+    48,
+    48,
+    48,
+    392,
+    288,
+    2,
+    !hideLeftSleeve,
+    isSlimModel
+  ); // Left Arm
   drawLeg(skinTexture, 0, 16, 0, 32, 392, 472, 3, !hideRightPant, false); // Right Leg
   drawLeg(skinTexture, 16, 48, 0, 48, 240, 584, 4, !hideLeftPant, false); // Left Leg
 

@@ -17,8 +17,11 @@ import backgroundImage from "./images/Background.png";
 import foldsImage from "./images/Folds.png";
 import actionFigureImage from "./images/Action-Figure.png";
 import tabsImage from "./images/Tabs.png";
-import steveImage from "./textures/Steve.png";
-import alexImage from "./textures/Alex.png";
+import { getSkinUrl } from "../_common/skins";
+import {
+  makeDefaultMinecraftSkinPresetOptions,
+  makeMinecraftSkinTextureOption,
+} from "../_common/skins/options";
 import zombieImage from "./textures/Zombie.png";
 import endermanImage from "./textures/Enderman.png";
 import skeletonImage from "./textures/Skeleton.png";
@@ -52,22 +55,11 @@ const images: ImageDef[] = [
 const textures: TextureDef[] = [
   {
     id: "Skin 1",
-    url: steveImage.src,
+    url: getSkinUrl("Default", "Wide"),
     standardWidth: 64,
     standardHeight: 64,
   },
-  {
-    id: "Steve",
-    url: steveImage.src,
-    standardWidth: 64,
-    standardHeight: 64,
-  },
-  {
-    id: "Alex",
-    url: alexImage.src,
-    standardWidth: 64,
-    standardHeight: 64,
-  },
+
   {
     id: "Zombie",
     url: zombieImage.src,
@@ -112,20 +104,20 @@ const script: ScriptDef = (generator: Generator) => {
   // Define user inputs
 
   for (let i = 1; i <= 8; i++) {
-    generator.defineTextureInput(`Skin ${i}`, {
+    const textureId = `Skin ${i}`;
+    generator.defineMinecraftSkinInput(textureId, {
       standardWidth: 64,
       standardHeight: 64,
-      choices: [
-        "Steve",
-        "Alex",
-        "Zombie",
-        "Enderman",
-        "Skeleton",
-        "Wither Skeleton",
-        "Creeper",
-        "Blaze",
+      options: [
+        ...makeDefaultMinecraftSkinPresetOptions(),
+        makeMinecraftSkinTextureOption("Zombie"),
+        makeMinecraftSkinTextureOption("Enderman"),
+        makeMinecraftSkinTextureOption("Skeleton"),
+        makeMinecraftSkinTextureOption("Wither Skeleton"),
+        makeMinecraftSkinTextureOption("Creeper"),
+        makeMinecraftSkinTextureOption("Blaze"),
       ],
-      enableMinecraftSkinInput: true,
+      showModelType: false,
     });
   }
 

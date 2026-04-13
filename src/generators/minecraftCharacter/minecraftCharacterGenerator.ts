@@ -20,8 +20,10 @@ import backgroundImage from "./images/Background.png";
 import labelsImage from "./images/Labels.png";
 import steveFoldsImage from "./images/SteveFolds.png";
 import steveTabsImage from "./images/SteveTabs.png";
-import skinAlex64Image from "./textures/SkinAlex64x64.png";
-import skinSteve64Image from "./textures/SkinSteve64x64.png";
+import { getSkinUrl } from "../_common/skins";
+import {
+  makeDefaultMinecraftSkinPresetOptions,
+} from "../_common/skins/options";
 
 const id = "minecraft-character";
 
@@ -63,19 +65,7 @@ const images: ImageDef[] = [
 const textures: TextureDef[] = [
   {
     id: "Skin",
-    url: skinSteve64Image.src,
-    standardWidth: 64,
-    standardHeight: 64,
-  },
-  {
-    id: "Steve",
-    url: skinSteve64Image.src,
-    standardWidth: 64,
-    standardHeight: 64,
-  },
-  {
-    id: "Alex",
-    url: skinAlex64Image.src,
+    url: getSkinUrl("Default", "Wide"),
     standardWidth: 64,
     standardHeight: 64,
   },
@@ -84,15 +74,12 @@ const textures: TextureDef[] = [
 const script: ScriptDef = (generator: Generator) => {
   const minecraftGenerator = new Minecraft(generator);
 
-  generator.defineTextureInput("Skin", {
+  generator.defineMinecraftSkinInput("Skin", {
     standardWidth: 64,
     standardHeight: 64,
-    choices: ["Steve", "Alex"],
-    enableMinecraftSkinInput: true,
+    options: makeDefaultMinecraftSkinPresetOptions(),
+    showModelType: true,
   });
-
-  generator.defineSelectInput("Skin Model", ["Steve", "Alex"]);
-
   generator.defineBooleanInput("Show Folds", true);
 
   generator.defineBooleanInput("Show Labels", true);
@@ -103,7 +90,8 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Draw
 
-  const isAlexModel = generator.getSelectInputValue("Skin Model") === "Alex";
+  const isSlimModel =
+    generator.getMinecraftSkinInputModelType("Skin") === "Slim";
 
   const showFolds = generator.getBooleanInputValue("Show Folds");
 
@@ -139,7 +127,7 @@ const script: ScriptDef = (generator: Generator) => {
     true
   );
 
-  const char = isAlexModel ? alex : steve;
+  const char = isSlimModel ? alex : steve;
 
   function drawHead([ox, oy]: [number, number]) {
     const dimensions: Dimensions = [64, 64, 64];
@@ -244,7 +232,7 @@ const script: ScriptDef = (generator: Generator) => {
   }
 
   function drawFolds() {
-    if (isAlexModel) {
+    if (isSlimModel) {
       generator.drawImage("AlexFolds", [0, 0]);
     } else {
       generator.drawImage("SteveFolds", [0, 0]);
@@ -256,7 +244,7 @@ const script: ScriptDef = (generator: Generator) => {
 
   generator.drawImage("Background", [0, 0]);
 
-  if (isAlexModel) {
+  if (isSlimModel) {
     generator.drawImage("AlexTabs", [0, 0]);
   } else {
     generator.drawImage("SteveTabs", [0, 0]);
@@ -286,12 +274,12 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Right Arm
 
-  const [oxRightArm, oyRightArm] = isAlexModel ? [107, 373] : [99, 373];
+  const [oxRightArm, oyRightArm] = isSlimModel ? [107, 373] : [99, 373];
 
   drawRightArm([oxRightArm, oyRightArm]);
 
   generator.defineRegionInput(
-    [oxRightArm, oyRightArm, isAlexModel ? 112 : 128, 160],
+    [oxRightArm, oyRightArm, isSlimModel ? 112 : 128, 160],
     () => {
       generator.setBooleanInputValue(
         "Show Right Arm Overlay",
@@ -302,12 +290,12 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Left Arm
 
-  const [oxLeftArm, oyLeftArm] = isAlexModel ? [391, 373] : [383, 373];
+  const [oxLeftArm, oyLeftArm] = isSlimModel ? [391, 373] : [383, 373];
 
   drawLeftArm([oxLeftArm, oyLeftArm]);
 
   generator.defineRegionInput(
-    [oxLeftArm, oyLeftArm, isAlexModel ? 112 : 128, 166],
+    [oxLeftArm, oyLeftArm, isSlimModel ? 112 : 128, 166],
     () => {
       generator.setBooleanInputValue(
         "Show Left Arm Overlay",

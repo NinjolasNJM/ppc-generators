@@ -15,7 +15,10 @@ import thumbnailImage from "./thumbnail/v2-thumbnail-256.jpeg";
 import backgroundImage from "./images/Background.png";
 import foldsImage from "./images/Folds.png";
 import labelsImage from "./images/Labels.png";
-import steveImage from "./textures/Steve.png";
+import { getSkinUrl } from "../_common/skins";
+import {
+  makeDefaultMinecraftSkinPresetOptions,
+} from "../_common/skins/options";
 
 const id = "minecraft-cow-character";
 
@@ -41,7 +44,7 @@ const images: ImageDef[] = [
 const textures: TextureDef[] = [
   {
     id: "Skin",
-    url: steveImage.src,
+    url: getSkinUrl("Default", "Wide"),
     standardWidth: 64,
     standardHeight: 64,
   },
@@ -52,14 +55,11 @@ const script: ScriptDef = (generator: Generator) => {
   let oy: number;
 
   // Define input textures
-
-  generator.defineSelectInput("Skin Model Type", ["Steve", "Alex"]);
-
-  generator.defineTextureInput("Skin", {
+  generator.defineMinecraftSkinInput("Skin", {
     standardWidth: 64,
     standardHeight: 64,
-    choices: [],
-    enableMinecraftSkinInput: true,
+    options: makeDefaultMinecraftSkinPresetOptions(),
+    showModelType: true,
   });
 
   // Define user variables
@@ -69,7 +69,8 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Get user variable values
 
-  const alexModel = generator.getSelectInputValue("Skin Model Type") === "Alex";
+  const isSlimModel =
+    generator.getMinecraftSkinInputModelType("Skin") === "Slim";
   const showFolds = generator.getBooleanInputValue("Show Folds");
   const showLabels = generator.getBooleanInputValue("Show Labels");
 
@@ -146,7 +147,7 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Arms
 
-  if (alexModel) {
+  if (isSlimModel) {
     // Right Arm
 
     ox = 46;
@@ -483,7 +484,7 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Arms2
 
-  if (alexModel) {
+  if (isSlimModel) {
     if (!hideRightSleeve) {
       // Right Arm2
 

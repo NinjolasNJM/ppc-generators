@@ -11,6 +11,9 @@ import type {
   InstructionsDef,
 } from "@genroot/builder/modules/generatorDef";
 import { type Generator } from "@genroot/builder/modules/generator";
+import {
+  makeDefaultMinecraftSkinPresetOptions,
+} from "../_common/skins/options";
 
 import thumbnailImage from "./thumbnail/thumbnail.jpeg";
 import amogusImage from "./instructions/amogus-100.png";
@@ -83,11 +86,11 @@ const script: ScriptDef = (generator: Generator) => {
     "Tan",
   ]);
 
-  generator.defineTextureInput("Skin", {
+  generator.defineMinecraftSkinInput("Skin", {
     standardWidth: 64,
     standardHeight: 64,
-    choices: [],
-    enableMinecraftSkinInput: true,
+    options: makeDefaultMinecraftSkinPresetOptions(),
+    showModelType: false,
   });
 
   generator.drawImage("Background", [0, 0]);

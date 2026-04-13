@@ -15,7 +15,10 @@ import thumbnailImage from "./thumbnail/v2-thumbnail-256.jpeg";
 import backgroundImage from "./images/Background.png";
 import foldsImage from "./images/Folds.png";
 import labelsImage from "./images/Labels.png";
-import steveTexture from "./textures/Steve.png";
+import { getSkinUrl } from "../_common/skins";
+import {
+  makeDefaultMinecraftSkinPresetOptions,
+} from "../_common/skins/options";
 
 const id = "minecraft-enderman-character";
 
@@ -41,21 +44,20 @@ const images: ImageDef[] = [
 const textures: TextureDef[] = [
   {
     id: "Skin",
-    url: steveTexture.src,
+    url: getSkinUrl("Default", "Wide"),
     standardWidth: 64,
     standardHeight: 64,
   },
+  // Centralized default Skin only; remove named Steve/Alex entries
 ];
 
 const script: ScriptDef = (generator: Generator) => {
   // Define input textures
-
-  generator.defineSelectInput("Skin Model Type", ["Steve", "Alex"]);
-  generator.defineTextureInput("Skin", {
+  generator.defineMinecraftSkinInput("Skin", {
     standardWidth: 64,
     standardHeight: 64,
-    choices: [],
-    enableMinecraftSkinInput: true,
+    options: makeDefaultMinecraftSkinPresetOptions(),
+    showModelType: true,
   });
 
   // Define user variables
@@ -65,7 +67,8 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Get user variable values
 
-  const alexModel = generator.getSelectInputValue("Skin Model Type") === "Alex";
+  const isSlimModel =
+    generator.getMinecraftSkinInputModelType("Skin") === "Slim";
   const showFolds = generator.getBooleanInputValue("Show Folds");
   const showLabels = generator.getBooleanInputValue("Show Labels");
 
@@ -181,7 +184,7 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Right arm
 
-  if (alexModel) {
+  if (isSlimModel) {
     generator.drawTextureLegacy("Skin", alex.base.rightArm.right, {
       x: 96,
       y: 400,
@@ -259,7 +262,7 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Left arm
 
-  if (alexModel) {
+  if (isSlimModel) {
     generator.drawTextureLegacy("Skin", alex.base.leftArm.right, {
       x: 190,
       y: 400,
@@ -498,7 +501,7 @@ const script: ScriptDef = (generator: Generator) => {
   if (!hideRightSleeve) {
     // Right Sleeve
 
-    if (alexModel) {
+    if (isSlimModel) {
       generator.drawTextureLegacy("Skin", alex.overlay.rightArm.right, {
         x: 96,
         y: 400,
@@ -577,7 +580,7 @@ const script: ScriptDef = (generator: Generator) => {
   if (!hideLeftSleeve) {
     // Left Sleeve
 
-    if (alexModel) {
+    if (isSlimModel) {
       generator.drawTextureLegacy("Skin", alex.overlay.leftArm.right, {
         x: 190,
         y: 400,

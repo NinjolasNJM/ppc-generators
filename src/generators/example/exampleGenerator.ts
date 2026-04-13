@@ -9,6 +9,9 @@ import type {
   ScriptDef,
 } from "@genroot/builder/modules/generatorDef";
 import { type Generator } from "@genroot/builder/modules/generator";
+import {
+  makeDefaultMinecraftSkinPresetOptions,
+} from "../_common/skins/options";
 
 import skinImage from "./textures/Skin.png";
 import backgroundImage from "./images/Background.png";
@@ -62,11 +65,11 @@ const script: ScriptDef = (generator: Generator) => {
     }); // Bottom
   };
 
-  generator.defineTextureInput("Skin", {
+  generator.defineMinecraftSkinInput("Skin", {
     standardWidth: 64,
     standardHeight: 64,
-    choices: [],
-    enableMinecraftSkinInput: true,
+    options: makeDefaultMinecraftSkinPresetOptions(),
+    showModelType: false,
   });
 
   generator.defineBooleanInput("Show Folds", true);

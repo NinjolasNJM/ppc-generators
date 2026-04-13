@@ -8,6 +8,14 @@ import { SelectControl } from "./selectControl";
 import { RangeControl } from "./rangeControl";
 import { ButtonControl } from "./buttonControl";
 import { TextControl } from "./textControl";
+import { MinecraftSkinControl } from "./minecraftSkinControl";
+import {
+  getDefaultMinecraftSkinInputValue,
+  getMinecraftSkinInputValueKey,
+  parseMinecraftSkinInputValue,
+  serializeMinecraftSkinInputValue,
+  type MinecraftSkinInputValue,
+} from "@genroot/builder/modules/minecraftSkinInputValue";
 
 export function Controls({
   model,
@@ -45,6 +53,17 @@ export function Controls({
     onChange(model);
   };
 
+  const onMinecraftSkinInputValueChange = (
+    id: string,
+    value: MinecraftSkinInputValue
+  ) => {
+    model.setStringVariable(
+      getMinecraftSkinInputValueKey(id),
+      serializeMinecraftSkinInputValue(value)
+    );
+    onChange(model);
+  };
+
   const onButtonControlClick = () => {
     onChange(model);
   };
@@ -77,10 +96,31 @@ export function Controls({
                 choices={control.props.choices}
                 standardWidth={control.props.standardWidth}
                 standardHeight={control.props.standardHeight}
-                enableMinecraftSkinInput={
-                  control.props.enableMinecraftSkinInput ?? false
-                }
                 textures={model.values.textures}
+                onChange={(texture) => onTextureChange(control.id, texture)}
+              />
+            );
+          }
+          case "MinecraftSkinInput": {
+            const storedValue = parseMinecraftSkinInputValue(
+              model.getStringVariable(getMinecraftSkinInputValueKey(control.id))
+            );
+            const value =
+              storedValue ?? getDefaultMinecraftSkinInputValue(control.props.options);
+
+            return (
+              <MinecraftSkinControl
+                key={control.id}
+                id={control.id}
+                options={control.props.options}
+                standardWidth={control.props.standardWidth}
+                standardHeight={control.props.standardHeight}
+                showModelType={control.props.showModelType}
+                value={value}
+                textures={model.values.textures}
+                onValueChange={(nextValue) =>
+                  onMinecraftSkinInputValueChange(control.id, nextValue)
+                }
                 onChange={(texture) => onTextureChange(control.id, texture)}
               />
             );

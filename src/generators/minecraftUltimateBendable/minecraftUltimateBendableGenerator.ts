@@ -19,7 +19,10 @@ import colorsAlexImage from "./images/Colors-Alex.png";
 import foldsSteveImage from "./images/Folds-Steve.png";
 import foldsAlexImage from "./images/Folds-Alex.png";
 import labelsImage from "./images/Labels.png";
-import skin64x64SteveImage from "./textures/Skin64x64Steve.png";
+import { getSkinUrl } from "../_common/skins";
+import {
+  makeDefaultMinecraftSkinPresetOptions,
+} from "../_common/skins/options";
 
 const id = "minecraft-ultimate-bendable";
 
@@ -55,7 +58,7 @@ const images: ImageDef[] = [
 const textures: TextureDef[] = [
   {
     id: "Skin",
-    url: skin64x64SteveImage.src,
+    url: getSkinUrl("Default", "Wide"),
     standardWidth: 64,
     standardHeight: 64,
   },
@@ -64,23 +67,22 @@ const textures: TextureDef[] = [
 const script: ScriptDef = (generator: Generator) => {
   // Define user inputs
 
-  generator.defineTextureInput("Skin", {
+  generator.defineMinecraftSkinInput("Skin", {
     standardWidth: 64,
     standardHeight: 64,
-    choices: [],
-    enableMinecraftSkinInput: true,
+    options: makeDefaultMinecraftSkinPresetOptions(),
+    showModelType: true,
   });
 
   // Define user variables
-
-  generator.defineSelectInput("Skin Model Type", ["Steve", "Alex"]);
   generator.defineBooleanInput("Show Folds", true);
   generator.defineBooleanInput("Show Color Codes", true);
   generator.defineBooleanInput("Show Labels", true);
 
   // Get user variable values
 
-  const alexModel = generator.getSelectInputValue("Skin Model Type") === "Alex";
+  const isSlimModel =
+    generator.getMinecraftSkinInputModelType("Skin") === "Slim";
   const showFolds = generator.getBooleanInputValue("Show Folds");
   const showColorCodes = generator.getBooleanInputValue("Show Color Codes");
   const showLabels = generator.getBooleanInputValue("Show Labels");
@@ -214,7 +216,7 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Left Arm
 
-  if (alexModel) {
+  if (isSlimModel) {
     // Left Shoulder
 
     generator.drawTextureLegacy(
@@ -310,7 +312,7 @@ const script: ScriptDef = (generator: Generator) => {
   }
   // Right Arm
 
-  if (alexModel) {
+  if (isSlimModel) {
     // Right Shoulder
 
     generator.drawTextureLegacy(
@@ -602,7 +604,7 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Left Arm
 
-  if (alexModel) {
+  if (isSlimModel) {
     if (!hideLeftSleeve) {
       //Left Shoulder
 
@@ -712,7 +714,7 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Right Arm
 
-  if (alexModel) {
+  if (isSlimModel) {
     if (!hideRightSleeve) {
       // Right Shoulder
 
@@ -939,7 +941,7 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Background
 
-  if (alexModel) {
+  if (isSlimModel) {
     generator.drawImage("Background-Alex", [0, 0]);
   } else {
     generator.drawImage("Background-Steve", [0, 0]);
@@ -948,7 +950,7 @@ const script: ScriptDef = (generator: Generator) => {
   // Folds
 
   if (showFolds) {
-    if (alexModel) {
+    if (isSlimModel) {
       generator.drawImage("Folds-Alex", [0, 0]);
     } else {
       generator.drawImage("Folds-Steve", [0, 0]);
@@ -958,7 +960,7 @@ const script: ScriptDef = (generator: Generator) => {
   // Color Code
 
   if (showColorCodes) {
-    if (alexModel) {
+    if (isSlimModel) {
       generator.drawImage("Colors-Alex", [0, 0]);
     } else {
       generator.drawImage("Colors-Steve", [0, 0]);

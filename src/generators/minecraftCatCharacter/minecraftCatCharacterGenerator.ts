@@ -14,7 +14,10 @@ import thumbnailImage from "./thumbnail/thumbnail.jpeg";
 import backgroundImage from "./images/Background.png";
 import foldsImage from "./images/Folds.png";
 import labelsImage from "./images/Labels.png";
-import steveTexture from "./textures/Steve.png";
+import { getSkinUrl } from "../_common/skins";
+import {
+  makeDefaultMinecraftSkinPresetOptions,
+} from "../_common/skins/options";
 
 const id = "minecraft-cat-character";
 
@@ -40,7 +43,7 @@ const images: ImageDef[] = [
 const textures: TextureDef[] = [
   {
     id: "Skin",
-    url: steveTexture.src,
+    url: getSkinUrl("Default", "Wide"),
     standardWidth: 64,
     standardHeight: 64,
   },
@@ -60,18 +63,18 @@ const script: ScriptDef = (generator: Generator) => {
   };
 
   // Define user inputs
-  generator.defineSelectInput("Skin Model Type", ["Steve", "Alex"]);
-  generator.defineTextureInput("Skin", {
+  generator.defineMinecraftSkinInput("Skin", {
     standardWidth: 64,
     standardHeight: 64,
-    choices: [],
-    enableMinecraftSkinInput: true,
+    options: makeDefaultMinecraftSkinPresetOptions(),
+    showModelType: true,
   });
   // Define user variables
   generator.defineBooleanInput("Show Folds", true);
   generator.defineBooleanInput("Show Labels", true);
   // Get user variable values
-  const alexModel = generator.getSelectInputValue("Skin Model Type") === "Alex";
+  const isSlimModel =
+    generator.getMinecraftSkinInputModelType("Skin") === "Slim";
   const showFolds = generator.getBooleanInputValue("Show Folds");
   const showLabels = generator.getBooleanInputValue("Show Labels");
   // Script Variables
@@ -292,7 +295,7 @@ const script: ScriptDef = (generator: Generator) => {
     ); //back
   }
   // Legs
-  if (alexModel) {
+  if (isSlimModel) {
     // Front Right Leg
     generator.drawTextureLegacy(
       "Skin",
@@ -345,7 +348,7 @@ const script: ScriptDef = (generator: Generator) => {
     ); // bottom
   }
   if (!hideRightSleeve) {
-    if (alexModel) {
+    if (isSlimModel) {
       // Front Right Leg Pant
       generator.drawTextureLegacy(
         "Skin",
@@ -398,7 +401,7 @@ const script: ScriptDef = (generator: Generator) => {
       ); // bottom
     }
   }
-  if (alexModel) {
+  if (isSlimModel) {
     // Front Left Leg
     generator.drawTextureLegacy(
       "Skin",
@@ -451,7 +454,7 @@ const script: ScriptDef = (generator: Generator) => {
     ); // bottom
   }
   if (!hideLeftSleeve) {
-    if (alexModel) {
+    if (isSlimModel) {
       // Front Left Leg Pant
       generator.drawTextureLegacy(
         "Skin",
@@ -578,7 +581,7 @@ const script: ScriptDef = (generator: Generator) => {
     ); // bottom
   }
   const drawTail = (sx: number, sy: number, isArm: boolean) => {
-    if (isArm && alexModel) {
+    if (isArm && isSlimModel) {
       // Tail
       generator.drawTextureLegacy(
         "Skin",

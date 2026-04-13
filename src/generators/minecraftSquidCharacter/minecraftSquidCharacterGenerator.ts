@@ -13,7 +13,10 @@ import { type Generator } from "@genroot/builder/modules/generator";
 import thumbnailImage from "./thumbnail/v3-thumbnail-256.jpeg";
 import backgroundImage from "./images/Background.png";
 import foldsImage from "./images/Folds.png";
-import steveTexture from "./textures/Steve.png";
+import { getSkinUrl } from "../_common/skins";
+import {
+  makeDefaultMinecraftSkinPresetOptions,
+} from "../_common/skins/options";
 import squidTexture from "./textures/Squid.png";
 
 const id = "minecraft-squid-character";
@@ -46,10 +49,11 @@ const images: ImageDef[] = [
 const textures: TextureDef[] = [
   {
     id: "Skin",
-    url: steveTexture.src,
+    url: getSkinUrl("Default", "Wide"),
     standardWidth: 64,
     standardHeight: 64,
   },
+
   {
     id: "Squid",
     url: squidTexture.src,
@@ -60,14 +64,11 @@ const textures: TextureDef[] = [
 
 const script: ScriptDef = (generator: Generator) => {
   // Define user inputs
-
-  generator.defineSelectInput("Skin Model Type", ["Steve", "Alex"]);
-
-  generator.defineTextureInput("Skin", {
+  generator.defineMinecraftSkinInput("Skin", {
     standardWidth: 64,
     standardHeight: 64,
-    choices: [],
-    enableMinecraftSkinInput: true,
+    options: makeDefaultMinecraftSkinPresetOptions(),
+    showModelType: true,
   });
 
   const hideHelmet = generator.getBooleanInputValue("Hide Helmet");
@@ -107,13 +108,14 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Get user variable values
 
-  const alexModel = generator.getSelectInputValue("Skin Model Type") === "Alex";
+  const isSlimModel =
+    generator.getMinecraftSkinInputModelType("Skin") === "Slim";
   const showFolds = generator.getBooleanInputValue("Show Folds");
 
   // Tentacle Types
 
   const rightArmBase = (ox: number, oy: number) => {
-    if (alexModel) {
+    if (isSlimModel) {
       generator.drawTextureLegacy(
         "Skin",
         { x: 47, y: 16, w: 3, h: 4 },
@@ -168,7 +170,7 @@ const script: ScriptDef = (generator: Generator) => {
   };
 
   const leftArmBase = (ox: number, oy: number) => {
-    if (alexModel) {
+    if (isSlimModel) {
       generator.drawTextureLegacy(
         "Skin",
         { x: 39, y: 48, w: 3, h: 4 },
@@ -271,7 +273,7 @@ const script: ScriptDef = (generator: Generator) => {
 
   const rightArm = (ox: number, oy: number) => {
     rightArmBase(ox, oy); // Base
-    if (alexModel) {
+    if (isSlimModel) {
       generator.drawTextureLegacy(
         "Skin",
         { x: 47, y: 32, w: 3, h: 4 },
@@ -327,7 +329,7 @@ const script: ScriptDef = (generator: Generator) => {
 
   const leftArm = (ox: number, oy: number) => {
     leftArmBase(ox, oy); // Base
-    if (alexModel) {
+    if (isSlimModel) {
       generator.drawTextureLegacy(
         "Skin",
         { x: 55, y: 48, w: 3, h: 4 },

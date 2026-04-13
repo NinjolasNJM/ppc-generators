@@ -19,7 +19,10 @@ import page4Image from "./images/Page4.png";
 import hole1Image from "./images/Hole1.png";
 import hole2Image from "./images/Hole2.png";
 import hole3Image from "./images/Hole3.png";
-import skinTexture from "./textures/Skin.png";
+import { getSkinUrl } from "../_common/skins";
+import {
+  makeDefaultMinecraftSkinPresetOptions,
+} from "../_common/skins/options";
 
 const id = "minecraft-mutant-character";
 
@@ -48,23 +51,21 @@ const images: ImageDef[] = [
 const textures: TextureDef[] = [
   {
     id: "Skin",
-    url: skinTexture.src,
+    url: getSkinUrl("Default", "Wide"),
     standardWidth: 64,
     standardHeight: 64,
   },
 ];
 
 const script: ScriptDef = (generator: Generator) => {
-  generator.defineTextureInput("Skin", {
+  generator.defineMinecraftSkinInput("Skin", {
     standardWidth: 64,
     standardHeight: 64,
-    choices: [],
-    enableMinecraftSkinInput: true,
+    options: makeDefaultMinecraftSkinPresetOptions(),
+    showModelType: true,
   });
-
-  generator.defineSelectInput("Skin style", ["Steve", "Alex"]);
-
-  const alexModel = generator.getSelectInputValue("Skin style") === "Alex";
+  const isSlimModel =
+    generator.getMinecraftSkinInputModelType("Skin") === "Slim";
 
   generator.usePage("Page 1");
   generator.drawImage("Page1", [0, 0]);
@@ -134,7 +135,7 @@ const script: ScriptDef = (generator: Generator) => {
     { flip: "Vertical" }
   ); // Bottom
 
-  if (alexModel) {
+  if (isSlimModel) {
     // Right Arm
 
     generator.drawTextureLegacy(
@@ -455,7 +456,7 @@ const script: ScriptDef = (generator: Generator) => {
 
   generator.drawImage("Page2", [0, 0]);
 
-  if (alexModel) {
+  if (isSlimModel) {
     generator.drawTextureLegacy(
       "Skin",
       { x: 40, y: 26, w: 4, h: 6 },

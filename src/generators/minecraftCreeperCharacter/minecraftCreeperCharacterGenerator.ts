@@ -19,7 +19,12 @@ import labelsImage from "./images/Labels.png";
 import actionFigureImage from "./images/Action-Figure.png";
 import actionFigureFoldsImage from "./images/Action-Figure-Folds.png";
 import actionFigureLabelsImage from "./images/Action-Figure-Labels.png";
-import steveImage from "./textures/Steve.png";
+import alexImage from "../_common/skins/slim/default.png";
+import { getSkinUrl } from "../_common/skins";
+import {
+  makeDefaultMinecraftSkinPresetOptions,
+  makeMinecraftSkinTextureOption,
+} from "../_common/skins/options";
 
 const id = "minecraft-creeper-character";
 
@@ -48,7 +53,14 @@ const images: ImageDef[] = [
 const textures: TextureDef[] = [
   {
     id: "Skin",
-    url: steveImage.src,
+    url: getSkinUrl("Default", "Wide"),
+    standardWidth: 64,
+    standardHeight: 64,
+  },
+  // Optional fixed slim texture exposed as an additional dropdown option.
+  {
+    id: "Default (Slim)",
+    url: alexImage.src,
     standardWidth: 64,
     standardHeight: 64,
   },
@@ -60,11 +72,14 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Define input textures
 
-  generator.defineTextureInput("Skin", {
+  generator.defineMinecraftSkinInput("Skin", {
     standardWidth: 64,
     standardHeight: 64,
-    choices: [],
-    enableMinecraftSkinInput: true,
+    options: [
+      ...makeDefaultMinecraftSkinPresetOptions(),
+      makeMinecraftSkinTextureOption("Default (Slim)"),
+    ],
+    showModelType: false,
   });
 
   // Define user variables

@@ -23,8 +23,10 @@ import {
 import thumbnailImage from "./thumbnail/v2-thumbnail-256.jpeg";
 import foregroundImage from "./images/Foreground.png";
 import titleImage from "./images/Title.png";
-import steveSkin from "./textures/SkinSteve64x64.png";
-import alexSkin from "./textures/SkinAlex64x64.png";
+import { getSkinUrl } from "../_common/skins";
+import {
+  makeDefaultMinecraftSkinPresetOptions,
+} from "../_common/skins/options";
 
 const id = "minecraft-character-mini";
 
@@ -57,24 +59,11 @@ const textures: TextureDef[] = [
   // Default texture for "Mini 1"
   {
     id: "Mini 1",
-    url: steveSkin.src,
+    url: getSkinUrl("Default", "Wide"),
     standardWidth: 64,
     standardHeight: 64,
   },
   // Steve texture choice
-  {
-    id: "Steve",
-    url: steveSkin.src,
-    standardWidth: 64,
-    standardHeight: 64,
-  },
-  // Alex texture choice
-  {
-    id: "Alex",
-    url: alexSkin.src,
-    standardWidth: 64,
-    standardHeight: 64,
-  },
 ];
 
 const script: ScriptDef = (generator: Generator) => {
@@ -313,19 +302,15 @@ const script: ScriptDef = (generator: Generator) => {
   }
 
   const drawMini = (textureId: string, x: number, y: number) => {
-    generator.defineTextureInput(textureId, {
+    generator.defineMinecraftSkinInput(textureId, {
       standardWidth: 64,
       standardHeight: 64,
-      choices: ["Steve", "Alex"],
-      enableMinecraftSkinInput: true,
+      options: makeDefaultMinecraftSkinPresetOptions(),
+      showModelType: true,
     });
 
     if (generator.hasTexture(textureId)) {
-      const modelTypeName = textureId + " Model";
-
-      generator.defineSelectInput(modelTypeName, ["Steve", "Alex"]);
-
-      const modelType = generator.getSelectInputValue(modelTypeName);
+      const modelType = generator.getMinecraftSkinInputModelType(textureId);
 
       const showFolds = generator.defineAndGetBooleanInput(
         "Show " + textureId + " Folds",
@@ -367,7 +352,7 @@ const script: ScriptDef = (generator: Generator) => {
         ["Simple", "Detailed"]
       );
 
-      const isAlexModel = modelType === "Alex";
+      const isSlimModel = modelType === "Slim";
       const pixelate = textureStyle === "Simple";
       let ox: number;
       let oy: number;
@@ -419,7 +404,7 @@ const script: ScriptDef = (generator: Generator) => {
 
       // Arms
 
-      const armTexture = isAlexModel ? alex : steve;
+      const armTexture = isSlimModel ? alex : steve;
 
       // Right Arm
 

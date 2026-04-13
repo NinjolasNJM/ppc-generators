@@ -20,7 +20,10 @@ import foregroundAlexImage from "./images/Foreground-Alex.png";
 import foregroundSteveImage from "./images/Foreground-Steve.png";
 import foregroundM16Image from "./images/Foreground-M16.png";
 import labelsImage from "./images/Labels.png";
-import skin64x64SteveImage from "./textures/Skin64x64Steve.png";
+import { getSkinUrl } from "../_common/skins";
+import {
+  makeDefaultMinecraftSkinPresetOptions,
+} from "../_common/skins/options";
 
 const id = "minecraft-action-figure";
 
@@ -34,6 +37,7 @@ const history: HistoryDef = [
   "06 Jun 2021 NinjolasNJM - Converted to ReScript generator.",
   "02 Feb 2024 NinjolasNJM - Reworked layout, improved notches and added skin input",
   "22 Mar 2024 NinjolasNJM - Converted to TypeScript Generator.",
+  "24 Dec 2025 NinjolasNJM - Added option for second layer separate from main body.",
 ];
 
 const thumbnail: ThumbnailDef = {
@@ -53,7 +57,7 @@ const images: ImageDef[] = [
 const textures: TextureDef[] = [
   {
     id: "Skin",
-    url: skin64x64SteveImage.src,
+    url: getSkinUrl("Default", "Wide"),
     standardWidth: 64,
     standardHeight: 64,
   },
@@ -62,14 +66,11 @@ const textures: TextureDef[] = [
 const script: ScriptDef = (generator: Generator) => {
   const minecraftGenerator = new Minecraft(generator);
   // Define user inputs
-
-  generator.defineSelectInput("Skin Model", ["Steve", "Alex"]);
-
-  generator.defineTextureInput("Skin", {
+  generator.defineMinecraftSkinInput("Skin", {
     standardWidth: 64,
     standardHeight: 64,
-    choices: [],
-    enableMinecraftSkinInput: true,
+    options: makeDefaultMinecraftSkinPresetOptions(),
+    showModelType: true,
   });
 
   // Define user variables
@@ -78,12 +79,12 @@ const script: ScriptDef = (generator: Generator) => {
   generator.defineBooleanInput("Show Labels", true);
   generator.defineBooleanInput("Hand Notches", true);
   // Get user variable values
-  const isAlexModel = generator.getSelectInputValue("Skin Model") === "Alex";
+  const isSlimModel =
+    generator.getMinecraftSkinInputModelType("Skin") === "Slim";
 
   const showFolds = generator.getBooleanInputValue("Show Folds");
   const showLabels = generator.getBooleanInputValue("Show Labels");
   const handNotches = generator.getBooleanInputValue("Hand Notches");
-
   const showHeadOverlay = generator.getBooleanInputValueWithDefault(
     "Show Head Overlay",
     true
@@ -111,7 +112,7 @@ const script: ScriptDef = (generator: Generator) => {
 
   const m16Mode = generator.getBooleanInputValueWithDefault("M16 Mode", false);
 
-  const char = isAlexModel ? alex : steve;
+  const char = isSlimModel ? alex : steve;
 
   function drawHead([ox, oy]: [number, number]) {
     const dimensions: Dimensions = [64, 64, 64];
@@ -361,14 +362,12 @@ const script: ScriptDef = (generator: Generator) => {
     const [x, y, w, h] = [ox + dir, oy, 8, 24];
 
     const color = "#7b7b7b";
-    //Generator.fillRect((x - dir, y, w, h), "#ff0000")
     generator.drawLine([x, y - 1], [x + w - 1, y - 1], { color });
     generator.drawLine([x + w - 10 * dir, y], [x + w - 10 * dir, y + h], {
       color,
       lineDash: [7, 1],
     });
     generator.drawLine([x + w - 1, y + h + 1], [x, y + h + 1], { color });
-    //Generator.drawFoldLine((x, y + h), (x, y))
   }
 
   // The foreground was designed on a 32px grid with an offset of (9, 5) that makes the cells more centered. This function makes finding the [ox, oy] much easier as you only need to count the cells instead of find the actual coordinates.
@@ -411,11 +410,11 @@ const script: ScriptDef = (generator: Generator) => {
   // Right Arm
 
   [ox, oy] = getGridOrigin(1, 10);
-  ox = isAlexModel ? ox + 8 : ox;
+  ox = isSlimModel ? ox + 8 : ox;
 
   drawRightArm([ox, oy]);
 
-  generator.defineRegionInput([ox, oy, isAlexModel ? 112 : 128, 160], () => {
+  generator.defineRegionInput([ox, oy, isSlimModel ? 112 : 128, 160], () => {
     generator.setBooleanInputValue(
       "Show Right Arm Overlay",
       !showRightArmOverlay
@@ -431,11 +430,11 @@ const script: ScriptDef = (generator: Generator) => {
   // Left Arm
 
   [ox, oy] = getGridOrigin(13, 10);
-  ox = isAlexModel ? ox + 8 : ox;
+  ox = isSlimModel ? ox + 8 : ox;
 
   drawLeftArm([ox, oy]);
 
-  generator.defineRegionInput([ox, oy, isAlexModel ? 112 : 128, 166], () => {
+  generator.defineRegionInput([ox, oy, isSlimModel ? 112 : 128, 166], () => {
     generator.setBooleanInputValue(
       "Show Left Arm Overlay",
       !showLeftArmOverlay
@@ -473,7 +472,7 @@ const script: ScriptDef = (generator: Generator) => {
   });
 
   // Foreground
-  if (isAlexModel) {
+  if (isSlimModel) {
     generator.drawImage("Foreground-Alex", [0, 0]);
   } else {
     generator.drawImage("Foreground-Steve", [0, 0]);
@@ -481,7 +480,7 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Folds
   if (showFolds) {
-    if (isAlexModel) {
+    if (isSlimModel) {
       generator.drawImage("Folds-Alex", [0, 0]);
     } else {
       generator.drawImage("Folds-Steve", [0, 0]);
@@ -516,14 +515,14 @@ const script: ScriptDef = (generator: Generator) => {
   if (handNotches) {
     // Right Hand Notches
     [ox, oy] = getGridOrigin(1, 10);
-    ox = isAlexModel ? ox + 4 : ox;
+    ox = isSlimModel ? ox + 4 : ox;
     drawNotch([ox + 44, oy + 104], false); // Front Notch
-    drawNotch([ox + (isAlexModel ? 100 : 108), oy + 104], true); // Back Notch
+    drawNotch([ox + (isSlimModel ? 100 : 108), oy + 104], true); // Back Notch
 
     // Left Hand Notches
     [ox, oy] = getGridOrigin(13, 10);
-    ox = isAlexModel ? ox + 4 : ox;
-    drawNotch([ox + (isAlexModel ? 68 : 76), oy + 104], true); // Front Notch
+    ox = isSlimModel ? ox + 4 : ox;
+    drawNotch([ox + (isSlimModel ? 68 : 76), oy + 104], true); // Front Notch
     drawNotch([ox + 12, oy + 104], false); // Back Notch
   }
 

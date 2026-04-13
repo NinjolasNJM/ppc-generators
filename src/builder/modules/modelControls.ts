@@ -24,13 +24,46 @@ export type TextureInputControlProps = {
   standardWidth: number;
   standardHeight: number;
   choices: string[];
-  enableMinecraftSkinInput?: boolean;
 };
 
 export type TextureInputControl = {
   kind: "TextureInput";
   id: string;
   props: TextureInputControlProps;
+};
+
+export type MinecraftSkinInputControlProps = {
+  standardWidth: number;
+  standardHeight: number;
+  options: MinecraftSkinOption[];
+  showModelType: boolean;
+};
+
+export type MinecraftSkinOptionPreset = {
+  kind: "preset";
+  id: string;
+  label: string;
+  urls: {
+    wide: string;
+    slim: string;
+  };
+};
+
+export type MinecraftSkinOptionTexture = {
+  kind: "texture";
+  id: string;
+  label: string;
+  textureId: string;
+};
+
+export type MinecraftSkinOption =
+  | MinecraftSkinOptionPreset
+  | MinecraftSkinOptionTexture;
+
+export type MinecraftSkinInputControl = {
+  kind: "MinecraftSkinInput";
+  id: string;
+  props: MinecraftSkinInputControlProps;
 };
 
 export type BooleanInputControl = {
@@ -65,7 +98,14 @@ export type Control =
   | CustomInputControl
   | RegionControl
   | TextureInputControl
+  | MinecraftSkinInputControl
   | BooleanInputControl
   | SelectInputControl
   | RangeControl
   | ButtonControl;
+
+export type {
+  MinecraftModelType,
+  MinecraftSkinInputValue,
+  MinecraftSkinSelection,
+} from "./minecraftSkinInputValue";

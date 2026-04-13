@@ -14,8 +14,10 @@ import { steve, alex } from "@genroot/generators/_common/minecraftCharacter";
 
 import thumbnailImage from "./thumbnail/thumbnail-256.jpeg";
 import overlayAllayImage from "./images/OverlayAllay.png";
-import skin1Image from "./textures/Skin1.png";
-import skin2Image from "./textures/Skin2.png";
+import { getSkinUrl } from "../_common/skins";
+import {
+  makeDefaultMinecraftSkinPresetOptions,
+} from "../_common/skins/options";
 
 const id = "minecraft-allay-character";
 
@@ -37,14 +39,14 @@ const images: ImageDef[] = [{ id: "Overlay", url: overlayAllayImage.src }];
 
 const textures: TextureDef[] = [
   {
-    id: "Skin1",
-    url: skin1Image.src,
+    id: "Skin 1",
+    url: getSkinUrl("Default", "Wide"),
     standardWidth: 64,
     standardHeight: 64,
   },
   {
-    id: "Skin2",
-    url: skin2Image.src,
+    id: "Skin 2",
+    url: getSkinUrl("Default", "Wide"),
     standardWidth: 64,
     standardHeight: 64,
   },
@@ -716,60 +718,54 @@ const script: ScriptDef = (generator: Generator) => {
       { flip: "Horizontal" }
     );
   };
-
-  generator.defineSelectInput("Character 1 skin model type", ["Steve", "Alex"]);
-
-  generator.defineTextureInput("Skin1", {
+  generator.defineMinecraftSkinInput("Skin 1", {
     standardWidth: 64,
     standardHeight: 64,
-    choices: [],
-    enableMinecraftSkinInput: true,
+    options: makeDefaultMinecraftSkinPresetOptions(),
+    showModelType: true,
   });
 
-  const alexModel1 =
-    generator.getSelectInputValue("Character 1 skin model type") === "Alex";
-
-  generator.defineSelectInput("Character 2 skin model type", ["Steve", "Alex"]);
-
-  generator.defineTextureInput("Skin2", {
+  const isSlimModel1 =
+    generator.getMinecraftSkinInputModelType("Skin 1") === "Slim";
+  generator.defineMinecraftSkinInput("Skin 2", {
     standardWidth: 64,
     standardHeight: 64,
-    choices: [],
-    enableMinecraftSkinInput: true,
+    options: makeDefaultMinecraftSkinPresetOptions(),
+    showModelType: true,
   });
 
-  const alexModel2 =
-    generator.getSelectInputValue("Character 2 skin model type") === "Alex";
+  const isSlimModel2 =
+    generator.getMinecraftSkinInputModelType("Skin 2") === "Slim";
 
   // Skin 1
 
-  drawHead(62, 63, "Skin1");
-  drawBody(422, 84, "Skin1");
+  drawHead(62, 63, "Skin 1");
+  drawBody(422, 84, "Skin 1");
 
-  if (alexModel1) {
-    drawRightArmAlex(186, 198, "Skin1");
-    drawLeftArmAlex(48, 198, "Skin1");
+  if (isSlimModel1) {
+    drawRightArmAlex(186, 198, "Skin 1");
+    drawLeftArmAlex(48, 198, "Skin 1");
   } else {
-    drawRightArm(186, 198, "Skin1");
-    drawLeftArm(48, 198, "Skin1");
+    drawRightArm(186, 198, "Skin 1");
+    drawLeftArm(48, 198, "Skin 1");
   }
 
-  drawLegs(279, 197, "Skin1");
+  drawLegs(279, 197, "Skin 1");
 
   // Skin 2
 
-  drawHead(62, 424, "Skin2");
-  drawBody(422, 445, "Skin2");
+  drawHead(62, 424, "Skin 2");
+  drawBody(422, 445, "Skin 2");
 
-  if (alexModel2) {
-    drawRightArmAlex(186, 198 + 361, "Skin2");
-    drawLeftArmAlex(48, 198 + 361, "Skin2");
+  if (isSlimModel2) {
+    drawRightArmAlex(186, 198 + 361, "Skin 2");
+    drawLeftArmAlex(48, 198 + 361, "Skin 2");
   } else {
-    drawRightArm(186, 198 + 361, "Skin2");
-    drawLeftArm(48, 198 + 361, "Skin2");
+    drawRightArm(186, 198 + 361, "Skin 2");
+    drawLeftArm(48, 198 + 361, "Skin 2");
   }
 
-  drawLegs(278, 559, "Skin2");
+  drawLegs(278, 559, "Skin 2");
 
   generator.drawImage("Overlay", [0, 0]);
 };

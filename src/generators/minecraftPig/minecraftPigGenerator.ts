@@ -36,7 +36,7 @@ import goldArmorFaithful from "./textures/faithful/gold-armor.png";
 import chainmailArmorFaithful from "./textures/faithful/chainmail-armor.png";
 import ironArmorFaithful from "./textures/faithful/iron-armor.png";
 import armorSpacePig from "./textures/space-pig/armor.png";
-import skin from "./textures/Steve.png";
+import skin from "../_common/skins/wide/steve.png";
 
 const id = "minecraft-pig";
 
