@@ -31,10 +31,19 @@ import horseMarkingsBlackDotsTexture from "./textures/horse_markings_blackdots.p
 import horseMarkingsWhiteTexture from "./textures/horse_markings_white.png";
 import horseMarkingsWhiteDotsTexture from "./textures/horse_markings_whitedots.png";
 import horseMarkingsWhiteFieldTexture from "./textures/horse_markings_whitefield.png";
-import horseArmorLeatherTexture from "./textures/horse_armor_leather.png";
-import horseArmorGoldTexture from "./textures/horse_armor_gold.png";
-import horseArmorIronTexture from "./textures/horse_armor_iron.png";
-import horseArmorDiamondTexture from "./textures/horse_armor_diamond.png";
+import leatherTexture from "./textures/leather.png";
+import leatherOverlayTexture from "./textures/leather_overlay.png";
+import goldTexture from "./textures/gold.png";
+import copperTexture from "./textures/copper.png";
+import ironTexture from "./textures/iron.png";
+import diamondTexture from "./textures/diamond.png";
+import netheriteTexture from "./textures/netherite.png";
+import enchantedGlint from "./textures/enchanted_glint_entity.png";
+import enchantedGlintOld from "./textures/enchanted_item_glint.png";
+import { Blend } from "@genroot/builder/modules/renderers/drawTexture";
+import { Dimensions, Minecraft } from "../_common/minecraft";
+import { horse } from "../_common/minecraftEntity";
+import { GlintPluginOptions, makeGlintPlugin } from "../_common/plugins/glint";
 
 const id = "minecraft-horse";
 
@@ -170,31 +179,140 @@ const textures: TextureDef[] = [
   },
   {
     id: "Leather",
-    url: horseArmorLeatherTexture.src,
+    url: leatherTexture.src,
+    standardWidth: 64,
+    standardHeight: 64,
+  },
+  {
+    id: "Leather Overlay",
+    url: leatherOverlayTexture.src,
+    standardWidth: 64,
+    standardHeight: 64,
+  },
+  {
+    id: "Armor Overlay",
+    url: leatherOverlayTexture.src,
     standardWidth: 64,
     standardHeight: 64,
   },
   {
     id: "Gold",
-    url: horseArmorGoldTexture.src,
+    url: goldTexture.src,
+    standardWidth: 64,
+    standardHeight: 64,
+  },
+  {
+    id: "Copper",
+    url: copperTexture.src,
     standardWidth: 64,
     standardHeight: 64,
   },
   {
     id: "Iron",
-    url: horseArmorIronTexture.src,
+    url: ironTexture.src,
     standardWidth: 64,
     standardHeight: 64,
   },
   {
     id: "Diamond",
-    url: horseArmorDiamondTexture.src,
+    url: diamondTexture.src,
     standardWidth: 64,
     standardHeight: 64,
+  },
+  {
+    id: "Netherite",
+    url: netheriteTexture.src,
+    standardWidth: 64,
+    standardHeight: 64,
+  },
+  {
+    id: "Enchanted Glint",
+    url: enchantedGlint.src,
+    standardWidth: 128,
+    standardHeight: 128,
+  },
+  {
+    id: "1.20+",
+    url: enchantedGlint.src,
+    standardWidth: 128,
+    standardHeight: 128,
+  },
+  {
+    id: "Pre-1.20",
+    url: enchantedGlintOld.src,
+    standardWidth: 128,
+    standardHeight: 128,
   },
 ];
 
 const script: ScriptDef = (generator: Generator) => {
+  const minecraftGenerator = new Minecraft(generator);
+  // Tint functions. These should be in a central file but for now while there aren't any different color values, custom color etc it'll be here.
+  function getTint(colorId: string): Blend {
+    generator.defineSelectInput(colorId, [
+      "Leather",
+      "Black",
+      "Red",
+      "Green",
+      "Brown",
+      "Blue",
+      "Purple",
+      "Cyan",
+      "Light Gray",
+      "Gray",
+      "Pink",
+      "Lime",
+      "Yellow",
+      "Light Blue",
+      "Magenta",
+      "Orange",
+      "White",
+    ]);
+
+    const hex = (() => {
+      switch (generator.getSelectInputValue(colorId)) {
+        case "Leather":
+          return "A06540";
+        case "Black":
+          return "1D1D21";
+        case "Red":
+          return "B02E26";
+        case "Green":
+          return "5E7C16";
+        case "Brown":
+          return "835432";
+        case "Blue":
+          return "3C44AA";
+        case "Purple":
+          return "8932B8";
+        case "Cyan":
+          return "169C9C";
+        case "Light Gray":
+          return "9D9D97";
+        case "Gray":
+          return "474F52";
+        case "Pink":
+          return "F38BAA";
+        case "Lime":
+          return "80C71F";
+        case "Yellow":
+          return "FED83D";
+        case "Light Blue":
+          return "3AB3DA";
+        case "Magenta":
+          return "C74EBD";
+        case "Orange":
+          return "F9801D";
+        case "White":
+          return "F9FFFE";
+        default:
+          return "A06540";
+      }
+    })();
+
+    return { kind: "MultiplyHex", hex: hex };
+  }
+
   // Define user inputs
 
   generator.defineTextureInput("Horse", {
@@ -224,14 +342,63 @@ const script: ScriptDef = (generator: Generator) => {
   generator.defineTextureInput("Armor", {
     standardWidth: 64,
     standardHeight: 64,
-    choices: ["Leather", "Gold", "Iron", "Diamond"],
+    choices: ["Leather", "Gold", "Copper", "Iron", "Diamond", "Netherite"],
   });
+
+  generator.defineTextureInput("Enchanted Glint", {
+    standardWidth: 128,
+    standardHeight: 128,
+    choices: ["1.20+", "Pre-1.20"],
+  });
+
+  const glinta = generator.defineAndGetRangeInput("Glint Opacity", {
+    min: 0,
+    max: 255,
+    value: 255,
+    step: 1,
+  });
+  const glintx = generator.defineAndGetRangeInput("Glint X Offset", {
+    min: 0,
+    max: 128,
+    value: 0,
+    step: 1,
+  });
+  const glinty = generator.defineAndGetRangeInput("Glint Y Offset", {
+    min: 0,
+    max: 128,
+    value: 0,
+    step: 1,
+  });
+
+  const glintTexture = generator.getTexture("Enchanted Glint");
+
+  const glintPluginOptions: GlintPluginOptions = {
+    opacity: glinta / 255,
+    xOffset: glintx,
+    yOffset: glinty,
+  };
 
   // Define user variables
 
+  const tintArmor = generator.defineAndGetBooleanInput("Tint Armor", false);
+
+  if (tintArmor) {
+    generator.defineTextureInput("Armor Overlay", {
+      standardWidth: 64,
+      standardHeight: 64,
+      choices: ["Leather Overlay"],
+    });
+  }
+
+  const armorTint: Blend = tintArmor
+    ? getTint("Armor Color")
+    : { kind: "None" };
+
   generator.defineBooleanInput("Show Folds", true);
   generator.defineBooleanInput("Show Labels", true);
-  generator.defineBooleanInput("Donkey / Mule Model", false);
+  generator.defineRegionInput([256, 249, 124, 72], () => {
+    generator.setBooleanInputValue("Donkey / Mule Model", !muleModel);
+  });
 
   // Get user variable values
 
@@ -239,135 +406,87 @@ const script: ScriptDef = (generator: Generator) => {
   const showLabels = generator.getBooleanInputValue("Show Labels");
   const muleModel = generator.getBooleanInputValue("Donkey / Mule Model");
 
-  const drawHorse = (texture: string) => {
+  const drawHorse = (texture: string, blend: Blend, enchanted: boolean) => {
     let ox: number;
     let oy: number;
+    let dimensions: Dimensions;
+
+    const plugin =
+      glintTexture && enchanted
+        ? makeGlintPlugin(glintTexture, glintPluginOptions)
+        : undefined;
 
     // Head
-    ox = 20;
-    oy = 20;
-    generator.drawTexture(texture, [7, 13, 6, 7], [ox + 56, oy + 0, 48, 56]); // Top
-    generator.drawTexture(texture, [13, 13, 6, 7], [ox + 56, oy + 96, 48, 56], {
-      flip: "Vertical",
-    }); // Bottom
-    generator.drawTexture(texture, [0, 20, 7, 5], [ox + 0, oy + 56, 56, 40]); // Right
-    generator.drawTexture(texture, [7, 20, 6, 5], [ox + 56, oy + 56, 48, 40]); // Front
-    generator.drawTexture(texture, [13, 20, 7, 5], [ox + 104, oy + 56, 56, 40]); // Left
-    generator.drawTexture(texture, [20, 20, 6, 5], [ox + 160, oy + 56, 48, 40]); // Back
+    [ox, oy] = [20, 20];
+    dimensions = [48, 40, 56];
+    minecraftGenerator.drawCuboid(texture, horse.head, [ox, oy], dimensions, {
+      blend,
+      plugin,
+    });
+
     // Mouth
-    ox = 140;
-    oy = 142;
-    generator.drawTexture(texture, [5, 25, 4, 5], [ox + 40, oy + 0, 32, 40]); // Top
-    generator.drawTexture(texture, [9, 25, 4, 5], [ox + 40, oy + 80, 32, 40], {
-      flip: "Vertical",
-    }); // Bottom
-    generator.drawTexture(texture, [0, 30, 5, 5], [ox + 0, oy + 40, 40, 40]); // Right
-    generator.drawTexture(texture, [5, 30, 4, 5], [ox + 40, oy + 40, 32, 40]); // Front
-    generator.drawTexture(texture, [9, 30, 5, 5], [ox + 72, oy + 40, 40, 40]); // Left
-    generator.drawTexture(texture, [14, 30, 4, 5], [ox + 112, oy + 40, 32, 40]); // Back
+    [ox, oy] = [140, 142];
+    dimensions = [32, 40, 40];
+    minecraftGenerator.drawCuboid(texture, horse.mouth, [ox, oy], dimensions, {
+      blend,
+      plugin,
+    });
+
     // Neck
-    ox = 24;
-    oy = 232;
-    generator.drawTexture(texture, [7, 35, 4, 7], [ox + 56, oy + 0, 32, 56]); // Top
-    generator.drawTexture(
-      texture,
-      [11, 35, 4, 7],
-      [ox + 56, oy + 152, 32, 56],
-      { flip: "Vertical" }
-    ); // Bottom
-    generator.drawTexture(texture, [0, 42, 7, 12], [ox + 0, oy + 56, 56, 96]); // Right
-    generator.drawTexture(texture, [7, 42, 4, 12], [ox + 56, oy + 56, 32, 96]); // Front
-    generator.drawTexture(texture, [11, 42, 7, 12], [ox + 88, oy + 56, 56, 96]); // Left
-    generator.drawTexture(
-      texture,
-      [18, 42, 4, 12],
-      [ox + 144, oy + 56, 32, 96]
-    ); // Back
+    [ox, oy] = [24, 232];
+    dimensions = [32, 96, 56];
+    minecraftGenerator.drawCuboid(texture, horse.neck, [ox, oy], dimensions, {
+      blend,
+      plugin,
+    });
 
     // Mane
-
-    ox = 321;
-    oy = 16;
-
-    generator.drawTexture(texture, [58, 36, 2, 2], [ox + 16, oy + 0, 16, 16], {
-      rotate: 180.0,
-    }); // Top
-    generator.drawTexture(
-      texture,
-      [56, 38, 2, 16],
-      [ox + 32, oy + 16, 16, 128]
-    ); // Right
-    generator.drawTexture(
-      texture,
-      [58, 38, 2, 16],
-      [ox + 48, oy + 16, 16, 128]
-    ); // Front
-    generator.drawTexture(texture, [60, 38, 2, 16], [ox + 0, oy + 16, 16, 128]); // Left
-    generator.drawTexture(
-      texture,
-      [62, 38, 2, 16],
-      [ox + 16, oy + 16, 16, 128]
-    ); // Back
+    [ox, oy] = [321, 16];
+    dimensions = [16, 128, 16];
+    minecraftGenerator.drawCuboid(texture, horse.mane, [ox, oy], dimensions, {
+      blend,
+      center: "Back",
+      plugin,
+    });
 
     // Tail
-
-    ox = 224;
-    oy = 348;
-
-    generator.drawTexture(texture, [46, 36, 3, 4], [ox + 32, oy + 0, 24, 32], {
-      rotate: 180.0,
-    }); // Top
-    generator.drawTexture(
-      texture,
-      [42, 40, 4, 14],
-      [ox + 56, oy + 32, 32, 112]
-    ); // Right
-    generator.drawTexture(
-      texture,
-      [46, 40, 3, 14],
-      [ox + 88, oy + 32, 24, 112]
-    ); // Front
-    generator.drawTexture(texture, [49, 40, 4, 14], [ox + 0, oy + 32, 32, 112]); // Left
-    generator.drawTexture(
-      texture,
-      [53, 40, 3, 14],
-      [ox + 32, oy + 32, 24, 112]
-    ); // Back
+    [ox, oy] = [224, 348];
+    dimensions = [24, 112, 32];
+    minecraftGenerator.drawCuboid(texture, horse.tail, [ox, oy], dimensions, {
+      blend,
+      center: "Back",
+      plugin,
+    });
 
     // Horse Ears
 
     const horseEars = (ox: number, oy: number) => {
-      generator.drawTexture(texture, [20, 16, 2, 1], [ox + 8, oy + 40, 16, 8]); // Top
-      generator.drawTexture(texture, [22, 16, 2, 1], [ox + 8, oy + 64, 16, 8], {
-        flip: "Vertical",
-      }); // Bottom
-      generator.drawTexture(texture, [19, 17, 1, 2], [ox + 0, oy + 48, 8, 16]); // Right
-      generator.drawTexture(texture, [20, 17, 2, 2], [ox + 8, oy + 48, 16, 16]); // Front
-      generator.drawTexture(texture, [22, 17, 1, 2], [ox + 24, oy + 48, 8, 16]); // Left
-      generator.drawTexture(
+      dimensions = [16, 16, 8];
+      minecraftGenerator.drawCuboid(
         texture,
-        [23, 17, 2, 2],
-        [ox + 32, oy + 48, 16, 16]
-      ); // Back
+        horse.horseEar,
+        [ox, oy + 40],
+        dimensions,
+        { blend, plugin }
+      );
     };
 
     // Donkey / Mule Ears
 
     const muleEars = (ox: number, oy: number) => {
-      generator.drawTexture(texture, [1, 12, 2, 1], [ox + 8, oy + 0, 16, 8]); // Top
-      generator.drawTexture(texture, [3, 12, 2, 1], [ox + 8, oy + 64, 16, 8], {
-        flip: "Vertical",
-      }); // Bottom
-      generator.drawTexture(texture, [0, 13, 1, 7], [ox + 0, oy + 8, 8, 56]); // Right
-      generator.drawTexture(texture, [1, 13, 2, 7], [ox + 8, oy + 8, 16, 56]); // Front
-      generator.drawTexture(texture, [3, 13, 1, 7], [ox + 24, oy + 8, 8, 56]); // Left
-      generator.drawTexture(texture, [4, 13, 2, 7], [ox + 32, oy + 8, 16, 56]); // Back
+      dimensions = [16, 56, 8];
+      minecraftGenerator.drawCuboid(
+        texture,
+        horse.muleEar,
+        [ox, oy],
+        dimensions,
+        { blend, plugin }
+      );
     };
 
     // Left Ear
 
-    ox = 332;
-    oy = 249;
+    [ox, oy] = [332, 249];
 
     if (muleModel) {
       muleEars(ox, oy);
@@ -377,8 +496,7 @@ const script: ScriptDef = (generator: Generator) => {
 
     // Right Ear
 
-    ox = 256;
-    oy = 249;
+    [ox, oy] = [256, 249];
 
     if (muleModel) {
       muleEars(ox, oy);
@@ -387,152 +505,67 @@ const script: ScriptDef = (generator: Generator) => {
     }
 
     // Body
+    [ox, oy] = [-40, 452];
+    dimensions = [80, 80, 176];
+    minecraftGenerator.drawCuboid(texture, horse.body, [ox, oy], dimensions, {
+      blend,
+      center: "Top",
+      rotate: 180,
+      orientation: "East",
+      plugin,
+    });
 
-    ox = 40;
-    oy = 452;
-
-    generator.drawTexture(
-      texture,
-      [22, 32, 10, 22],
-      [ox + 80, oy + 80, 80, 176],
-      { rotate: 180.0 }
-    ); // Top
-    generator.drawTexture(
-      texture,
-      [32, 32, 10, 22],
-      [ox + 240, oy + 80, 80, 176],
-      { flip: "Vertical" }
-    ); // Bottom
-    generator.drawTexture(
-      texture,
-      [0, 54, 22, 10],
-      [ox + 112, oy + 128, 176, 80],
-      { rotate: -90.0 }
-    ); // Right
-    generator.drawTexture(
-      texture,
-      [22, 54, 10, 10],
-      [ox + 80, oy + 0, 80, 80],
-      { rotate: 180.0 }
-    ); // Front
-    generator.drawTexture(
-      texture,
-      [32, 54, 22, 10],
-      [ox - 48, oy + 128, 176, 80],
-      { rotate: 90.0 }
-    ); // Left
-    generator.drawTexture(
-      texture,
-      [54, 54, 10, 10],
-      [ox + 80, oy + 256, 80, 80]
-    ); // Back
+    // Legs
 
     // Front Left Leg
-
-    ox = 413;
-    oy = 40;
-
-    generator.drawTexture(texture, [52, 21, 4, 4], [ox + 64, oy + 0, 32, 32], {
+    [ox, oy] = [413, 40];
+    dimensions = [32, 88, 32];
+    minecraftGenerator.drawCuboid(texture, horse.leg, [ox, oy], dimensions, {
+      blend,
       flip: "Horizontal",
-    }); // Top
-    generator.drawTexture(
-      texture,
-      [56, 21, 4, 4],
-      [ox + 64, oy + 120, 32, 32],
-      { rotate: 180.0 }
-    ); // Bottom
-    generator.drawTexture(
-      texture,
-      [48, 25, 4, 11],
-      [ox + 96, oy + 32, 32, 88],
-      { flip: "Horizontal" }
-    ); // Right
-    generator.drawTexture(
-      texture,
-      [52, 25, 4, 11],
-      [ox + 64, oy + 32, 32, 88],
-      { flip: "Horizontal" }
-    ); // Front
-    generator.drawTexture(
-      texture,
-      [56, 25, 4, 11],
-      [ox + 32, oy + 32, 32, 88],
-      { flip: "Horizontal" }
-    ); // Left
-    generator.drawTexture(texture, [60, 25, 4, 11], [ox + 0, oy + 32, 32, 88], {
+      orientation: "West",
+      plugin,
+    });
+
+    // Back Left Leg
+    [ox, oy] = [413, 436];
+    minecraftGenerator.drawCuboid(texture, horse.leg, [ox, oy], dimensions, {
+      blend,
       flip: "Horizontal",
-    }); // Back
+      orientation: "West",
+      plugin,
+    });
 
     // Front Right Leg
+    [ox, oy] = [413, 238];
+    minecraftGenerator.drawCuboid(texture, horse.leg, [ox, oy], dimensions, {
+      blend,
+      plugin,
+    });
 
-    ox = 413;
-    oy = 238;
-
-    generator.drawTexture(texture, [52, 21, 4, 4], [ox + 32, oy + 0, 32, 32]); // Top
-    generator.drawTexture(
-      texture,
-      [56, 21, 4, 4],
-      [ox + 32, oy + 120, 32, 32],
-      { flip: "Vertical" }
-    ); // Bottom
-    generator.drawTexture(texture, [48, 25, 4, 11], [ox + 0, oy + 32, 32, 88]); // Right
-    generator.drawTexture(texture, [52, 25, 4, 11], [ox + 32, oy + 32, 32, 88]); // Front
-    generator.drawTexture(texture, [56, 25, 4, 11], [ox + 64, oy + 32, 32, 88]); // Left
-    generator.drawTexture(texture, [60, 25, 4, 11], [ox + 96, oy + 32, 32, 88]); // Back
-    // Back Left Leg
-    ox = 413;
-    oy = 436;
-    generator.drawTexture(texture, [52, 21, 4, 4], [ox + 64, oy + 0, 32, 32], {
-      flip: "Horizontal",
-    }); // Top
-    generator.drawTexture(
-      texture,
-      [56, 21, 4, 4],
-      [ox + 64, oy + 120, 32, 32],
-      { rotate: 180.0 }
-    ); // Bottom
-    generator.drawTexture(
-      texture,
-      [48, 25, 4, 11],
-      [ox + 96, oy + 32, 32, 88],
-      { flip: "Horizontal" }
-    ); // Right
-    generator.drawTexture(
-      texture,
-      [52, 25, 4, 11],
-      [ox + 64, oy + 32, 32, 88],
-      { flip: "Horizontal" }
-    ); // Front
-    generator.drawTexture(
-      texture,
-      [56, 25, 4, 11],
-      [ox + 32, oy + 32, 32, 88],
-      { flip: "Horizontal" }
-    ); // Left
-    generator.drawTexture(texture, [60, 25, 4, 11], [ox + 0, oy + 32, 32, 88], {
-      flip: "Horizontal",
-    }); // Back
     // Back Right Leg
-    ox = 413;
-    oy = 634;
-    generator.drawTexture(texture, [52, 21, 4, 4], [ox + 32, oy + 0, 32, 32]); // Top
-    generator.drawTexture(
-      texture,
-      [56, 21, 4, 4],
-      [ox + 32, oy + 120, 32, 32],
-      { flip: "Vertical" }
-    ); // Bottom
-    generator.drawTexture(texture, [48, 25, 4, 11], [ox + 0, oy + 32, 32, 88]); // Right
-    generator.drawTexture(texture, [52, 25, 4, 11], [ox + 32, oy + 32, 32, 88]); // Front
-    generator.drawTexture(texture, [56, 25, 4, 11], [ox + 64, oy + 32, 32, 88]); // Left
-    generator.drawTexture(texture, [60, 25, 4, 11], [ox + 96, oy + 32, 32, 88]); // Back
+    [ox, oy] = [413, 634];
+    minecraftGenerator.drawCuboid(texture, horse.leg, [ox, oy], dimensions, {
+      blend,
+      plugin,
+    });
   };
+  const enchantArmor = generator.getBooleanInputValueWithDefault(
+    "Enchant Armor",
+    false
+  );
+  generator.defineRegionInput([40, 452, 320, 336], () => {
+    generator.setBooleanInputValue("Enchant Armor", !enchantArmor);
+  });
 
   // Draw Horse
 
-  drawHorse("Horse");
-  drawHorse("Markings");
-  drawHorse("Armor");
+  drawHorse("Horse", { kind: "None" }, false);
+  drawHorse("Markings", { kind: "None" }, false);
+  drawHorse("Armor", armorTint, enchantArmor);
+  if (tintArmor) {
+    drawHorse("Armor Overlay", { kind: "None" }, enchantArmor);
+  }
 
   // Foreground
 
