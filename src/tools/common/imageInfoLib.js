@@ -153,10 +153,9 @@ function imageInfoSwf(buffer) {
   if (buffer[0] === 0x43) {
     try {
       // If you have zlib available ( npm install zlib ) then we can read compressed flash files
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      buffer = require("zlib").inflate(buffer.slice(8, 100));
+      buffer = module.require("zlib").inflate(buffer.slice(8, 100));
       pos = 0;
-    } catch (ex) {
+    } catch {
       // Can't get width/height of compressed flash files... yet (need zlib)
       return {
         type: "flash",
