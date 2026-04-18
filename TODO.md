@@ -8,6 +8,13 @@
 
 ## Follow-up Tasks
 
+- Resolve the remaining `jimp@1.6.0` -> `file-type@16.5.4` vulnerability path.
+  - Context: the `jimp` v0 -> v1 migration is complete, but `npm audit` still reports `file-type` through the current upstream `jimp` release.
+  - Options to evaluate:
+    - wait for an upstream `jimp` release that moves off the vulnerable `file-type` line
+    - test a scoped `overrides.file-type` approach with targeted texture-generation verification
+    - replace `jimp` in `src/tools/makeTextures/` if the upstream path remains blocked
+
 - Evaluate a separate `tailwindcss` upgrade track.
   - Current repo state: `tailwindcss@3.4.15`
   - Latest upstream checked: `tailwindcss@4.1.12`

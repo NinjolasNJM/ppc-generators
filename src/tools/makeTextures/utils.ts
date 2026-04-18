@@ -1,7 +1,7 @@
 import Path from "path";
 import Fs from "fs";
 import ChildProcess from "child_process";
-import Jimp from "jimp";
+import { Jimp, type JimpInstance } from "jimp";
 import { type ImageInfo, readImageInfo } from "../common/imageInfo";
 
 type ImageWithInfo = {
@@ -128,48 +128,36 @@ function calculateImagesWithCoordinates(
   return { imagesWithCoordinates, canvasWidth, canvasHeight };
 }
 
-function makeCanvas(width: number, height: number): Promise<Jimp> {
-  return new Promise((resolve, reject) => {
-    new Jimp(width, height, (error: Error, canvas: Jimp) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve(canvas);
-      }
-    });
-  });
+async function makeCanvas(
+  width: number,
+  height: number
+): Promise<JimpInstance> {
+  return new Jimp({ width, height });
 }
 
 async function makeTiledImagesCanvas(
   images: ImageWithInfo[],
   canvasWidth: number
-): Promise<[ImageWithCoordinates[], Jimp, number, number]> {
+): Promise<[ImageWithCoordinates[], JimpInstance, number, number]> {
   const { imagesWithCoordinates, canvasHeight } =
     calculateImagesWithCoordinates(images, canvasWidth);
+  const canvas = await makeCanvas(canvasWidth, canvasHeight);
 
-  return imagesWithCoordinates
-    .reduce(
-      (acc, imageWithCoordinates) => {
-        const { image, coordinates } = imageWithCoordinates;
-        const [x, y] = coordinates;
-        return acc.then((canvas) => {
-          return Jimp.read(image.path).then((image: Jimp) => {
-            return canvas.blit(image, x, y);
-          });
-        });
-      },
-      makeCanvas(canvasWidth, canvasHeight)
-    )
-    .then((canvas) => {
-      return [imagesWithCoordinates, canvas, canvasWidth, canvasHeight];
-    });
+  for (const imageWithCoordinates of imagesWithCoordinates) {
+    const { image, coordinates } = imageWithCoordinates;
+    const [x, y] = coordinates;
+    const sourceImage = await Jimp.read(image.path);
+    canvas.blit({ src: sourceImage, x, y });
+  }
+
+  return [imagesWithCoordinates, canvas, canvasWidth, canvasHeight];
 }
 
 async function writeTileImage(
-  canvas: Jimp,
-  tileImagePath: string
+  canvas: JimpInstance,
+  tileImagePath: `${string}.png`
 ): Promise<void> {
-  await canvas.writeAsync(tileImagePath);
+  await canvas.write(tileImagePath);
 }
 
 function writeTileJson(
@@ -255,7 +243,7 @@ export async function makeTiledImages(
 
   const fileName = makeSafeFileName(outputPrefix, id);
   const basePath = outputDirectory + "/" + fileName;
-  const tileImagePath = basePath + ".png";
+  const tileImagePath: `${string}.png` = `${basePath}.png`;
   const tileJsonPath = basePath + ".json";
   const tileTypeScriptPath = basePath + ".ts";
 

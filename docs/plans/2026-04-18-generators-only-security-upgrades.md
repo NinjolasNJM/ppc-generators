@@ -162,9 +162,9 @@ Risk:
 
 ### 3. Upgrade `jimp`
 
-- [ ] Package updated
-- [ ] Lockfile regenerated
-- [ ] Validation completed
+- [x] Package updated
+- [x] Lockfile regenerated
+- [x] Validation completed
 - [ ] `npm audit` confirmed clean for the `jimp` chain
 - [ ] Changes committed
 
@@ -184,6 +184,34 @@ Why last:
 - This is a major-version upgrade.
 - The repo has custom code under `src/tools/makeTextures/` that depends on `jimp` APIs.
 
+Risk assessment:
+
+- Risk class: `rendering/output`
+- Upgrade size: `major`
+- Current version: `0.22.12`
+- Target version: `1.6.0`
+- Coupled packages:
+  - none directly in `package.json`; the `@jimp/*` family will move transitively with `jimp`
+- Assumptions:
+  - The repo only uses `jimp` in `src/tools/makeTextures/utils.ts`.
+  - The narrowest meaningful regression check is to run `npm run makeTextures` against a small local PNG directory and inspect the generated `.png`, `.json`, and `.ts` outputs.
+
+Release-note review summary:
+
+- Upstream `jimp` latest npm release is `1.6.0`.
+- Jimp's v1 migration guide documents three changes that affect this repo directly:
+  - the package switched from a default export to a named `Jimp` export
+  - the constructor now takes an options object like `{ width, height }`
+  - async export methods were renamed, including `writeAsync` -> `write`
+- Jimp v1 also standardized many positional APIs to options objects, which raises output-risk if any local image operations beyond construction and writing need adaptation.
+- The `v1.4.0` and `v1.6.0` release notes mostly describe additive fixes and decoder-option support rather than new breaking migration steps; the dominant upgrade risk remains the v0 -> v1 API transition.
+
+Supply-chain notes:
+
+- The vulnerable `0.22.x` line currently brings in the legacy `@jimp/custom`, `@jimp/core`, `file-type`, `load-bmfont`, `phin`, and `min-document` paths called out by `npm audit`.
+- Moving to the maintained `1.x` line should replace that legacy transitive chain with the current `@jimp/*` package family.
+- Lockfile review must confirm the old vulnerable chain is removed rather than duplicated.
+
 Known touch points:
 
 - `src/tools/makeTextures/utils.ts`
@@ -198,8 +226,74 @@ Tasks:
 Validation:
 
 - [ ] `npm audit` no longer reports the `jimp` dependency chain.
-- [ ] `npm run makeTextures ...` completes successfully.
-- [ ] Generated `.png`, `.json`, and `.ts` outputs still match expected structure.
+- [x] `npm run makeTextures ...` completes successfully.
+- [x] Generated `.png`, `.json`, and `.ts` outputs still match expected structure.
+- [x] `npm run types:check`
+- [x] `npm run lint`
+- [x] `npm run build`
+
+Planned gates:
+
+- Mandatory defaults:
+  - `npm run types:check`
+  - `npm run lint`
+  - `npm run build`
+- Targeted output gate:
+  - run `npm run makeTextures <id> <sourceDir>` against a small checked-in PNG directory
+  - inspect the generated `.png`, `.json`, and `.ts` files for expected structure
+  - re-run `npm audit`
+
+Execution notes:
+
+- Updated `jimp` from `0.22.12` to `1.6.0`.
+- Migrated `src/tools/makeTextures/utils.ts` to the v1 API:
+  - default import -> named `Jimp` import
+  - callback constructor -> `new Jimp({ width, height })`
+  - `writeAsync(...)` -> `write(...)`
+  - adapted `blit` calls to the v1 options-object form
+  - tightened the generated PNG path type to satisfy Jimp v1's typed `write()` signature
+- Verified the texture tool against `src/generators/minecraftCreeper/textures` using `npm run makeTextures jimp-upgrade-smoke ...`.
+- The smoke test generated the expected `texture_jimp_upgrade_smoke.png`, `.json`, and `.ts` artifacts, then those temporary files were removed.
+- `npm run lint` passed.
+- `npm run build` passed.
+- `npm run types:check` passed after the successful build regenerated `.next/types`; running `tsc` before that still hits the repo's existing missing-generated-types quirk.
+- `npm audit` still reports the `jimp` chain because `jimp@1.6.0` currently resolves `file-type@16.5.4`, and npm flags `file-type` versions through `21.3.0` for `GHSA-5v7r-6r5c-r473`.
+
+Commands run:
+
+- `npm install --save-dev jimp@1.6.0`
+- `npm run makeTextures jimp-upgrade-smoke src/generators/minecraftCreeper/textures`
+- `npm run lint`
+- `npm run build`
+- `npm run types:check`
+- `npm audit`
+
+Lockfile and diff assessment:
+
+- Diff stayed scoped to the intended package and migration surface:
+  - `package.json`
+  - `package-lock.json`
+  - `src/tools/makeTextures/utils.ts`
+  - this plan file
+- The legacy vulnerable transitive path called out in the original plan was removed from the lockfile:
+  - `@jimp/custom`
+  - `load-bmfont`
+  - `phin`
+  - `min-document`
+- The new lockfile now resolves the maintained `jimp@1.6.0` / `@jimp/*@1.6.0` family instead.
+- Residual security churn remains because the current upstream `jimp` release still depends on a vulnerable `file-type` major line.
+
+Outcome:
+
+- `safe with follow-up`
+
+Residual risks:
+
+- The upgrade is functionally validated in this repo, but it does not fully satisfy the original security goal because `npm audit` still reports the `jimp` chain via `file-type@16.5.4`.
+- Resolving the remaining advisory likely requires one of:
+  - an upstream `jimp` release that moves off the vulnerable `file-type` range
+  - a separately approved override experiment to a newer `file-type` major, with dedicated compatibility testing
+  - replacing `jimp` for this tool if the upstream dependency does not move soon
 
 Risk:
 
