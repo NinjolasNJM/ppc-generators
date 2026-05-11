@@ -2,7 +2,7 @@ import {
   type Generator,
   type Region,
 } from "@genroot/builder/modules/generator";
-import * as Face from "../face";
+import * as Face from "../../_common/plugins/texturePicker/face";
 
 type Faces = {
   top: Region;

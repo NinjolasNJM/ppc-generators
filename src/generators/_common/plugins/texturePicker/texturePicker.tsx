@@ -1,7 +1,7 @@
 import { TexturePicker as BuilderTexturePicker } from "@genroot/builder/ui/texturePicker/texturePicker";
 import { type SelectedTexture } from "@genroot/builder/ui/texturePicker/selectedTexture";
 import { TintSelector } from "./tintSelector";
-import { findVersion } from "../_common/textures/textureVersions";
+import { findVersion } from "../../textures/textureVersions";
 
 export function TexturePicker({
   versionId,

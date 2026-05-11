@@ -13,10 +13,9 @@ import {
   type SelectedTextureWithBlend,
   encodeSelectedTextureWithBlend,
   decodeSelectedTextureWithBlend,
-} from "./selectedTextureWithBlend";
+} from "../_common/plugins/texturePicker/selectedTextureWithBlend";
 import { allTextureDefs, versionIds } from "../_common/textures/textureVersions";
-import { TexturePicker } from "./texturePicker";
-import { currentBlockTextureId } from "./constants";
+import { TexturePicker } from "../_common/plugins/texturePicker/texturePicker";
 import { drawBlock } from "./shapes/block";
 import { drawSlab } from "./shapes/slab";
 import { drawStair } from "./shapes/stair";
@@ -105,13 +104,13 @@ const script: ScriptDef = (generator: Generator) => {
   const versionId = generator.getSelectInputValue("Version");
 
   const currentTextureJson = generator.getStringInputValue(
-    currentBlockTextureId
+    "CurrentBlockTexture"
   );
   const currentTexture = currentTextureJson
     ? decodeSelectedTextureWithBlend(currentTextureJson)
     : null;
 
-  generator.defineCustomStringInput(currentBlockTextureId, (onChange) => {
+  generator.defineCustomStringInput("CurrentBlockTexture", (onChange) => {
     if (!versionId) {
       return null;
     }
@@ -212,14 +211,14 @@ const script: ScriptDef = (generator: Generator) => {
 
   generator.defineButtonInput("Clear", () => {
     const currentTextureChoice = generator.getStringInputValue(
-      currentBlockTextureId
+      "CurrentBlockTexture"
     );
 
     generator.clearAllVariables();
 
     if (currentTextureChoice) {
       generator.setStringInputValue(
-        currentBlockTextureId,
+        "CurrentBlockTexture",
         currentTextureChoice
       );
     }
