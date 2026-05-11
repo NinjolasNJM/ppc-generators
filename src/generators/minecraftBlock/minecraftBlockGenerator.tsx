@@ -14,7 +14,7 @@ import {
   encodeSelectedTextureWithBlend,
   decodeSelectedTextureWithBlend,
 } from "./selectedTextureWithBlend";
-import { textureDefs, textureVersionIds } from "./textureVersions";
+import { allTextureDefs, versionIds } from "../_common/textures/textureVersions";
 import { TexturePicker } from "./texturePicker";
 import { currentBlockTextureId } from "./constants";
 import { drawBlock } from "./shapes/block";
@@ -97,10 +97,10 @@ const images: ImageDef[] = [
   { id: "Tabs-Cake-Right", url: tabsCakeRightImage.src },
 ];
 
-const textures: TextureDef[] = textureDefs;
+const textures: TextureDef[] = allTextureDefs;
 
 const script: ScriptDef = (generator: Generator) => {
-  generator.defineSelectInput("Version", textureVersionIds);
+  generator.defineSelectInput("Version", versionIds);
 
   const versionId = generator.getSelectInputValue("Version");
 
