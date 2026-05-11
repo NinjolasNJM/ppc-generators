@@ -147,10 +147,12 @@ export function Preview({
   textureDef,
   frame,
   rotation,
+  tint,
 }: {
   textureDef: TextureDef;
   frame: TextureFrame | null;
   rotation: Rotation;
+  tint?: string | null;
 }) {
   if (!frame) {
     return (
@@ -163,12 +165,18 @@ export function Preview({
   const rotationDegrees = rotationToDegrees(rotation);
 
   const tileStyle = makeTileStyle(textureDef, frame, false, false, 128);
+  const tintStyle = tint
+    ? {
+        backgroundColor: tint,
+        backgroundBlendMode: "multiply" as const,
+      }
+    : undefined;
 
   const rotationStyle = {
     transform: `rotate(${deg(rotationDegrees)})`,
   };
 
-  const style = { ...tileStyle, ...rotationStyle };
+  const style = { ...tileStyle, ...tintStyle, ...rotationStyle };
 
   return (
     <div className="flex flex-col items-center" style={{ width: "148px" }}>
@@ -193,11 +201,13 @@ export function TexturePicker({
   frames,
   onSelect,
   enableRotation,
+  tint,
 }: {
   textureDef: TextureDef;
   frames: TextureFrame[];
   onSelect: (selectedTexture: SelectedTexture) => void;
   enableRotation: boolean;
+  tint?: string | null;
 }) {
   const [search, setSearch] = React.useState("");
   const [selectedFrame, setSelectedFrame] = React.useState<TextureFrame | null>(
@@ -270,6 +280,7 @@ export function TexturePicker({
             textureDef={textureDef}
             frame={selectedFrame}
             rotation={rotation}
+            tint={tint}
           />
           {enableRotation ? (
             <div className="flex justify-center mt-4">

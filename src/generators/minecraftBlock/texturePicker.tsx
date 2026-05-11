@@ -7,10 +7,12 @@ export function TexturePicker({
   versionId,
   onBlendSelected,
   onTextureSelected,
+  blend,
 }: {
   versionId: string;
   onTextureSelected: (texture: SelectedTexture) => void;
   onBlendSelected: (blend: string | null) => void;
+  blend?: string | null;
 }): JSX.Element | null {
   const textureVersion = findVersion(versionId);
   if (!textureVersion) {
@@ -25,6 +27,7 @@ export function TexturePicker({
           frames={frames}
           onSelect={onTextureSelected}
           enableRotation={true}
+          tint={blend}
         />
       </div>
       <div className="mb-4">
