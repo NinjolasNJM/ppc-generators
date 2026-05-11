@@ -7,10 +7,10 @@ type TextureDef = {
   standardHeight: number;
 };
 
-import image from "./texture_26_1_items_test.png";
+import image from "./texture_minecraft_26_1_2_items.png";
 
 const textureDef: TextureDef = {
-  id: "26.1-items-test",
+  id: "minecraft-26.1.2-items",
   url: image.src,
   standardWidth: 512,
   standardHeight: 416,
