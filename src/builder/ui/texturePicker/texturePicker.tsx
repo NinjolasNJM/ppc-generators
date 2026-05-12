@@ -1,6 +1,6 @@
 import React from "react";
 import { Button } from "@genroot/builder/ui/button/button";
-import { ArrowPathIcon, XMarkIcon } from "@genroot/builder/ui/icon";
+import { ArrowPathIcon, ArrowsRightLeftIcon, ArrowsUpDownIcon, XMarkIcon } from "@genroot/builder/ui/icon";
 import { type TextureDef } from "@genroot/builder/modules/generatorDef";
 import {
   type TextureFrame,
@@ -10,7 +10,8 @@ import {
   type Rotation,
   makeNextRotation,
   rotationToDegrees,
-} from "@genroot/builder/ui/texturePicker/rotation";
+} from "./rotation";
+import { Flip, makeNextFlip, flipToTransform } from "./flip";
 import { type SelectedTexture } from "./selectedTexture";
 
 function px(n: number): string {
@@ -147,11 +148,13 @@ export function Preview({
   textureDef,
   frame,
   rotation,
+  flip,
   tint,
 }: {
   textureDef: TextureDef;
   frame: TextureFrame | null;
   rotation: Rotation;
+  flip: Flip;
   tint?: string | null;
 }) {
   if (!frame) {
@@ -163,6 +166,7 @@ export function Preview({
   }
 
   const rotationDegrees = rotationToDegrees(rotation);
+  const flipTransform = flipToTransform(flip);
 
   const tileStyle = makeTileStyle(textureDef, frame, false, false, 128);
   const tintStyle = tint
@@ -172,8 +176,10 @@ export function Preview({
       }
     : undefined;
 
+  const transform = `rotate(${deg(rotationDegrees)}) ${flipTransform}`.trim();
+
   const rotationStyle = {
-    transform: `rotate(${deg(rotationDegrees)})`,
+    transform: transform,
   };
 
   const style = { ...tileStyle, ...tintStyle, ...rotationStyle };
@@ -192,6 +198,22 @@ export function RotationButton({ onClick }: { onClick: () => void }) {
   return (
     <Button size="Small" onClick={onClick}>
       <ArrowPathIcon color="White" />
+    </Button>
+  );
+}
+
+export function FlipHorizontalButton({ onClick }: { onClick: () => void }) {
+  return (
+    <Button size="Small" onClick={onClick}>
+      <ArrowsRightLeftIcon color="White" />
+    </Button>
+  );
+}
+
+export function FlipVerticalButton({ onClick }: { onClick: () => void }) {
+  return (
+    <Button size="Small" onClick={onClick}>
+      <ArrowsUpDownIcon color="White" />
     </Button>
   );
 }
@@ -216,6 +238,8 @@ export function TexturePicker({
 
   const [rotation, setRotation] = React.useState<Rotation>("Rot0");
 
+  const [flip, setFlip] = React.useState<Flip>("None");
+
   const searchLower = search.toLowerCase();
 
   const framesFiltered = searchLower
@@ -230,6 +254,37 @@ export function TexturePicker({
         textureDefId: textureDef.id,
         frame: selectedFrame,
         rotation: nextRotation,
+        flip: flip,
+      };
+      onSelect(selectedTexture);
+    }
+  };
+
+  const onFlipHorizontalClick = () => {
+    const [nextFlip, nextRotation] = makeNextFlip(flip, "Horizontal", rotation);
+    setFlip(nextFlip);
+    setRotation(nextRotation);
+    if (selectedFrame) {
+      const selectedTexture: SelectedTexture = {
+        textureDefId: textureDef.id,
+        frame: selectedFrame,
+        rotation: nextRotation,
+        flip: nextFlip,
+      };
+      onSelect(selectedTexture);
+    }
+  };
+
+  const onFlipVerticalClick = () => {
+    const [nextFlip, nextRotation] = makeNextFlip(flip, "Vertical", rotation);
+    setFlip(nextFlip);
+    setRotation(nextRotation);
+    if (selectedFrame) {
+      const selectedTexture: SelectedTexture = {
+        textureDefId: textureDef.id,
+        frame: selectedFrame,
+        rotation: nextRotation,
+        flip: nextFlip,
       };
       onSelect(selectedTexture);
     }
@@ -241,6 +296,7 @@ export function TexturePicker({
       textureDefId: textureDef.id,
       frame: frame,
       rotation: rotation,
+      flip: flip,
     };
     onSelect(selectedTexture);
   };
@@ -280,11 +336,18 @@ export function TexturePicker({
             textureDef={textureDef}
             frame={selectedFrame}
             rotation={rotation}
+            flip={flip}
             tint={tint}
           />
           {enableRotation ? (
             <div className="flex justify-center mt-4">
               <RotationButton onClick={() => onRotateClick()} />
+            </div>
+          ) : null}
+          {enableRotation ? (
+            <div className="flex justify-center mt-2">
+              <FlipHorizontalButton onClick={() => onFlipHorizontalClick()} />
+              <FlipVerticalButton onClick={() => onFlipVerticalClick()} />
             </div>
           ) : null}
         </div>
