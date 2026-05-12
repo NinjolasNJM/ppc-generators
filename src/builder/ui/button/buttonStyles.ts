@@ -2,7 +2,7 @@ export type ButtonSize = "Medium" | "Small";
 export type ButtonColor = "Gray" | "Blue" | "Red" | "Green";
 
 function makeButtonSizeClassNames(size: ButtonSize): string {
-  return size === "Medium" ? "px-10 py-3 " : "px-8 py-2 ";
+  return size === "Medium" ? "px-10 py-3 " : "px-4 py-2 ";
 }
 
 function makeButtonColorClassNames(color: ButtonColor): string {
@@ -25,13 +25,13 @@ function makeButtonColorClassNames(color: ButtonColor): string {
       );
     case "Red":
       return (
-        "bg-red-600 text-white " +
-        "hover:bg-red-500 " +
-        "focus-visible:outline-red-600 " +
-        "active:bg-red-600 " +
-        "aria-disabled:bg-red-500 "
-      );
-    case "Green":
+        "bg-red-500 text-white " +
+        "hover:bg-red-400 " +
+        "focus-visible:outline-red-500 " +
+        "active:bg-red-500 " +
+        "aria-disabled:bg-red-400 "
+      );    
+      case "Green":
       return (
         "bg-green-600 text-white " +
         "hover:bg-green-500 " +

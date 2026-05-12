@@ -10,6 +10,34 @@ import { decodeSelectedTextureWithBlend, decodeSelectedTextureWithBlendArray, en
 import { makeNextFlip } from "@genroot/builder/ui/texturePicker/flip";
 
 
+
+/* let defineInputRegion = (faceId, region) => {
+  Generator.defineRegionInput(region, () => {
+    let selectedTextureFrame = TexturePicker.SelectedTexture.decode(
+      Generator.getStringInputValue("SelectedTextureFrame"),
+    )
+    let selectedTextureFrames = TexturePicker.SelectedTexture.decodeArray(
+      Generator.getStringInputValue(faceId),
+    )
+    switch selectedTextureFrame {
+    | Some(selectedTextureFrame) => {
+        //if textureDefId = "" erase
+        let newTextureFrames = if selectedTextureFrame.textureDefId == "" {
+          let _ = Js.Array2.pop(selectedTextureFrames)
+          selectedTextureFrames
+        } else {
+          Belt.Array.concat(selectedTextureFrames, [selectedTextureFrame])
+        }
+        Generator.setStringInputValue(
+          faceId,
+          TexturePicker.SelectedTexture.encodeArray(newTextureFrames),
+        )
+      }
+    | None => ()
+    }
+  })
+}
+*/
 export function defineInputRegion(
   generator: Generator,
   faceId: string,
@@ -30,7 +58,10 @@ export function defineInputRegion(
         ? decodeSelectedTextureWithBlendArray(curentFaceTexturesJson)
         : [];
 
-      const newFaceTextures = currentFaceTextures.concat([selectedTexture]);
+      const newFaceTextures =
+        selectedTexture.selectedTexture?.textureDefId === ""
+          ? (currentFaceTextures.pop(), currentFaceTextures)
+          : currentFaceTextures.concat([selectedTexture]);
       const newFaceTexturesJson =
         encodeSelectedTextureWithBlendArray(newFaceTextures);
       generator.setStringInputValue(faceId, newFaceTexturesJson);
@@ -92,7 +123,7 @@ function drawTexture(
 
   const [sx, sy, sw, sh] = source;
   const [fx, fy, fw, fh] = frame.rectangle;
-  // check if options.flip is defined, if not make it none
+
   const flipOption = options?.flip ?? "None";
 
   const [nextFlip, nextRotation] = makeNextFlip(flipOption, flip, rotation);
