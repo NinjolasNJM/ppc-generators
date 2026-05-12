@@ -7,6 +7,7 @@ import {
   type Region,
 } from "@genroot/builder/modules/generator";
 import { decodeSelectedTextureWithBlend, decodeSelectedTextureWithBlendArray, encodeSelectedTextureWithBlendArray, SelectedTextureWithBlend } from "./selectedTextureWithBlend";
+import { makeNextFlip } from "@genroot/builder/ui/texturePicker/flip";
 
 
 export function defineInputRegion(
@@ -37,6 +38,44 @@ export function defineInputRegion(
   });
 }
 
+/* let drawTexture = (
+  face: TexturePicker.SelectedTexture.t,
+  (sx, sy, sw, sh),
+  (dx, dy, dw, dh),
+  ~flip: Generator_Texture.flip=#None,
+  ~rotate: float=0.0,
+  (),
+) => {
+  let {textureDefId, frame, rotation, flip: textureFlip, blend} = face // selectedTextureFrame
+  let (tx, ty, tw, th) = frame.rectangle
+  let ix = tx + sx
+  let iy = ty + sy
+
+  let (newFlip, rotation) = TexturePicker.Flip.next(flip, textureFlip, rotation)
+
+  let source = switch rotation {
+  | Rot0 => (ix, iy, sw, sh) // Default positions
+  | Rot90 => (tx + sy, ty + tw - (sw + sx), sh, sw)
+  | Rot180 => (tx + tw - (sw + sx), ty + th - (sh + sy), sw, sh)
+  | Rot270 => (tx + th - (sh + sy), ty + sx, sh, sw)
+  }
+  let destination = switch rotation {
+  | Rot0 => (dx, dy, dw, dh)
+  | Rot90 => (dx + (dw - dh) / 2, dy - (dw - dh) / 2, dh, dw)
+  | Rot180 => (dx, dy, dw, dh)
+  | Rot270 => (dx + (dw - dh) / 2, dy - (dw - dh) / 2, dh, dw)
+  }
+  let rot = rotate +. TexturePicker.Rotation.toDegrees(rotation)
+  Generator.drawTexture(
+    textureDefId,
+    source,
+    destination,
+    ~flip={newFlip},
+    ~rotate={rot},
+    ~blend={blend},
+    (),
+  )
+}*/
 function drawTexture(
   generator: Generator,
   face: SelectedTextureWithBlend,
@@ -48,16 +87,31 @@ function drawTexture(
     return;
   }
 
-  const { textureDefId, frame, rotation } = face.selectedTexture;
+  const { textureDefId, frame, rotation, flip } = face.selectedTexture;
   const [dx, dy, dw, dh] = destination;
 
   const [sx, sy, sw, sh] = source;
-  const [fx, fy] = frame.rectangle;
+  const [fx, fy, fw, fh] = frame.rectangle;
+  // check if options.flip is defined, if not make it none
+  const flipOption = options?.flip ?? "None";
 
-  const sourceRegion: Region = [sx + fx, sy + fy, sw, sh];
+  const [nextFlip, nextRotation] = makeNextFlip(flipOption, flip, rotation);
+
+  const sourceRegion: Region = (() => {
+    switch (nextRotation) {
+      case "Rot0":
+        return [fx + sx, fy + sy, sw, sh];
+      case "Rot90":
+        return [fx + sy, fy + fw - (sw + sx), sh, sw];
+      case "Rot180":
+        return [fx + fw - (sw + sx), fy + fh - (sh + sy), sw, sh];
+      case "Rot270":
+        return [fx + fh - (sh + sy), fy + sx, sh, sw];
+    }
+  })();
 
   const destinationRegion: Region = (() => {
-    switch (rotation) {
+    switch (nextRotation) {
       case "Rot0":
         return [dx, dy, dw, dh];
       case "Rot90":
@@ -66,14 +120,12 @@ function drawTexture(
         return [dx, dy, dw, dh];
       case "Rot270":
         return [dx + (dw - dh) / 2, dy - (dw - dh) / 2, dh, dw];
-      default:
-        return [dx, dy, dw, dh];
     }
   })();
 
   const rotate: number = ((): number => {
     const currRotate = options ? options.rotate ?? 0 : 0;
-    switch (rotation) {
+    switch (nextRotation) {
       case "Rot0":
         return currRotate;
       case "Rot90":
@@ -89,9 +141,10 @@ function drawTexture(
     ? { kind: "MultiplyHex", hex: face.blend }
     : undefined;
 
-  const optionsWithRotate: DrawTextureOptions = {
+  const optionsWithTransforms: DrawTextureOptions = {
     ...options,
     rotate,
+    flip: nextFlip,
     blend,
   };
 
@@ -99,7 +152,7 @@ function drawTexture(
     textureDefId,
     sourceRegion,
     destinationRegion,
-    optionsWithRotate
+    optionsWithTransforms
   );
 }
 
