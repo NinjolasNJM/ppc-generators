@@ -10,15 +10,16 @@ import type {
   ThumbnailDef,
 } from "@genroot/builder/modules/generatorDef";
 import { type Generator } from "@genroot/builder/modules/generator";
+import { type Blend } from "@genroot/builder/modules/renderers/drawTexture";
 import { allTextureDefs, versionIds, findVersion } from "../_common/textures/textureVersions";
 import {
-  type SelectedTexture,
-  encodeSelectedTexture,
-  decodeSelectedTexture,
-  encodeSelectedTextures,
-  decodeSelectedTextures,
-} from "@genroot/builder/ui/texturePicker/selectedTexture";
-import { TexturePicker } from "./ui/texturePicker";
+  type SelectedTextureWithBlend,
+  encodeSelectedTextureWithBlend,
+  decodeSelectedTextureWithBlend,
+  encodeSelectedTextureWithBlendArray,
+  decodeSelectedTextureWithBlendArray,
+} from "../_common/plugins/texturePicker/selectedTextureWithBlend";
+import { TexturePicker } from "../_common/plugins/texturePicker/texturePicker";
 
 /** [x, y, width, height] */
 type Rectangle = [number, number, number, number];
@@ -92,19 +93,21 @@ const script: ScriptDef = (generator: Generator) => {
     x: number,
     y: number,
     size: number,
-    showFolds: boolean
+    showFolds: boolean,
+    blend?: Blend
   ) => {
     const tileWidth = getTileWidth(rectangle);
     const regionId = makeRegionId(textureId, rectangle);
     const textureOffset = getSelectInputAsNumberWithDefault(regionId, 0);
     const offset = (textureOffset * size) / tileWidth;
-    generator.drawTexture(textureId, rectangle, [x + offset, y, size, size]);
+    generator.drawTexture(textureId, rectangle, [x + offset, y, size, size], { blend });
     generator.drawTexture(
       textureId,
       rectangle,
       [x + size - offset, y, size, size],
       {
         flip: "Horizontal",
+        blend,
       }
     );
     if (showFolds) {
@@ -124,7 +127,7 @@ const script: ScriptDef = (generator: Generator) => {
     maxRows,
     showFolds,
   }: {
-    selectedTextureFrames: SelectedTexture[];
+    selectedTextureFrames: SelectedTextureWithBlend[];
     size: number;
     border: number;
     maxCols: number;
@@ -140,7 +143,9 @@ const script: ScriptDef = (generator: Generator) => {
       generator.usePage(`Page ${page}`);
       generator.drawImage("Background", [0, 0]);
       selectedTextureFrames.forEach((selectedTextureFrame, index) => {
-        const { textureDefId, frame } = selectedTextureFrame;
+        if (!selectedTextureFrame.selectedTexture) return;
+        
+        const { textureDefId, frame } = selectedTextureFrame.selectedTexture;
         const page = Math.floor(index / maxItemsPerPage) + 1;
         const pageId = `Page ${page}`;
         const col = index % maxCols;
@@ -153,15 +158,20 @@ const script: ScriptDef = (generator: Generator) => {
         y = row * size;
         y = row > 0 ? y + border * row : y;
         y = border + y;
+        
+        const blend: Blend | undefined = selectedTextureFrame.blend
+          ? { kind: "MultiplyHex", hex: selectedTextureFrame.blend }
+          : undefined;
+        
         generator.usePage(pageId);
-        drawItem(textureDefId, frame.rectangle, x, y, size, showFolds);
+        drawItem(textureDefId, frame.rectangle, x, y, size, showFolds, blend);
         generator.drawImage("Title", [0, 0]);
       });
     }
   };
 
   const drawSmall = (
-    selectedTextureFrames: SelectedTexture[],
+    selectedTextureFrames: SelectedTextureWithBlend[],
     showFolds: boolean
   ) => {
     drawItems({
@@ -175,7 +185,7 @@ const script: ScriptDef = (generator: Generator) => {
   };
 
   const drawMedium = (
-    selectedTextureFrames: SelectedTexture[],
+    selectedTextureFrames: SelectedTextureWithBlend[],
     showFolds: boolean
   ) => {
     drawItems({
@@ -189,7 +199,7 @@ const script: ScriptDef = (generator: Generator) => {
   };
 
   const drawLarge = (
-    selectedTextureFrames: SelectedTexture[],
+    selectedTextureFrames: SelectedTextureWithBlend[],
     showFolds: boolean
   ) => {
     drawItems({
@@ -202,7 +212,7 @@ const script: ScriptDef = (generator: Generator) => {
     });
   };
 
-  const drawFullPage = (selectedTextureFrames: SelectedTexture[]) => {
+  const drawFullPage = (selectedTextureFrames: SelectedTextureWithBlend[]) => {
     const size = 16 * 8 * 4;
     const border = 30;
     const addedCount = selectedTextureFrames.length;
@@ -212,25 +222,33 @@ const script: ScriptDef = (generator: Generator) => {
       generator.drawImage("Background", [0, 0]);
     }
     selectedTextureFrames.forEach((selectedTextureFrame, index) => {
-      const { textureDefId, frame } = selectedTextureFrame;
+      if (!selectedTextureFrame.selectedTexture) return;
+      
+      const { textureDefId, frame } = selectedTextureFrame.selectedTexture;
       const x = border;
       const y = border;
       const page1 = index * 2 + 1;
       const page1Id = `Page ${page1}`;
       const page2 = index * 2 + 2;
       const page2Id = `Page ${page2}`;
+      
+      const blend: Blend | undefined = selectedTextureFrame.blend
+        ? { kind: "MultiplyHex", hex: selectedTextureFrame.blend }
+        : undefined;
+      
       generator.usePage(page1Id);
-      generator.drawTexture(textureDefId, frame.rectangle, [x, y, size, size]);
+      generator.drawTexture(textureDefId, frame.rectangle, [x, y, size, size], { blend });
       generator.drawImage("Title", [0, 0]);
       generator.usePage(page2Id);
       generator.drawTexture(textureDefId, frame.rectangle, [x, y, size, size], {
         flip: "Horizontal",
+        blend,
       });
       generator.drawImage("Title", [0, 0]);
     });
   };
 
-  const sizeSmall = "Small (200%)";
+  const sizeSmall = "Standard (200%)";
   const sizeMedium = "Medium (400%)";
   const sizeLarge = "Large (700%)";
   const sizeFullPage = "Full Page";
@@ -255,15 +273,35 @@ const script: ScriptDef = (generator: Generator) => {
   // Show the Texture Picker
   // When a texture is selected, we need to encode it into a string variable
 
+  const currentTextureJson = generator.getStringInputValue("SelectedTextureFrame");
+  const currentTexture = currentTextureJson
+    ? decodeSelectedTextureWithBlend(currentTextureJson)
+    : null;
+
   generator.defineCustomStringInput("SelectedTextureFrame", (onChange) => {
     if (!textureVersion) {
       return null;
     }
     return (
       <TexturePicker
-        textureVersion={textureVersion}
-        onSelect={(selectedTexture) => {
-          onChange(encodeSelectedTexture(selectedTexture));
+        versionId={versionId}
+        enableRotation={false}
+        blend={currentTexture ? currentTexture.blend : null}
+        onTextureSelected={(selectedTexture) => {
+          const newTexture: SelectedTextureWithBlend = {
+            selectedTexture,
+            blend: currentTexture ? currentTexture.blend : null,
+          };
+          onChange(encodeSelectedTextureWithBlend(newTexture));
+        }}
+        onBlendSelected={(blend) => {
+          const newTexture: SelectedTextureWithBlend = {
+            selectedTexture: currentTexture
+              ? currentTexture.selectedTexture
+              : null,
+            blend,
+          };
+          onChange(encodeSelectedTextureWithBlend(newTexture));
         }}
       />
     );
@@ -283,8 +321,8 @@ const script: ScriptDef = (generator: Generator) => {
   const selectedTextureJson = generator.getStringInputValue(
     "SelectedTextureFrame"
   );
-  const selectedTextureFrame: SelectedTexture | null = selectedTextureJson
-    ? decodeSelectedTexture(selectedTextureJson)
+  const selectedTextureFrame: SelectedTextureWithBlend | null = selectedTextureJson
+    ? decodeSelectedTextureWithBlend(selectedTextureJson)
     : null;
 
   // Decode the added textures
@@ -292,21 +330,21 @@ const script: ScriptDef = (generator: Generator) => {
   const selectedTextureFramesJson = generator.getStringInputValue(
     "SelectedTextureFrames"
   );
-  const selectedTextureFrames: SelectedTexture[] = selectedTextureFramesJson
-    ? decodeSelectedTextures(selectedTextureFramesJson)
+  const selectedTextureFrames: SelectedTextureWithBlend[] = selectedTextureFramesJson
+    ? decodeSelectedTextureWithBlendArray(selectedTextureFramesJson)
     : [];
 
   // Show a button which adds the selected texture to the page
 
   generator.defineButtonInput("Add Item", () => {
     if (selectedTextureFrame) {
-      const newSelectedTextureFrames: SelectedTexture[] = [
+      const newSelectedTextureFrames: SelectedTextureWithBlend[] = [
         ...selectedTextureFrames,
         selectedTextureFrame,
       ];
       generator.setStringInputValue(
         "SelectedTextureFrames",
-        encodeSelectedTextures(newSelectedTextureFrames)
+        encodeSelectedTextureWithBlendArray(newSelectedTextureFrames)
       );
     }
   });
@@ -316,7 +354,7 @@ const script: ScriptDef = (generator: Generator) => {
   generator.defineButtonInput("Clear", () => {
     generator.setStringInputValue(
       "SelectedTextureFrames",
-      encodeSelectedTextures([])
+      encodeSelectedTextureWithBlendArray([])
     );
   });
 
