@@ -40,7 +40,7 @@
     "@typescript-eslint/parser": "8.1.0",
     "autoprefixer": "10.4.20",
     "eslint": "^8.57.0",
-    "eslint-config-next": "^16.2.6",
+    "eslint-config-next": "^14.2.5",
     "imageinfo": "1.0.4",
     "jimp": "^0.22.12",
     "postcss": "8.4.49",
