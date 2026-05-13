@@ -11,7 +11,11 @@ import type {
 } from "@genroot/builder/modules/generatorDef";
 import { type Generator } from "@genroot/builder/modules/generator";
 import { type Blend } from "@genroot/builder/modules/renderers/drawTexture";
-import { allTextureDefs, versionIds, findVersion } from "../_common/textures/textureVersions";
+import {
+  allTextureDefs,
+  versionIds,
+  findVersion,
+} from "../_common/textures/textureVersions";
 import {
   type SelectedTextureWithBlend,
   encodeSelectedTextureWithBlend,
@@ -100,7 +104,9 @@ const script: ScriptDef = (generator: Generator) => {
     const regionId = makeRegionId(textureId, rectangle);
     const textureOffset = getSelectInputAsNumberWithDefault(regionId, 0);
     const offset = (textureOffset * size) / tileWidth;
-    generator.drawTexture(textureId, rectangle, [x + offset, y, size, size], { blend });
+    generator.drawTexture(textureId, rectangle, [x + offset, y, size, size], {
+      blend,
+    });
     generator.drawTexture(
       textureId,
       rectangle,
@@ -144,7 +150,7 @@ const script: ScriptDef = (generator: Generator) => {
       generator.drawImage("Background", [0, 0]);
       selectedTextureFrames.forEach((selectedTextureFrame, index) => {
         if (!selectedTextureFrame.selectedTexture) return;
-        
+
         const { textureDefId, frame } = selectedTextureFrame.selectedTexture;
         const page = Math.floor(index / maxItemsPerPage) + 1;
         const pageId = `Page ${page}`;
@@ -158,11 +164,11 @@ const script: ScriptDef = (generator: Generator) => {
         y = row * size;
         y = row > 0 ? y + border * row : y;
         y = border + y;
-        
+
         const blend: Blend | undefined = selectedTextureFrame.blend
           ? { kind: "MultiplyHex", hex: selectedTextureFrame.blend }
           : undefined;
-        
+
         generator.usePage(pageId);
         drawItem(textureDefId, frame.rectangle, x, y, size, showFolds, blend);
         generator.drawImage("Title", [0, 0]);
@@ -223,7 +229,7 @@ const script: ScriptDef = (generator: Generator) => {
     }
     selectedTextureFrames.forEach((selectedTextureFrame, index) => {
       if (!selectedTextureFrame.selectedTexture) return;
-      
+
       const { textureDefId, frame } = selectedTextureFrame.selectedTexture;
       const x = border;
       const y = border;
@@ -231,13 +237,15 @@ const script: ScriptDef = (generator: Generator) => {
       const page1Id = `Page ${page1}`;
       const page2 = index * 2 + 2;
       const page2Id = `Page ${page2}`;
-      
+
       const blend: Blend | undefined = selectedTextureFrame.blend
         ? { kind: "MultiplyHex", hex: selectedTextureFrame.blend }
         : undefined;
-      
+
       generator.usePage(page1Id);
-      generator.drawTexture(textureDefId, frame.rectangle, [x, y, size, size], { blend });
+      generator.drawTexture(textureDefId, frame.rectangle, [x, y, size, size], {
+        blend,
+      });
       generator.drawImage("Title", [0, 0]);
       generator.usePage(page2Id);
       generator.drawTexture(textureDefId, frame.rectangle, [x, y, size, size], {
@@ -273,7 +281,9 @@ const script: ScriptDef = (generator: Generator) => {
   // Show the Texture Picker
   // When a texture is selected, we need to encode it into a string variable
 
-  const currentTextureJson = generator.getStringInputValue("SelectedTextureFrame");
+  const currentTextureJson = generator.getStringInputValue(
+    "SelectedTextureFrame"
+  );
   const currentTexture = currentTextureJson
     ? decodeSelectedTextureWithBlend(currentTextureJson)
     : null;
@@ -321,18 +331,20 @@ const script: ScriptDef = (generator: Generator) => {
   const selectedTextureJson = generator.getStringInputValue(
     "SelectedTextureFrame"
   );
-  const selectedTextureFrame: SelectedTextureWithBlend | null = selectedTextureJson
-    ? decodeSelectedTextureWithBlend(selectedTextureJson)
-    : null;
+  const selectedTextureFrame: SelectedTextureWithBlend | null =
+    selectedTextureJson
+      ? decodeSelectedTextureWithBlend(selectedTextureJson)
+      : null;
 
   // Decode the added textures
 
   const selectedTextureFramesJson = generator.getStringInputValue(
     "SelectedTextureFrames"
   );
-  const selectedTextureFrames: SelectedTextureWithBlend[] = selectedTextureFramesJson
-    ? decodeSelectedTextureWithBlendArray(selectedTextureFramesJson)
-    : [];
+  const selectedTextureFrames: SelectedTextureWithBlend[] =
+    selectedTextureFramesJson
+      ? decodeSelectedTextureWithBlendArray(selectedTextureFramesJson)
+      : [];
 
   // Show a button which adds the selected texture to the page
 

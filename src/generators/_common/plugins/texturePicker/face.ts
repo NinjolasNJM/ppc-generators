@@ -6,10 +6,13 @@ import {
   type Generator,
   type Region,
 } from "@genroot/builder/modules/generator";
-import { decodeSelectedTextureWithBlend, decodeSelectedTextureWithBlendArray, encodeSelectedTextureWithBlendArray, SelectedTextureWithBlend } from "./selectedTextureWithBlend";
+import {
+  decodeSelectedTextureWithBlend,
+  decodeSelectedTextureWithBlendArray,
+  encodeSelectedTextureWithBlendArray,
+  SelectedTextureWithBlend,
+} from "./selectedTextureWithBlend";
 import { makeNextFlip } from "@genroot/builder/ui/texturePicker/flip";
-
-
 
 /* let defineInputRegion = (faceId, region) => {
   Generator.defineRegionInput(region, () => {

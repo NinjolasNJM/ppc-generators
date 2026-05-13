@@ -14,7 +14,10 @@ import {
   encodeSelectedTextureWithBlend,
   decodeSelectedTextureWithBlend,
 } from "../_common/plugins/texturePicker/selectedTextureWithBlend";
-import { allTextureDefs, versionIds } from "../_common/textures/textureVersions";
+import {
+  allTextureDefs,
+  versionIds,
+} from "../_common/textures/textureVersions";
 import { TexturePicker } from "../_common/plugins/texturePicker/texturePicker";
 import { drawBlock } from "./shapes/block";
 import { drawSlab } from "./shapes/slab";
