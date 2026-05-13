@@ -14,6 +14,8 @@ import * as Texture_1_13_2_Blocks from "@genroot/generators/_common/textures/tex
 import * as Texture_26_1_2_Items from "@genroot/generators/_common/textures/texture_minecraft_26_1_2_items";
 import * as Texture_26_1_2_Blocks from "@genroot/generators/_common/textures/texture_minecraft_26_1_2_blocks";
 
+import { customTextureVersion } from "./customTextureVersion";
+
 const blockDefinitions: [TextureData, number][] = [
   [Texture_1_7_10_Blocks.data, 16],
   [Texture_1_13_2_Blocks.data, 16],
@@ -48,21 +50,21 @@ export const itemTextureVersions: TextureVersion[] = itemDefinitions.map(
 );
 
 
-export const allTextureDefs = [...blockTextureVersions, ...itemTextureVersions].map(
+export const allTextureDefs = [...blockTextureVersions, ...itemTextureVersions, customTextureVersion].map(
   ({ textureDef }) => textureDef
 );
 
-export const versionIdsBlocksFirst = [...itemTextureVersions, ...blockTextureVersions]
+export const versionIdsBlocksFirst = [customTextureVersion, ...itemTextureVersions, ...blockTextureVersions]
   .map(({ textureDef }) => textureDef.id)
   .reverse();
 
-export const versionIdsItemsFirst = [...blockTextureVersions, ...itemTextureVersions]
+export const versionIdsItemsFirst = [customTextureVersion, ...blockTextureVersions, ...itemTextureVersions]
   .map(({ textureDef }) => textureDef.id)
   .reverse();
 
 export function findVersion(versionId: string): TextureVersion | null {
   return (
-    [...blockTextureVersions, ...itemTextureVersions].find(({ textureDef }) => textureDef.id === versionId) ??
+    [...blockTextureVersions, ...itemTextureVersions, customTextureVersion].find(({ textureDef }) => textureDef.id === versionId) ??
     null
   );
 }

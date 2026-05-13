@@ -18,6 +18,7 @@ import {
   allTextureDefs,
   versionIdsBlocksFirst as versionIds,
 } from "../_common/textures/textureVersions";
+import { customFrame } from "../_common/textures/customTextureVersion";
 import { TexturePicker } from "../_common/plugins/texturePicker/texturePicker";
 import { drawBlock } from "./shapes/block";
 import { drawSlab } from "./shapes/slab";
@@ -109,37 +110,55 @@ const script: ScriptDef = (generator: Generator) => {
   const currentTextureJson = generator.getStringInputValue(
     "CurrentBlockTexture"
   );
-  const currentTexture = currentTextureJson
+  let currentTexture = currentTextureJson
     ? decodeSelectedTextureWithBlend(currentTextureJson)
     : null;
 
-  generator.defineCustomStringInput("CurrentBlockTexture", (onChange) => {
-    if (!versionId) {
-      return null;
-    }
-    return (
-      <TexturePicker
-        versionId={versionId}
-        blend={currentTexture ? currentTexture.blend : null}
-        onTextureSelected={(selectedTexture) => {
-          const newTexture: SelectedTextureWithBlend = {
-            selectedTexture,
-            blend: currentTexture ? currentTexture.blend : null,
-          };
-          onChange(encodeSelectedTextureWithBlend(newTexture));
-        }}
-        onBlendSelected={(blend) => {
-          const newTexture: SelectedTextureWithBlend = {
-            selectedTexture: currentTexture
-              ? currentTexture.selectedTexture
-              : null,
-            blend,
-          };
-          onChange(encodeSelectedTextureWithBlend(newTexture));
-        }}
-      />
-    );
-  });
+  if (versionId === "custom") {
+    generator.defineTextureInput("custom", {
+      standardWidth: 16,
+      standardHeight: 16,
+      choices: [],
+    });
+    // For custom, the selected texture is the whole custom texture
+    currentTexture = {
+      selectedTexture: {
+        textureDefId: "custom",
+        frame: customFrame,
+        rotation: "Rot0",
+        flip: "None",
+      },
+      blend: currentTexture ? currentTexture.blend : null,
+    };
+  }
+    generator.defineCustomStringInput("CurrentBlockTexture", (onChange) => {
+      if (!versionId) {
+        return null;
+      }
+      return (
+        <TexturePicker
+          versionId={versionId}
+          blend={currentTexture ? currentTexture.blend : null}
+          onTextureSelected={(selectedTexture) => {
+            const newTexture: SelectedTextureWithBlend = {
+              selectedTexture,
+              blend: currentTexture ? currentTexture.blend : null,
+            };
+            onChange(encodeSelectedTextureWithBlend(newTexture));
+          }}
+          onBlendSelected={(blend) => {
+            const newTexture: SelectedTextureWithBlend = {
+              selectedTexture: currentTexture
+                ? currentTexture.selectedTexture
+                : null,
+              blend,
+            };
+            onChange(encodeSelectedTextureWithBlend(newTexture));
+          }}
+        />
+      );
+    });
+
 
   generator.defineSelectInput("Number of Blocks", ["1", "2"]);
 
