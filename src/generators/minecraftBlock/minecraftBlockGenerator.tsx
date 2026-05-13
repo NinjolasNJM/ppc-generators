@@ -16,7 +16,7 @@ import {
 } from "../_common/plugins/texturePicker/selectedTextureWithBlend";
 import {
   allTextureDefs,
-  versionIds,
+  versionIdsBlocksFirst as versionIds,
 } from "../_common/textures/textureVersions";
 import { TexturePicker } from "../_common/plugins/texturePicker/texturePicker";
 import { drawBlock } from "./shapes/block";

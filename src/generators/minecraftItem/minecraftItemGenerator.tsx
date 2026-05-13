@@ -13,7 +13,7 @@ import { type Generator } from "@genroot/builder/modules/generator";
 import { type Blend } from "@genroot/builder/modules/renderers/drawTexture";
 import {
   allTextureDefs,
-  versionIds,
+  versionIdsItemsFirst as versionIds,
   findVersion,
 } from "../_common/textures/textureVersions";
 import {
