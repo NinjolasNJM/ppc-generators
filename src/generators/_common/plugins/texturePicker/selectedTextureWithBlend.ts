@@ -3,6 +3,7 @@ import { type SelectedTexture } from "@genroot/builder/ui/texturePicker/selected
 export type SelectedTextureWithBlend = {
   selectedTexture: SelectedTexture | null;
   blend: string | null;
+  itemSize?: string | null;
 };
 
 export function decodeSelectedTextureWithBlend(

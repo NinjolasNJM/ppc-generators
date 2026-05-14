@@ -54,12 +54,21 @@ const thumbnail: ThumbnailDef = {
 const instructions: InstructionsDef = `
 ## Item Sizes
 
-The generator supports four standard sizes:
+The Scope of this PR will be to add various crucial features that were left out
+This includes a rework of the sizing system, and with it, the positions of the
+items on the page. The dynamic inclusion of sizing on items allows for the proper 
+usage of items like spears along with the quality of life of being able to more
+flexiblty use different item sizes, and will come in handy if support for 3D items 
+is ever added. Layering items on top of each other also allows for items 
+like potions to be generated for the first time.
+List of features to add:
+Rework sizing mechanic:
+multiple sizes allowed on page as it is based on per item.
+change the default item sizes and add new ones and subrtract old ones.
+Fix spears
+(auto) gap placement
+Overlaying Textures
 
-* **Medium** - Good for general items (400% scale)
-* **Large** - Good for weapons and tools (700% scale)
-* **Small** - Good for blocks as items (200% scale)
-* **Full Page** - For fun large size items
 `;
 
 const images: ImageDef[] = [
@@ -130,21 +139,42 @@ const script: ScriptDef = (generator: Generator) => {
     }
   };
 
-  const drawItems = ({
-    selectedTextureFrames,
-    size,
-    border,
-    maxCols,
-    maxRows,
-    showFolds,
-  }: {
-    selectedTextureFrames: SelectedTextureWithBlend[];
-    size: number;
-    border: number;
-    maxCols: number;
-    maxRows: number;
-    showFolds: boolean;
-  }) => {
+  const getSizeFromLabel = (sizeLabel: string | null | undefined) => {
+    if (sizeLabel === sizeSmall) return 16 * 2;
+    if (sizeLabel === sizeMedium) return 16 * 4;
+    if (sizeLabel === sizeLarge) return 16 * 7;
+    return 16 * 4;
+  };
+
+  const getLayoutForSize = (size: number) => {
+    if (size <= 16 * 2) {
+      return { maxCols: 6, maxRows: 13, border: 25 };
+    }
+    if (size <= 16 * 4) {
+      return { maxCols: 4, maxRows: 10, border: 15 };
+    }
+    return { maxCols: 2, maxRows: 6, border: 20 };
+  };
+
+  const getItemSize = (selectedTextureFrame: SelectedTextureWithBlend) =>
+    getSizeFromLabel(selectedTextureFrame.itemSize);
+
+  const drawItems = (
+    selectedTextureFrames: SelectedTextureWithBlend[],
+    showFolds: boolean
+  ) => {
+    const maxItemSize = selectedTextureFrames.reduce(
+      (maxSize, frame) =>
+        frame.selectedTexture
+          ? Math.max(maxSize, getItemSize(frame))
+          : maxSize,
+      0
+    );
+    const defaultItemSize = getSizeFromLabel(sizeMedium);
+    const effectiveMaxSize = maxItemSize || defaultItemSize;
+    const { maxCols, maxRows, border } = getLayoutForSize(effectiveMaxSize);
+    const cellWidth = effectiveMaxSize * 2;
+    const cellHeight = effectiveMaxSize;
     const maxItemsPerPage = maxCols * maxRows;
     const itemCount = selectedTextureFrames.length;
     const pageCount =
@@ -161,14 +191,10 @@ const script: ScriptDef = (generator: Generator) => {
         const pageId = `Page ${page}`;
         const col = index % maxCols;
         const row = Math.floor(index / maxCols) % maxRows;
-        let x: number;
-        let y: number;
-        x = col * size * 2;
-        x = col > 0 ? x + border * col : x;
-        x = border + x;
-        y = row * size;
-        y = row > 0 ? y + border * row : y;
-        y = border + y;
+        const size = getItemSize(selectedTextureFrame);
+        const itemWidth = size * 2;
+        const x = border + col * (cellWidth + border) + (cellWidth - itemWidth) / 2;
+        const y = border + row * (cellHeight + border) + (cellHeight - size) / 2;
 
         const blend: Blend | undefined = selectedTextureFrame.blend
           ? { kind: "MultiplyHex", hex: selectedTextureFrame.blend }
@@ -181,91 +207,10 @@ const script: ScriptDef = (generator: Generator) => {
     }
   };
 
-  const drawSmall = (
-    selectedTextureFrames: SelectedTextureWithBlend[],
-    showFolds: boolean
-  ) => {
-    drawItems({
-      selectedTextureFrames,
-      size: 16 * 2,
-      border: 25,
-      maxCols: 6,
-      maxRows: 13,
-      showFolds,
-    });
-  };
-
-  const drawMedium = (
-    selectedTextureFrames: SelectedTextureWithBlend[],
-    showFolds: boolean
-  ) => {
-    drawItems({
-      selectedTextureFrames,
-      size: 16 * 4,
-      border: 15,
-      maxCols: 4,
-      maxRows: 10,
-      showFolds,
-    });
-  };
-
-  const drawLarge = (
-    selectedTextureFrames: SelectedTextureWithBlend[],
-    showFolds: boolean
-  ) => {
-    drawItems({
-      selectedTextureFrames,
-      size: 16 * 7,
-      border: 20,
-      maxCols: 2,
-      maxRows: 6,
-      showFolds,
-    });
-  };
-
-  const drawFullPage = (selectedTextureFrames: SelectedTextureWithBlend[]) => {
-    const size = 16 * 8 * 4;
-    const border = 30;
-    const addedCount = selectedTextureFrames.length;
-    const pageCount = addedCount * 2;
-    for (let page = 1; page <= pageCount; page++) {
-      generator.usePage(`Page ${page}`);
-      generator.drawImage("Background", [0, 0]);
-    }
-    selectedTextureFrames.forEach((selectedTextureFrame, index) => {
-      if (!selectedTextureFrame.selectedTexture) return;
-
-      const { textureDefId, frame } = selectedTextureFrame.selectedTexture;
-      const x = border;
-      const y = border;
-      const page1 = index * 2 + 1;
-      const page1Id = `Page ${page1}`;
-      const page2 = index * 2 + 2;
-      const page2Id = `Page ${page2}`;
-
-      const blend: Blend | undefined = selectedTextureFrame.blend
-        ? { kind: "MultiplyHex", hex: selectedTextureFrame.blend }
-        : undefined;
-
-      generator.usePage(page1Id);
-      generator.drawTexture(textureDefId, frame.rectangle, [x, y, size, size], {
-        blend,
-      });
-      generator.drawImage("Title", [0, 0]);
-      generator.usePage(page2Id);
-      generator.drawTexture(textureDefId, frame.rectangle, [x, y, size, size], {
-        flip: "Horizontal",
-        blend,
-      });
-      generator.drawImage("Title", [0, 0]);
-    });
-  };
-
   const sizeSmall = "Standard (200%)";
   const sizeMedium = "Medium (400%)";
   const sizeLarge = "Large (700%)";
-  const sizeFullPage = "Full Page";
-  const sizes = [sizeMedium, sizeLarge, sizeSmall, sizeFullPage];
+  const sizes = [sizeSmall, sizeMedium, sizeLarge];
 
   // Show a drop down of different texture versions
 
@@ -300,11 +245,12 @@ const script: ScriptDef = (generator: Generator) => {
 
   const textureVersion = findVersion(versionId);
 
-  // Show a drop down of sizes
+  // Show a drop down for the size of the next item added
 
-  generator.defineSelectInput("Size", sizes);
+  generator.defineSelectInput("Item Size", sizes);
 
-  const size = generator.getSelectInputValue("Size");
+  const selectedItemSize =
+    generator.getSelectInputValue("Item Size") ?? sizeMedium;
 
   // Show the Texture Picker
   // When a texture is selected, we need to encode it into a string variable
@@ -378,9 +324,13 @@ const script: ScriptDef = (generator: Generator) => {
 
   generator.defineButtonInput("Add Item", () => {
     if (selectedTextureFrame) {
+      const newSelectedTextureFrame: SelectedTextureWithBlend = {
+        ...selectedTextureFrame,
+        itemSize: selectedItemSize,
+      };
       const newSelectedTextureFrames: SelectedTextureWithBlend[] = [
         ...selectedTextureFrames,
-        selectedTextureFrame,
+        newSelectedTextureFrame,
       ];
       generator.setStringInputValue(
         "SelectedTextureFrames",
@@ -406,17 +356,7 @@ const script: ScriptDef = (generator: Generator) => {
     generator.drawImage("Title", [0, 0]);
   }
 
-  if (size === sizeSmall) {
-    drawSmall(selectedTextureFrames, showFolds);
-  } else if (size === sizeMedium) {
-    drawMedium(selectedTextureFrames, showFolds);
-  } else if (size === sizeLarge) {
-    drawLarge(selectedTextureFrames, showFolds);
-  } else if (size === sizeFullPage) {
-    drawFullPage(selectedTextureFrames);
-  } else {
-    drawMedium(selectedTextureFrames, showFolds);
-  }
+  drawItems(selectedTextureFrames, showFolds);
 };
 
 export const generator: GeneratorDef = {
