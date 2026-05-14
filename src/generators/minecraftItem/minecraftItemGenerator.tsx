@@ -28,6 +28,7 @@ import {
   updateCustomTextureAtlas,
   updateCustomTextureUrl,
 } from "../_common/textures/customTextureVersion";
+import { A4 } from "@genroot/builder/modules/modelPage";
 import { TexturePicker } from "../_common/plugins/texturePicker/texturePicker";
 
 /** [x, y, width, height] */
@@ -110,21 +111,24 @@ const script: ScriptDef = (generator: Generator) => {
     rectangle: Rectangle,
     x: number,
     y: number,
-    size: number,
+    width: number,
+    height: number,
     showFolds: boolean,
     blend?: Blend
   ) => {
     const tileWidth = getTileWidth(rectangle);
     const regionId = makeRegionId(textureId, rectangle);
+    const halfWidth = width / 2;
     const textureOffset = getSelectInputAsNumberWithDefault(regionId, 0);
-    const offset = (textureOffset * size) / tileWidth;
-    generator.drawTexture(textureId, rectangle, [x + offset, y, size, size], {
+    const offset = (textureOffset * halfWidth) / tileWidth;
+
+    generator.drawTexture(textureId, rectangle, [x + offset, y, halfWidth, height], {
       blend,
     });
     generator.drawTexture(
       textureId,
       rectangle,
-      [x + size - offset, y, size, size],
+      [x + halfWidth - offset, y, halfWidth, height],
       {
         flip: "Horizontal",
         blend,
@@ -133,83 +137,261 @@ const script: ScriptDef = (generator: Generator) => {
     if (showFolds) {
       generator.drawTexture(
         "CenterFold",
-        [0, 0, 2, size],
-        [x + size - 1, y, 2, size]
+        [0, 0, 2, height],
+        [x + halfWidth - 1, y, 2, height]
       );
     }
   };
 
+  const pageMargin = 30;
+  const itemMargin = 5;
+  const innerPageWidth = A4.px.width - pageMargin * 2;
+  const innerPageHeight = A4.px.height - pageMargin * 2;
+
   const getSizeFromLabel = (sizeLabel: string | null | undefined) => {
     if (sizeLabel === sizeSmall) return 16 * 2;
     if (sizeLabel === sizeMedium) return 16 * 4;
-    if (sizeLabel === sizeLarge) return 16 * 7;
+    if (sizeLabel === sizeLarge) return 16 * 8;
     return 16 * 4;
   };
 
-  const getLayoutForSize = (size: number) => {
-    if (size <= 16 * 2) {
-      return { maxCols: 6, maxRows: 13, border: 25 };
-    }
-    if (size <= 16 * 4) {
-      return { maxCols: 4, maxRows: 10, border: 15 };
-    }
-    return { maxCols: 2, maxRows: 6, border: 20 };
+  const getItemDimensions = (selectedTextureFrame: SelectedTextureWithBlend) => {
+    const size = getSizeFromLabel(selectedTextureFrame.itemSize);
+    return { width: size * 2, height: size };
   };
 
-  const getItemSize = (selectedTextureFrame: SelectedTextureWithBlend) =>
-    getSizeFromLabel(selectedTextureFrame.itemSize);
+  type SkylineNode = { x: number; y: number; width: number };
+
+  const getSkylineY = (
+    skyline: SkylineNode[],
+    startIndex: number,
+    requiredWidth: number
+  ) => {
+    let coveredWidth = 0;
+    let y = skyline[startIndex]!.y;
+    let index = startIndex;
+
+    while (coveredWidth < requiredWidth) {
+      if (index >= skyline.length) {
+        return Infinity;
+      }
+      const node = skyline[index]!;
+      y = Math.max(y, node.y);
+      coveredWidth += node.width;
+      index += 1;
+    }
+
+    return y;
+  };
+
+  const mergeSkyline = (skyline: SkylineNode[]) => {
+    for (let index = 0; index < skyline.length - 1; index += 1) {
+      const current = skyline[index]!;
+      const next = skyline[index + 1]!;
+
+      if (current.y === next.y) {
+        current.width += next.width;
+        skyline.splice(index + 1, 1);
+        index -= 1;
+      }
+    }
+  };
+
+  const addSkylineNode = (
+    skyline: SkylineNode[],
+    x: number,
+    y: number,
+    width: number
+  ) => {
+    const right = x + width;
+    let index = 0;
+
+    while (index < skyline.length) {
+      const node = skyline[index]!;
+      const nodeRight = node.x + node.width;
+
+      if (nodeRight <= x) {
+        index += 1;
+        continue;
+      }
+
+      if (node.x >= right) {
+        break;
+      }
+
+      if (node.x < x) {
+        const leftWidth = x - node.x;
+        const rightWidth = nodeRight - right;
+        node.width = leftWidth;
+
+        if (rightWidth > 0) {
+          skyline.splice(index + 1, 0, {
+            x: right,
+            y: node.y,
+            width: rightWidth,
+          });
+        }
+        index += 1;
+        continue;
+      }
+
+      if (nodeRight > right) {
+        const remainingWidth = nodeRight - right;
+        skyline.splice(index, 1, {
+          x: right,
+          y: node.y,
+          width: remainingWidth,
+        });
+        break;
+      }
+
+      skyline.splice(index, 1);
+    }
+
+    const insertIndex = skyline.findIndex((node) => node.x > x);
+    const newNode: SkylineNode = { x, y, width };
+
+    if (insertIndex === -1) {
+      skyline.push(newNode);
+    } else {
+      skyline.splice(insertIndex, 0, newNode);
+    }
+
+    mergeSkyline(skyline);
+  };
+
+  const placeRect = (
+    skyline: SkylineNode[],
+    requiredWidth: number,
+    requiredHeight: number
+  ) => {
+    let bestX = -1;
+    let bestY = Infinity;
+    let bestIndex = -1;
+
+    for (let index = 0; index < skyline.length; index += 1) {
+      const node = skyline[index]!;
+      const rectRight = node.x + requiredWidth;
+
+      if (rectRight > pageMargin + innerPageWidth) {
+        continue;
+      }
+
+      const y = getSkylineY(skyline, index, requiredWidth);
+      if (y + requiredHeight > pageMargin + innerPageHeight) {
+        continue;
+      }
+
+      if (y < bestY || (y === bestY && node.x < bestX)) {
+        bestX = node.x;
+        bestY = y;
+        bestIndex = index;
+      }
+    }
+
+    if (bestIndex === -1) {
+      return null;
+    }
+
+    addSkylineNode(skyline, bestX, bestY + requiredHeight, requiredWidth);
+    return { x: bestX, y: bestY };
+  };
 
   const drawItems = (
     selectedTextureFrames: SelectedTextureWithBlend[],
     showFolds: boolean
   ) => {
-    const maxItemSize = selectedTextureFrames.reduce(
-      (maxSize, frame) =>
-        frame.selectedTexture
-          ? Math.max(maxSize, getItemSize(frame))
-          : maxSize,
-      0
-    );
-    const defaultItemSize = getSizeFromLabel(sizeMedium);
-    const effectiveMaxSize = maxItemSize || defaultItemSize;
-    const { maxCols, maxRows, border } = getLayoutForSize(effectiveMaxSize);
-    const cellWidth = effectiveMaxSize * 2;
-    const cellHeight = effectiveMaxSize;
-    const maxItemsPerPage = maxCols * maxRows;
-    const itemCount = selectedTextureFrames.length;
-    const pageCount =
-      itemCount > 0 ? Math.floor((itemCount - 1) / maxItemsPerPage) + 1 : 0;
+    const makeNewPageSkyline = (): SkylineNode[] => [
+      { x: pageMargin, y: pageMargin, width: innerPageWidth },
+    ];
 
-    for (let page = 1; page <= pageCount; page++) {
-      generator.usePage(`Page ${page}`);
+    const pages: Array<{
+      id: string;
+      placements: Array<{
+        selectedTextureFrame: SelectedTextureWithBlend;
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+      }>;
+    }> = [];
+
+    let currentPage = {
+      id: "Page 1",
+      placements: [] as Array<{
+        selectedTextureFrame: SelectedTextureWithBlend;
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+      }>,
+    };
+    let skyline = makeNewPageSkyline();
+
+    const pushPage = () => {
+      pages.push(currentPage);
+      const nextPageIndex = pages.length + 1;
+      currentPage = {
+        id: `Page ${nextPageIndex}`,
+        placements: [],
+      };
+      skyline = makeNewPageSkyline();
+    };
+
+    selectedTextureFrames.forEach((selectedTextureFrame) => {
+      if (!selectedTextureFrame.selectedTexture) {
+        return;
+      }
+
+      const { width, height } = getItemDimensions(selectedTextureFrame);
+      const requiredWidth = width + itemMargin * 2;
+      const requiredHeight = height + itemMargin * 2;
+      let placement = placeRect(skyline, requiredWidth, requiredHeight);
+
+      if (!placement) {
+        if (currentPage.placements.length > 0) {
+          pushPage();
+          placement = placeRect(skyline, requiredWidth, requiredHeight);
+        }
+      }
+
+      if (!placement) {
+        // Layout failed if the item is larger than a single page minus margins.
+        placement = { x: pageMargin, y: pageMargin };
+      }
+
+      currentPage.placements.push({
+        selectedTextureFrame,
+        x: placement.x + itemMargin,
+        y: placement.y + itemMargin,
+        width,
+        height,
+      });
+    });
+
+    if (currentPage.placements.length > 0 || pages.length === 0) {
+      pages.push(currentPage);
+    }
+
+    pages.forEach((page) => {
+      generator.usePage(page.id);
       generator.drawImage("Background", [0, 0]);
-      selectedTextureFrames.forEach((selectedTextureFrame, index) => {
-        if (!selectedTextureFrame.selectedTexture) return;
-
-        const { textureDefId, frame } = selectedTextureFrame.selectedTexture;
-        const page = Math.floor(index / maxItemsPerPage) + 1;
-        const pageId = `Page ${page}`;
-        const col = index % maxCols;
-        const row = Math.floor(index / maxCols) % maxRows;
-        const size = getItemSize(selectedTextureFrame);
-        const itemWidth = size * 2;
-        const x = border + col * (cellWidth + border) + (cellWidth - itemWidth) / 2;
-        const y = border + row * (cellHeight + border) + (cellHeight - size) / 2;
-
+      page.placements.forEach((placement) => {
+        const { selectedTextureFrame, x, y, width, height } = placement;
+        const { textureDefId, frame } = selectedTextureFrame.selectedTexture!;
         const blend: Blend | undefined = selectedTextureFrame.blend
           ? { kind: "MultiplyHex", hex: selectedTextureFrame.blend }
           : undefined;
 
-        generator.usePage(pageId);
-        drawItem(textureDefId, frame.rectangle, x, y, size, showFolds, blend);
-        generator.drawImage("Title", [0, 0]);
+        drawItem(textureDefId, frame.rectangle, x, y, width, height, showFolds, blend);
       });
-    }
+      generator.drawImage("Title", [0, 0]);
+    });
   };
 
   const sizeSmall = "Standard (200%)";
   const sizeMedium = "Medium (400%)";
-  const sizeLarge = "Large (700%)";
+  const sizeLarge = "Large (800%)";
   const sizes = [sizeSmall, sizeMedium, sizeLarge];
 
   // Show a drop down of different texture versions
