@@ -1,5 +1,8 @@
 import { type TextureDef } from "@genroot/builder/modules/generatorDef";
-import { type Atlas, type TextureFrame } from "@genroot/builder/modules/textureData";
+import {
+  type Atlas,
+  type TextureFrame,
+} from "@genroot/builder/modules/textureData";
 
 import image from "./texture_custom.png";
 
@@ -61,7 +64,9 @@ export function parseAtlas(framesJson: string | null): Atlas | null {
   }
 }
 
-export function parseAtlasFrames(framesJson: string | null): TextureFrame[] | null {
+export function parseAtlasFrames(
+  framesJson: string | null
+): TextureFrame[] | null {
   const atlas = parseAtlas(framesJson);
   return atlas?.frames ?? null;
 }

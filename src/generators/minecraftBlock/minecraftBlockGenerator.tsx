@@ -114,7 +114,7 @@ const script: ScriptDef = (generator: Generator) => {
   const currentTextureJson = generator.getStringInputValue(
     "CurrentBlockTexture"
   );
-  let currentTexture = currentTextureJson
+  const currentTexture = currentTextureJson
     ? decodeSelectedTextureWithBlend(currentTextureJson)
     : null;
 
@@ -142,33 +142,32 @@ const script: ScriptDef = (generator: Generator) => {
   }
 
   generator.defineCustomStringInput("CurrentBlockTexture", (onChange) => {
-      if (!versionId) {
-        return null;
-      }
-      return (
-        <TexturePicker
-          versionId={versionId}
-          blend={currentTexture ? currentTexture.blend : null}
-          onTextureSelected={(selectedTexture) => {
-            const newTexture: SelectedTextureWithBlend = {
-              selectedTexture,
-              blend: currentTexture ? currentTexture.blend : null,
-            };
-            onChange(encodeSelectedTextureWithBlend(newTexture));
-          }}
-          onBlendSelected={(blend) => {
-            const newTexture: SelectedTextureWithBlend = {
-              selectedTexture: currentTexture
-                ? currentTexture.selectedTexture
-                : null,
-              blend,
-            };
-            onChange(encodeSelectedTextureWithBlend(newTexture));
-          }}
-        />
-      );
-    });
-
+    if (!versionId) {
+      return null;
+    }
+    return (
+      <TexturePicker
+        versionId={versionId}
+        blend={currentTexture ? currentTexture.blend : null}
+        onTextureSelected={(selectedTexture) => {
+          const newTexture: SelectedTextureWithBlend = {
+            selectedTexture,
+            blend: currentTexture ? currentTexture.blend : null,
+          };
+          onChange(encodeSelectedTextureWithBlend(newTexture));
+        }}
+        onBlendSelected={(blend) => {
+          const newTexture: SelectedTextureWithBlend = {
+            selectedTexture: currentTexture
+              ? currentTexture.selectedTexture
+              : null,
+            blend,
+          };
+          onChange(encodeSelectedTextureWithBlend(newTexture));
+        }}
+      />
+    );
+  });
 
   generator.defineSelectInput("Number of Blocks", ["1", "2"]);
 

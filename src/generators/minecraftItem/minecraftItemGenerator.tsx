@@ -23,7 +23,11 @@ import {
   encodeSelectedTextureWithBlendArray,
   decodeSelectedTextureWithBlendArray,
 } from "../_common/plugins/texturePicker/selectedTextureWithBlend";
-import { parseAtlas, updateCustomTextureAtlas, updateCustomTextureUrl } from "../_common/textures/customTextureVersion";
+import {
+  parseAtlas,
+  updateCustomTextureAtlas,
+  updateCustomTextureUrl,
+} from "../_common/textures/customTextureVersion";
 import { TexturePicker } from "../_common/plugins/texturePicker/texturePicker";
 
 /** [x, y, width, height] */

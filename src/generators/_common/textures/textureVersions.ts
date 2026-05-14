@@ -49,22 +49,34 @@ export const itemTextureVersions: TextureVersion[] = itemDefinitions.map(
   }
 );
 
+export const allTextureDefs = [
+  ...blockTextureVersions,
+  ...itemTextureVersions,
+  customTextureVersion,
+].map(({ textureDef }) => textureDef);
 
-export const allTextureDefs = [...blockTextureVersions, ...itemTextureVersions, customTextureVersion].map(
-  ({ textureDef }) => textureDef
-);
-
-export const versionIdsBlocksFirst = [customTextureVersion, ...itemTextureVersions, ...blockTextureVersions]
+export const versionIdsBlocksFirst = [
+  customTextureVersion,
+  ...itemTextureVersions,
+  ...blockTextureVersions,
+]
   .map(({ textureDef }) => textureDef.id)
   .reverse();
 
-export const versionIdsItemsFirst = [customTextureVersion, ...blockTextureVersions, ...itemTextureVersions]
+export const versionIdsItemsFirst = [
+  customTextureVersion,
+  ...blockTextureVersions,
+  ...itemTextureVersions,
+]
   .map(({ textureDef }) => textureDef.id)
   .reverse();
 
 export function findVersion(versionId: string): TextureVersion | null {
   return (
-    [...blockTextureVersions, ...itemTextureVersions, customTextureVersion].find(({ textureDef }) => textureDef.id === versionId) ??
-    null
+    [
+      ...blockTextureVersions,
+      ...itemTextureVersions,
+      customTextureVersion,
+    ].find(({ textureDef }) => textureDef.id === versionId) ?? null
   );
 }
