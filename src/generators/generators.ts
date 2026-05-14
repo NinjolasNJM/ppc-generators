@@ -1,5 +1,6 @@
 import { type GeneratorDef } from "@genroot/builder/modules/generatorDef";
 import { generator as exampleGenerator } from "@genroot/generators/example/exampleGenerator";
+import { generator as testGenerator } from "@genroot/generators/test/testGenerator";
 import { generator as amogusBendableGenerator } from "@genroot/generators/amogusBendable/amogusBendableGenerator";
 import { generator as dalekModDalekGenerator } from "@genroot/generators/dalekModDalek/dalekModDalekGenerator";
 import { generator as minecraftActionFigureGenerator } from "@genroot/generators/minecraftActionFigure/minecraftActionFigureGenerator";
@@ -91,7 +92,7 @@ export const dev: GeneratorDef[] = isDevelopmentEnvironment
 
 export const test: GeneratorDef[] = isProductionEnvironment
   ? []
-  : [exampleGenerator];
+  : [exampleGenerator, testGenerator];
 
 function concatArrays<GeneratorDef>(arrays: Array<Array<GeneratorDef>>) {
   return arrays.reduce((acc, val) => acc.concat(val), []);

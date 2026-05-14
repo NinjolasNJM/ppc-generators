@@ -32,6 +32,14 @@ export type TextureInputControl = {
   props: TextureInputControlProps;
 };
 
+export type MultiTextureInputControlProps = TextureInputControlProps;
+
+export type MultiTextureInputControl = {
+  kind: "MultiTextureInput";
+  id: string;
+  props: MultiTextureInputControlProps;
+};
+
 export type MinecraftSkinInputControlProps = {
   standardWidth: number;
   standardHeight: number;
@@ -98,6 +106,7 @@ export type Control =
   | CustomInputControl
   | RegionControl
   | TextureInputControl
+  | MultiTextureInputControl
   | MinecraftSkinInputControl
   | BooleanInputControl
   | SelectInputControl

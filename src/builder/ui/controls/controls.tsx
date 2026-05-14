@@ -2,6 +2,7 @@ import React from "react";
 
 import { type Texture } from "@genroot/builder/modules/texture";
 import { type Model } from "@genroot/builder/modules/model";
+import { MultiTextureControl } from "./multiTextureControl";
 import { TextureControl } from "./textureControl";
 import { BooleanControl } from "./booleanControl";
 import { SelectControl } from "./selectControl";
@@ -29,6 +30,23 @@ export function Controls({
       model.addTexture(id, texture);
     } else {
       model.removeTexture(id);
+    }
+    onChange(model);
+  };
+
+  const onMultiTextureChange = (
+    id: string,
+    texture: Texture | null,
+    metadata: string | null
+  ) => {
+    if (texture) {
+      model.addTexture(id, texture);
+      if (metadata !== null) {
+        model.setStringVariable(`${id}_metadata`, metadata);
+      }
+    } else {
+      model.removeTexture(id);
+      model.setStringVariable(`${id}_metadata`, "");
     }
     onChange(model);
   };
@@ -98,6 +116,21 @@ export function Controls({
                 standardHeight={control.props.standardHeight}
                 textures={model.values.textures}
                 onChange={(texture) => onTextureChange(control.id, texture)}
+              />
+            );
+          }
+          case "MultiTextureInput": {
+            return (
+              <MultiTextureControl
+                key={control.id}
+                id={control.id}
+                choices={control.props.choices}
+                standardWidth={control.props.standardWidth}
+                standardHeight={control.props.standardHeight}
+                textures={model.values.textures}
+                onChange={(texture, metadata) =>
+                  onMultiTextureChange(control.id, texture, metadata)
+                }
               />
             );
           }

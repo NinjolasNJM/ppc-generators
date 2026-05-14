@@ -1,6 +1,7 @@
 import {
   type MinecraftSkinInputControlProps,
   type TextureInputControlProps,
+  type MultiTextureInputControlProps,
 } from "./modelControls";
 import {
   getDefaultMinecraftSkinInputValue,
@@ -44,6 +45,13 @@ export class Generator {
 
   defineTextureInput(id: string, props: TextureInputControlProps): void {
     this.model.addTextureControl(id, props);
+  }
+
+  defineMultiTextureInput(
+    id: string,
+    props: MultiTextureInputControlProps
+  ): void {
+    this.model.addMultiTextureControl(id, props);
   }
 
   defineMinecraftSkinInput(
