@@ -344,6 +344,7 @@ export function TexturePicker({
       rotation: rotation,
       flip: flip,
     };
+    console.log(selectedTexture);
     onSelect(selectedTexture);
   };
 

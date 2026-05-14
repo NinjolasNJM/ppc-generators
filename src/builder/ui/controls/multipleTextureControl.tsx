@@ -2,11 +2,11 @@ import React from "react";
 
 import {
   type Texture,
-  makeTextureFromImage,
+  makeTextureFromUrl,
 } from "@genroot/builder/modules/texture";
 import { type SelectOption, Select } from "../form/select";
 
-export function TextureControl({
+export function MultipleTextureControl({
   id,
   choices,
   standardWidth,
@@ -48,15 +48,9 @@ export function TextureControl({
         return;
       }
 
-      const img = new Image();
-      img.src = result;
-      img.onload = () => {
-        const texture = makeTextureFromImage(img, standardWidth, standardHeight);
-        onChange(texture);
-      };
-      img.onerror = (error) => console.error(error);
-      // Set the name to the file name
-      (img as HTMLImageElement & { name: string }).name = file.name;
+      makeTextureFromUrl(result, standardWidth, standardHeight)
+        .then(onChange)
+        .catch((error) => console.error(error));
     };
 
     fileReader.readAsDataURL(file);

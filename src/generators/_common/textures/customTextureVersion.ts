@@ -28,3 +28,7 @@ export const customTextureVersion = {
 export function updateCustomTextureUrl(url: string): void {
   customTextureDef.url = url;
 }
+
+export function updateCustomTextureName(name: string): void {
+  customFrame.name = name;
+}

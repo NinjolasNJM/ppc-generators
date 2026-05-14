@@ -18,7 +18,7 @@ import {
   allTextureDefs,
   versionIdsBlocksFirst as versionIds,
 } from "../_common/textures/textureVersions";
-import { customFrame, updateCustomTextureUrl } from "../_common/textures/customTextureVersion";
+import { customFrame, updateCustomTextureUrl, updateCustomTextureName } from "../_common/textures/customTextureVersion";
 import { TexturePicker } from "../_common/plugins/texturePicker/texturePicker";
 import { drawBlock } from "./shapes/block";
 import { drawSlab } from "./shapes/slab";
@@ -115,15 +115,18 @@ const script: ScriptDef = (generator: Generator) => {
     : null;
 
   if (versionId === "custom") {
-    generator.defineTextureInput("Custom", {
+    generator.defineTextureInput("custom", {
       standardWidth: 16,
       standardHeight: 16,
       choices: [],
     });
 
-    const customTexture = generator.getTexture("Custom");
+    const customTexture = generator.getTexture("custom");
     if (customTexture) {
       updateCustomTextureUrl(customTexture.imageWithCanvas.image.src);
+      const textureName =
+        ((customTexture.imageWithCanvas.image as HTMLImageElement & { name?: string }).name)?.replace(/\.[^/.]+$/, "") || "Custom Texture";
+      updateCustomTextureName(textureName);
     }
 
     // For custom, the selected texture is the whole custom texture
