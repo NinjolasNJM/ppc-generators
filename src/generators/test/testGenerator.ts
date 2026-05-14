@@ -9,6 +9,7 @@ import type {
   ScriptDef,
 } from "@genroot/builder/modules/generatorDef";
 import { type Generator } from "@genroot/builder/modules/generator";
+import type { Atlas } from "@genroot/builder/modules/textureData";
 
 import backgroundImage from "./images/Background.png";
 import foldsImage from "./images/Folds.png";
@@ -19,6 +20,13 @@ const name = "Multi Texture Test";
 
 const instructions: InstructionsDef = `
 A test generator for the new multi-texture input. Upload multiple images and watch them render from the generated atlas.
+
+The multi texture input saves two values:
+- a texture under the input ID, which contains the packed atlas image
+- a string under "${id} Frames", which contains an Atlas object
+
+The Atlas describes atlas dimensions and a list of tile frames. Each tile is a TextureFrame,
+so the rectangle value can be passed directly to generator.drawTexture.
 `;
 
 const history: HistoryDef = [];
@@ -30,33 +38,15 @@ const images: ImageDef[] = [
 
 const textures: TextureDef[] = [];
 
-type MultiTextureTile = {
-  name: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-};
-
-type MultiTextureMetadata = {
-  atlasWidth: number;
-  atlasHeight: number;
-  tiles: MultiTextureTile[];
-};
-
 const script: ScriptDef = (generator: Generator) => {
-  generator.defineMultiTextureInput("Textures", {
+  generator.defineAtlasInput("Textures", {
     standardWidth: 16,
     standardHeight: 16,
     choices: [],
   });
 
-  const textureMetadataJson = generator.getStringInputValue("Textures_metadata");
-  const textureMetadata: MultiTextureMetadata | null = textureMetadataJson
-    ? JSON.parse(textureMetadataJson)
-    : null;
-
-  console.log("MultiTexture metadata", textureMetadata);
+  const atlasJson = generator.getStringInputValue("Textures Frames");
+  const atlas: Atlas | null = atlasJson ? JSON.parse(atlasJson) : null;
 
   generator.defineBooleanInput("Show Folds", true);
 
@@ -64,18 +54,16 @@ const script: ScriptDef = (generator: Generator) => {
 
   generator.drawImage("Background", [0, 0]);
 
-  if (generator.hasTexture("Textures") && textureMetadata) {
+  if (generator.hasTexture("Textures") && atlas) {
     let drawY = 100;
-    textureMetadata.tiles.forEach((tile) => {
-      const destWidth = tile.width * 2;
-      const destHeight = tile.height * 2;
+    atlas.frames.forEach((tile) => {
+      const [srcX, srcY, width, height] = tile.rectangle;
       generator.drawTexture(
         "Textures",
-        [tile.x, tile.y, tile.width, tile.height],
-        [20, drawY, destWidth, destHeight]
+        [srcX, srcY, width, height],
+        [20, drawY, width * 2, height * 2]
       );
-      console.log("Drawing tile", tile.name, tile.x, tile.y, tile.width, tile.height);
-      drawY += destHeight + 10;
+      drawY += height * 2 + 10;
     });
   }
 

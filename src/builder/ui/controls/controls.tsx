@@ -2,7 +2,7 @@ import React from "react";
 
 import { type Texture } from "@genroot/builder/modules/texture";
 import { type Model } from "@genroot/builder/modules/model";
-import { MultiTextureControl } from "./multiTextureControl";
+import { AtlasControl } from "./atlasControl";
 import { TextureControl } from "./textureControl";
 import { BooleanControl } from "./booleanControl";
 import { SelectControl } from "./selectControl";
@@ -34,19 +34,19 @@ export function Controls({
     onChange(model);
   };
 
-  const onMultiTextureChange = (
+  const onAtlasChange = (
     id: string,
     texture: Texture | null,
-    metadata: string | null
+    frames: string | null
   ) => {
     if (texture) {
       model.addTexture(id, texture);
-      if (metadata !== null) {
-        model.setStringVariable(`${id}_metadata`, metadata);
+      if (frames !== null) {
+        model.setStringVariable(`${id} Frames`, frames);
       }
     } else {
       model.removeTexture(id);
-      model.setStringVariable(`${id}_metadata`, "");
+      model.setStringVariable(`${id} Frames`, "");
     }
     onChange(model);
   };
@@ -119,17 +119,17 @@ export function Controls({
               />
             );
           }
-          case "MultiTextureInput": {
+          case "AtlasInput": {
             return (
-              <MultiTextureControl
+              <AtlasControl
                 key={control.id}
                 id={control.id}
                 choices={control.props.choices}
                 standardWidth={control.props.standardWidth}
                 standardHeight={control.props.standardHeight}
                 textures={model.values.textures}
-                onChange={(texture, metadata) =>
-                  onMultiTextureChange(control.id, texture, metadata)
+                onChange={(texture, frames) =>
+                  onAtlasChange(control.id, texture, frames)
                 }
               />
             );

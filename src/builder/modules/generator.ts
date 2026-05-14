@@ -1,7 +1,7 @@
 import {
   type MinecraftSkinInputControlProps,
   type TextureInputControlProps,
-  type MultiTextureInputControlProps,
+  type AtlasInputControlProps,
 } from "./modelControls";
 import {
   getDefaultMinecraftSkinInputValue,
@@ -47,11 +47,8 @@ export class Generator {
     this.model.addTextureControl(id, props);
   }
 
-  defineMultiTextureInput(
-    id: string,
-    props: MultiTextureInputControlProps
-  ): void {
-    this.model.addMultiTextureControl(id, props);
+  defineAtlasInput(id: string, props: AtlasInputControlProps): void {
+    this.model.addAtlasControl(id, props);
   }
 
   defineMinecraftSkinInput(

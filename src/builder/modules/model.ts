@@ -7,7 +7,7 @@ import {
   type MinecraftSkinInputControl,
   type MinecraftSkinInputControlProps,
   type TextureInputControlProps,
-  type MultiTextureInputControlProps,
+  type AtlasInputControlProps,
   type Region,
 } from "./modelControls";
 import { type Variable } from "./variables";
@@ -66,9 +66,9 @@ export class Model {
     });
   }
 
-  addMultiTextureControl(id: string, props: MultiTextureInputControlProps) {
+  addAtlasControl(id: string, props: AtlasInputControlProps) {
     this.addControl({
-      kind: "MultiTextureInput",
+      kind: "AtlasInput",
       id,
       props,
     });

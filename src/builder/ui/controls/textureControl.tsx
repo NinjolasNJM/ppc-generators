@@ -94,6 +94,7 @@ export function TextureControl({
               id={fileInputId}
               className="border border-gray-300 p-1 bg-white text-gray-400"
               type="file"
+              accept="image/png,image/jpeg,.png,.jpg,.jpeg"
               onChange={onInputChange}
             />
           </div>

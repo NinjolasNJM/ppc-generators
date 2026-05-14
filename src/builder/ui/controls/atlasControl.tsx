@@ -4,9 +4,17 @@ import {
   type Texture,
   makeTextureFromUrl,
 } from "@genroot/builder/modules/texture";
+import { type TextureFrame } from "@genroot/builder/modules/textureData";
 import { type SelectOption, Select } from "../form/select";
 
-export function MultiTextureControl({
+/**
+ * AtlasControl accepts multiple image files and packs them into a single atlas.
+ *
+ * The selected images are merged into one atlas texture, and metadata is emitted
+ * as a JSON string containing atlas dimensions and `frames` information. Scripts
+ * can read `${id} Frames` and use each frame's rectangle with generator.drawTexture.
+ */
+export function AtlasControl({
   id,
   choices,
   standardWidth,
@@ -19,7 +27,7 @@ export function MultiTextureControl({
   standardWidth: number;
   standardHeight: number;
   textures: Map<string, Texture>;
-  onChange: (texture: Texture | null, metadata: string | null) => void;
+  onChange: (texture: Texture | null, frames: string | null) => void;
 }) {
   const baseId = React.useId();
   const legendId = `${baseId}-legend`;
@@ -33,6 +41,22 @@ export function MultiTextureControl({
         ]
       : [];
 
+  // Only PNG and JPEG image files are supported for atlas input.
+  // Browsers can use the accept attribute to limit selection,
+  // but we also validate files after selection.
+  const acceptedFileTypes = ["image/png", "image/jpeg"];
+  const acceptedFileExtensions = [".png", ".jpg", ".jpeg"];
+  const acceptAttribute = "image/png,image/jpeg,.png,.jpg,.jpeg";
+
+  const isSupportedFile = (file: File) => {
+    const lowerFileName = file.name.toLowerCase();
+    return (
+      acceptedFileTypes.includes(file.type) ||
+      acceptedFileExtensions.some((extension) => lowerFileName.endsWith(extension))
+    );
+  };
+
+  // Load a file into an image and attach the original file name.
   const loadImageFromFile = (file: File): Promise<HTMLImageElement> => {
     return new Promise((resolve, reject) => {
       const image = new Image();
@@ -50,9 +74,12 @@ export function MultiTextureControl({
     });
   };
 
-  const createAtlas = async (
+  // Pack images into a single atlas and emit metadata for each tile.
+  // Each tile is saved as a TextureFrame so generator scripts can use the
+  // existing drawTexture rectangle shape.
+  const createAtlas = (
     images: HTMLImageElement[]
-  ): Promise<{ url: string; metadata: string; atlasWidth: number; atlasHeight: number }> => {
+  ): { url: string; framesJson: string; atlasWidth: number; atlasHeight: number } => {
     if (images.length === 0) {
       throw new Error("No images to pack into atlas");
     }
@@ -66,13 +93,7 @@ export function MultiTextureControl({
     let y = 0;
     let rowHeight = 0;
     let atlasHeight = 0;
-    const entries: Array<{
-      name: string;
-      x: number;
-      y: number;
-      width: number;
-      height: number;
-    }> = [];
+    const tiles: TextureFrame[] = [];
 
     const positions = images.map((image) => {
       const width = image.width;
@@ -85,14 +106,15 @@ export function MultiTextureControl({
       }
 
       const position = { x, y, width, height };
-      entries.push({
-        name:
-          (image as HTMLImageElement & { fileName?: string }).fileName ||
-          `image_${entries.length}`,
-        x,
-        y,
-        width,
-        height,
+      const fileName =
+        (image as HTMLImageElement & { fileName?: string }).fileName ||
+        `image_${tiles.length}`;
+      tiles.push({
+        id: fileName,
+        name: fileName,
+        rectangle: [x, y, width, height],
+        frameIndex: 0,
+        frameCount: 1,
       });
 
       x += width;
@@ -117,14 +139,16 @@ export function MultiTextureControl({
     });
 
     const url = canvas.toDataURL("image/png");
-    const metadata = JSON.stringify({
+    const framesJson = JSON.stringify({
       atlasWidth,
       atlasHeight,
-      tiles: entries,
+      frames: tiles,
     });
-    return { url, metadata, atlasWidth, atlasHeight };
+    return { url, framesJson, atlasWidth, atlasHeight };
   };
 
+  // When files are selected, load only supported image files and skip invalid ones.
+  // If no valid images remain, emit null to clear the current texture state.
   const onInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files ? Array.from(e.target.files) : [];
     if (files.length === 0) {
@@ -132,16 +156,31 @@ export function MultiTextureControl({
       return;
     }
 
-    try {
-      const images = await Promise.all(files.map(loadImageFromFile));
-      const { url, metadata, atlasWidth, atlasHeight } = await createAtlas(
-        images
-      );
-      const texture = await makeTextureFromUrl(url, atlasWidth, atlasHeight);
-      onChange(texture, metadata);
-    } catch (error) {
-      console.error(error);
+    const supportedFiles = files.filter(isSupportedFile);
+    if (supportedFiles.length === 0) {
+      onChange(null, null);
+      return;
     }
+
+    const loadedImages = await Promise.allSettled(
+      supportedFiles.map(loadImageFromFile)
+    );
+
+    const images = loadedImages
+      .filter(
+        (result): result is PromiseFulfilledResult<HTMLImageElement> =>
+          result.status === "fulfilled"
+      )
+      .map((result) => result.value);
+
+    if (images.length === 0) {
+      onChange(null, null);
+      return;
+    }
+
+    const { url, framesJson, atlasWidth, atlasHeight } = createAtlas(images);
+    const texture = await makeTextureFromUrl(url, atlasWidth, atlasHeight);
+    onChange(texture, framesJson);
   };
 
   const onChoiceChange = (choice: SelectOption) => {
@@ -176,6 +215,7 @@ export function MultiTextureControl({
               id={fileInputId}
               className="border border-gray-300 p-1 bg-white text-gray-400"
               type="file"
+              accept={acceptAttribute}
               multiple
               onChange={onInputChange}
             />

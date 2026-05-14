@@ -33,6 +33,12 @@ export type TextureFrame = {
   frameCount: number;
 };
 
+export type Atlas = {
+  atlasWidth: number;
+  atlasHeight: number;
+  frames: TextureFrame[];
+};
+
 export function makeFrameLabel(frame: TextureFrame): string {
   const name = frame.name.replace(/_/g, " ");
   if (frame.frameCount > 1) {
