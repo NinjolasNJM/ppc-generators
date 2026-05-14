@@ -23,6 +23,7 @@ import {
   encodeSelectedTextureWithBlendArray,
   decodeSelectedTextureWithBlendArray,
 } from "../_common/plugins/texturePicker/selectedTextureWithBlend";
+import { parseAtlas, updateCustomTextureAtlas, updateCustomTextureUrl } from "../_common/textures/customTextureVersion";
 import { TexturePicker } from "../_common/plugins/texturePicker/texturePicker";
 
 /** [x, y, width, height] */
@@ -267,6 +268,29 @@ const script: ScriptDef = (generator: Generator) => {
   generator.defineSelectInput("Version", versionIds);
 
   const versionId = generator.getSelectInputValue("Version") ?? "";
+
+  if (versionId === "custom") {
+    generator.defineAtlasInput("custom", {
+      label: "Custom",
+      standardWidth: 32,
+      standardHeight: 32,
+      choices: [],
+    });
+
+    const customAtlas = parseAtlas(
+      generator.getStringInputValue("custom Frames")
+    );
+
+    const customTexture = generator.getTexture("custom");
+    if (customTexture) {
+      const textureUrl = customTexture.imageWithCanvas.image.src;
+      if (customAtlas && customAtlas.frames.length > 0) {
+        updateCustomTextureAtlas(textureUrl, customAtlas);
+      } else {
+        updateCustomTextureUrl(textureUrl);
+      }
+    }
+  }
 
   // Get the current selected version
 

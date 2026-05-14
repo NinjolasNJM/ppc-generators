@@ -111,6 +111,7 @@ export function Controls({
               <TextureControl
                 key={control.id}
                 id={control.id}
+                label={control.props.label}
                 choices={control.props.choices}
                 standardWidth={control.props.standardWidth}
                 standardHeight={control.props.standardHeight}
@@ -124,6 +125,7 @@ export function Controls({
               <AtlasControl
                 key={control.id}
                 id={control.id}
+                label={control.props.label}
                 choices={control.props.choices}
                 standardWidth={control.props.standardWidth}
                 standardHeight={control.props.standardHeight}

@@ -120,6 +120,7 @@ const script: ScriptDef = (generator: Generator) => {
 
   if (versionId === "custom") {
     generator.defineAtlasInput("custom", {
+      label: "Custom",
       standardWidth: 32,
       standardHeight: 32,
       choices: [],
