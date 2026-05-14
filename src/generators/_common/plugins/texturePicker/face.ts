@@ -131,16 +131,23 @@ function drawTexture(
 
   const [nextFlip, nextRotation] = makeNextFlip(flipOption, flip, rotation);
 
+  const scale =
+    fw === fh && fw > 0 && fw % 16 === 0 && fh % 16 === 0
+      ? fw / 16
+      : 1;
+  const scaledSource = [sx * scale, sy * scale, sw * scale, sh * scale] as const;
+  const [ssx, ssy, ssw, ssh] = scaledSource;
+
   const sourceRegion: Region = (() => {
     switch (nextRotation) {
       case "Rot0":
-        return [fx + sx, fy + sy, sw, sh];
+        return [fx + ssx, fy + ssy, ssw, ssh];
       case "Rot90":
-        return [fx + sy, fy + fw - (sw + sx), sh, sw];
+        return [fx + ssy, fy + fw - (ssw + ssx), ssh, ssw];
       case "Rot180":
-        return [fx + fw - (sw + sx), fy + fh - (sh + sy), sw, sh];
+        return [fx + fw - (ssw + ssx), fy + fh - (ssh + ssy), ssw, ssh];
       case "Rot270":
-        return [fx + fh - (sh + sy), fy + sx, sh, sw];
+        return [fx + fh - (ssh + ssy), fy + ssx, ssh, ssw];
     }
   })();
 

@@ -18,7 +18,11 @@ import {
   allTextureDefs,
   versionIdsBlocksFirst as versionIds,
 } from "../_common/textures/textureVersions";
-import { customFrame, updateCustomTextureUrl, updateCustomTextureName } from "../_common/textures/customTextureVersion";
+import {
+  parseAtlas,
+  updateCustomTextureAtlas,
+  updateCustomTextureUrl,
+} from "../_common/textures/customTextureVersion";
 import { TexturePicker } from "../_common/plugins/texturePicker/texturePicker";
 import { drawBlock } from "./shapes/block";
 import { drawSlab } from "./shapes/slab";
@@ -115,30 +119,25 @@ const script: ScriptDef = (generator: Generator) => {
     : null;
 
   if (versionId === "custom") {
-    generator.defineTextureInput("custom", {
-      standardWidth: 16,
-      standardHeight: 16,
+    generator.defineAtlasInput("custom", {
+      standardWidth: 32,
+      standardHeight: 32,
       choices: [],
     });
 
+    const customAtlas = parseAtlas(
+      generator.getStringInputValue("custom Frames")
+    );
+
     const customTexture = generator.getTexture("custom");
     if (customTexture) {
-      updateCustomTextureUrl(customTexture.imageWithCanvas.image.src);
-      const textureName =
-        ((customTexture.imageWithCanvas.image as HTMLImageElement & { name?: string }).name)?.replace(/\.[^/.]+$/, "") || "Custom Texture";
-      updateCustomTextureName(textureName);
+      const textureUrl = customTexture.imageWithCanvas.image.src;
+      if (customAtlas && customAtlas.frames.length > 0) {
+        updateCustomTextureAtlas(textureUrl, customAtlas);
+      } else {
+        updateCustomTextureUrl(textureUrl);
+      }
     }
-
-    // For custom, the selected texture is the whole custom texture
-    currentTexture = {
-      selectedTexture: {
-        textureDefId: customFrame.id,
-        frame: customFrame,
-        rotation: "Rot0",
-        flip: "None",
-      },
-      blend: currentTexture ? currentTexture.blend : null,
-    };
   }
 
   generator.defineCustomStringInput("CurrentBlockTexture", (onChange) => {

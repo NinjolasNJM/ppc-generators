@@ -1,5 +1,5 @@
 import { type TextureDef } from "@genroot/builder/modules/generatorDef";
-import { type TextureFrame } from "@genroot/builder/modules/textureData";
+import { type Atlas, type TextureFrame } from "@genroot/builder/modules/textureData";
 
 import image from "./texture_custom.png";
 
@@ -31,4 +31,37 @@ export function updateCustomTextureUrl(url: string): void {
 
 export function updateCustomTextureName(name: string): void {
   customFrame.name = name;
+}
+
+export function updateCustomTextureAtlas(url: string, atlas: Atlas): void {
+  customTextureDef.url = url;
+  customTextureDef.standardWidth = atlas.atlasWidth;
+  customTextureDef.standardHeight = atlas.atlasHeight;
+  customFrames.splice(0, customFrames.length, ...atlas.frames);
+}
+
+export function parseAtlas(framesJson: string | null): Atlas | null {
+  if (!framesJson) {
+    return null;
+  }
+
+  try {
+    const atlas = JSON.parse(framesJson) as Atlas;
+    if (
+      typeof atlas.atlasWidth !== "number" ||
+      typeof atlas.atlasHeight !== "number" ||
+      !Array.isArray(atlas.frames)
+    ) {
+      return null;
+    }
+
+    return atlas;
+  } catch {
+    return null;
+  }
+}
+
+export function parseAtlasFrames(framesJson: string | null): TextureFrame[] | null {
+  const atlas = parseAtlas(framesJson);
+  return atlas?.frames ?? null;
 }
