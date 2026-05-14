@@ -61,6 +61,37 @@ export function drawShelf(
   oy: number,
   showFolds: boolean
 ) {
+    generator.defineSelectInput("Block " + blockId + " State", [
+    "Unpowered",
+    "Single",
+    "Left",
+    "Center",
+    "Right",
+  ]);
+
+  // depending on the state, the front face will have a different source rectangle.
+  let frontState: Region = [0, 2, 8, 4];
+  switch (generator.getSelectInputValue("Block " + blockId + " State")) {
+    case "Unpowered":
+      frontState = [0, 2, 8, 4];
+      break;
+    case "Single":
+      frontState = [8, 12, 8, 4];
+      break;
+    case "Left":
+      frontState = [0, 8, 8, 4];
+      break;
+    case "Center":
+      frontState = [0, 12, 8, 4];
+      break;
+    case "Right":
+      frontState = [8, 8, 8, 4];
+      break;
+    default:
+      frontState = [0, 2, 8, 4];
+      break;
+  }
+
   const regions = makeFaces(ox, oy);
 
   Face.defineInputRegion(generator, "ShelfFace" + blockId, regions.front);
@@ -83,7 +114,7 @@ export function drawShelf(
     [8, 0, 1.5, 8],
     regions.right
   );
-  Face.drawFace(generator, "ShelfFace" + blockId, [8, 12, 8, 4], regions.front);
+  Face.drawFace(generator, "ShelfFace" + blockId, frontState, regions.front);
   Face.drawFace(
     generator,
     "ShelfFace" + blockId,
