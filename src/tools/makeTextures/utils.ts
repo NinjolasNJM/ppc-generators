@@ -72,6 +72,7 @@ function calculateImagesWithCoordinates(
     id: image.name,
     label: image.name,
     rectangle: [0, 0, image.info.width, image.info.height] satisfies Rectangle,
+    crop: [0, 0, image.info.width, image.info.height] satisfies Rectangle,
     sourceIndex: index,
   }));
 

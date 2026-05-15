@@ -9,6 +9,8 @@ export type SelectedTexture = {
   frame: TextureFrame;
   rotation: Rotation;
   flip: Flip;
+  blend: string | null;
+  itemSize?: string | null;
 };
 
 export const encodeSelectedTexture = (

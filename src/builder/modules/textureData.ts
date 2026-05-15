@@ -4,18 +4,10 @@ import { type TextureDef } from "./generatorDef";
 
 export type Rectangle = [number, number, number, number];
 
-export type TextureData_TileFrame =
-  | Rectangle
-  | {
-      x: number;
-      y: number;
-      width: number;
-      height: number;
-    }
-  | {
-      rectangle: Rectangle;
-      crop?: Rectangle;
-    };
+export type TextureData_TileFrame = {
+  rectangle: Rectangle;
+  crop: Rectangle;
+};
 
 export type TextureData_Tile = {
   name: string;
@@ -31,7 +23,7 @@ export type TextureFrame = {
   id: string;
   label: string;
   rectangle: Rectangle;
-  crop?: Rectangle;
+  crop: Rectangle;
 };
 
 export type Atlas = {
@@ -48,7 +40,7 @@ function tileToTextureFrames(
   const frames: TextureFrame[] = [];
 
   for (let frameIndex = 0; frameIndex < frameCount; frameIndex++) {
-    const tileFrame = normalizeTileFrame(tile.frames[frameIndex]!);
+    const tileFrame = tile.frames[frameIndex]!;
     const [x, y, width, height] = tileFrame.rectangle;
 
     if (width % frameSize !== 0 || height % frameSize !== 0) {
@@ -61,27 +53,12 @@ function tileToTextureFrames(
       id,
       label: makeTextureFrameLabel(tile.name, frameIndex, frameCount),
       rectangle: [x, y, width, height],
-      ...(tileFrame.crop ? { crop: tileFrame.crop } : {}),
+      crop: tileFrame.crop,
     };
     frames.push(frame);
   }
 
   return frames;
-}
-
-function normalizeTileFrame(frame: TextureData_TileFrame): {
-  rectangle: Rectangle;
-  crop?: Rectangle;
-} {
-  if (Array.isArray(frame)) {
-    return { rectangle: frame };
-  }
-
-  if ("rectangle" in frame) {
-    return { rectangle: frame.rectangle, crop: frame.crop };
-  }
-
-  return { rectangle: [frame.x, frame.y, frame.width, frame.height] };
 }
 
 export function tilesToTextureFrames(
@@ -125,7 +102,7 @@ function textureDataTileCategory(
     return 0;
   }
 
-  const [, , width, height] = normalizeTileFrame(frame).rectangle;
+  const [, , width, height] = frame.rectangle;
   return width > frameSize || height > frameSize ? 1 : 0;
 }
 
@@ -143,6 +120,7 @@ export function imageToTextureFrames(
         id: name,
         label: makeTextureFrameLabel(name, 0, 1),
         rectangle: [0, 0, imageWidth, imageHeight],
+        crop: [0, 0, imageWidth, imageHeight],
       },
     ];
   }
@@ -155,6 +133,7 @@ export function imageToTextureFrames(
       id: frameId,
       label: makeTextureFrameLabel(name, frameIndex, frameCount),
       rectangle: [0, frameIndex * frameSize, imageWidth, frameSize],
+      crop: [0, 0, imageWidth, frameSize],
     });
   }
 

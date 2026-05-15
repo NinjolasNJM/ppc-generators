@@ -4,7 +4,7 @@ export type PackableImage = {
   id: string;
   label?: string;
   rectangle: Rectangle;
-  crop?: Rectangle;
+  crop: Rectangle;
   sourceIndex: number;
 };
 
@@ -77,7 +77,7 @@ export function packImages(
       packedImage.rectangle[2],
       packedImage.rectangle[3],
     ] satisfies Rectangle,
-    ...(packedImage.crop ? { crop: packedImage.crop } : {}),
+    crop: packedImage.crop,
   }));
 
   canvasHeight += rowHeight;

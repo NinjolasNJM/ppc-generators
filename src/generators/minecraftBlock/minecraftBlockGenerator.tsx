@@ -10,10 +10,9 @@ import type {
 } from "@genroot/builder/modules/generatorDef";
 import { type Generator } from "@genroot/builder/modules/generator";
 import {
-  type SelectedTextureWithBlend,
-  encodeSelectedTextureWithBlend,
-  decodeSelectedTextureWithBlend,
-} from "../_common/plugins/texturePicker/selectedTextureWithBlend";
+  encodeSelectedTexture,
+  decodeSelectedTexture,
+} from "@genroot/builder/ui/texturePicker/selectedTexture";
 import {
   allTextureDefs,
   versionIdsBlocksFirst as versionIds,
@@ -115,7 +114,7 @@ const script: ScriptDef = (generator: Generator) => {
     "CurrentBlockTexture"
   );
   const currentTexture = currentTextureJson
-    ? decodeSelectedTextureWithBlend(currentTextureJson)
+    ? decodeSelectedTexture(currentTextureJson)
     : null;
 
   if (versionId === "custom") {
@@ -148,22 +147,9 @@ const script: ScriptDef = (generator: Generator) => {
     return (
       <TexturePicker
         versionId={versionId}
-        blend={currentTexture ? currentTexture.blend : null}
-        onTextureSelected={(selectedTexture) => {
-          const newTexture: SelectedTextureWithBlend = {
-            selectedTexture,
-            blend: currentTexture ? currentTexture.blend : null,
-          };
-          onChange(encodeSelectedTextureWithBlend(newTexture));
-        }}
-        onBlendSelected={(blend) => {
-          const newTexture: SelectedTextureWithBlend = {
-            selectedTexture: currentTexture
-              ? currentTexture.selectedTexture
-              : null,
-            blend,
-          };
-          onChange(encodeSelectedTextureWithBlend(newTexture));
+        selectedTexture={currentTexture}
+        onChange={(selectedTexture) => {
+          onChange(encodeSelectedTexture(selectedTexture));
         }}
       />
     );

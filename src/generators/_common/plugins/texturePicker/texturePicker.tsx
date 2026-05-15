@@ -5,16 +5,14 @@ import { findVersion } from "../../textures/textureVersions";
 
 export function TexturePicker({
   versionId,
-  onBlendSelected,
-  onTextureSelected,
+  selectedTexture,
+  onChange,
   enableRotation,
-  blend,
 }: {
   versionId: string;
-  onTextureSelected: (texture: SelectedTexture) => void;
-  onBlendSelected: (blend: string | null) => void;
+  selectedTexture: SelectedTexture | null;
+  onChange: (texture: SelectedTexture) => void;
   enableRotation?: boolean;
-  blend?: string | null;
 }): JSX.Element | null {
   const textureVersion = findVersion(versionId);
   if (!textureVersion) {
@@ -27,13 +25,19 @@ export function TexturePicker({
         <BuilderTexturePicker
           textureDef={textureDef}
           frames={frames}
-          onSelect={onTextureSelected}
+          onSelect={onChange}
           enableRotation={enableRotation ?? true}
-          tint={blend}
+          blend={selectedTexture?.blend ?? null}
         />
       </div>
       <div className="mb-4">
-        <TintSelector onChange={onBlendSelected} />
+        <TintSelector
+          onChange={(blend) => {
+            if (selectedTexture) {
+              onChange({ ...selectedTexture, blend });
+            }
+          }}
+        />
       </div>
     </div>
   );

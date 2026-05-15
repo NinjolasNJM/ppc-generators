@@ -147,13 +147,13 @@ export function Preview({
   frame,
   rotation,
   flip,
-  tint,
+  blend,
 }: {
   textureDef: TextureDef;
   frame: TextureFrame | null;
   rotation: Rotation;
   flip: Flip;
-  tint?: string | null;
+  blend: string | null;
 }) {
   if (!frame) {
     return (
@@ -167,9 +167,9 @@ export function Preview({
   const flipTransform = flipToTransform(flip);
 
   const tileStyle = makeTileStyle(textureDef, frame, false, false, 128);
-  const tintStyle = tint
+  const tintStyle = blend
     ? {
-        backgroundColor: tint,
+        backgroundColor: blend,
         backgroundBlendMode: "multiply" as const,
       }
     : undefined;
@@ -226,13 +226,13 @@ export function TexturePicker({
   frames,
   onSelect,
   enableRotation,
-  tint,
+  blend,
 }: {
   textureDef: TextureDef;
   frames: TextureFrame[];
   onSelect: (selectedTexture: SelectedTexture) => void;
   enableRotation: boolean;
-  tint?: string | null;
+  blend: string | null;
 }) {
   const [search, setSearch] = React.useState("");
   const [selectedFrame, setSelectedFrame] = React.useState<TextureFrame | null>(
@@ -259,9 +259,11 @@ export function TexturePicker({
         id: "",
         label: "",
         rectangle: [0, 0, 0, 0],
+        crop: [0, 0, 0, 0],
       },
       rotation: "Rot0",
       flip: "None",
+      blend,
     };
     onSelect(selectedTexture);
   };
@@ -275,6 +277,7 @@ export function TexturePicker({
         frame: selectedFrame,
         rotation: nextRotation,
         flip: flip,
+        blend,
       };
       onSelect(selectedTexture);
     }
@@ -290,6 +293,7 @@ export function TexturePicker({
         frame: selectedFrame,
         rotation: nextRotation,
         flip: nextFlip,
+        blend,
       };
       onSelect(selectedTexture);
     }
@@ -305,6 +309,7 @@ export function TexturePicker({
         frame: selectedFrame,
         rotation: nextRotation,
         flip: nextFlip,
+        blend,
       };
       onSelect(selectedTexture);
     }
@@ -317,8 +322,8 @@ export function TexturePicker({
       frame: frame,
       rotation: rotation,
       flip: flip,
+      blend,
     };
-    console.log(selectedTexture);
     onSelect(selectedTexture);
   };
 
@@ -358,7 +363,7 @@ export function TexturePicker({
             frame={selectedFrame}
             rotation={rotation}
             flip={flip}
-            tint={tint}
+            blend={blend}
           />
           {enableRotation ? (
             <div>
