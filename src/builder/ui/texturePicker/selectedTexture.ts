@@ -11,6 +11,7 @@ export type SelectedTexture = {
   flip: Flip;
   blend: string | null;
   itemSize?: string | null;
+  itemFlippedSide?: "Left" | "Right";
 };
 
 export const encodeSelectedTexture = (

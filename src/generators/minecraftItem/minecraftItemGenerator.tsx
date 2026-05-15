@@ -84,33 +84,15 @@ const textures: TextureDef[] = [
     id: "CenterFold",
     url: centerFoldTexture.src,
     standardWidth: 2,
-    standardHeight: 128,
+    standardHeight: 512,
   },
 ];
-
-function makeRegionId(textureId: string, rectangle: Rectangle): string {
-  const [tileX, tileY] = rectangle;
-  return `${textureId}-${tileX}-${tileY}`;
-}
-
-function getTileWidth(rectangle: Rectangle): number {
-  const [, , tileWidth] = rectangle;
-  return tileWidth;
-}
 
 function getFrameCrop(frame: TextureFrame): Rectangle {
   return frame.crop;
 }
 
 const script: ScriptDef = (generator: Generator) => {
-  const getSelectInputAsNumberWithDefault = (
-    id: string,
-    defaultValue: number
-  ) => {
-    const value = generator.getSelectInputValue(id);
-    return value ? parseInt(value, 10) : defaultValue;
-  };
-
   const drawItem = (
     textureId: string,
     frame: TextureFrame,
@@ -119,6 +101,7 @@ const script: ScriptDef = (generator: Generator) => {
     width: number,
     height: number,
     showFolds: boolean,
+    flippedSide: "Left" | "Right",
     blend?: Blend
   ) => {
     const [sourceX, sourceY] = frame.rectangle;
@@ -129,26 +112,25 @@ const script: ScriptDef = (generator: Generator) => {
       cropWidth,
       cropHeight,
     ];
-    const tileWidth = getTileWidth(sourceRectangle);
-    const regionId = makeRegionId(textureId, sourceRectangle);
     const halfWidth = width / 2;
-    const textureOffset = getSelectInputAsNumberWithDefault(regionId, 0);
-    const offset = (textureOffset * halfWidth) / tileWidth;
+    const leftFlip = flippedSide === "Left" ? "Horizontal" : undefined;
+    const rightFlip = flippedSide === "Right" ? "Horizontal" : undefined;
 
     generator.drawTexture(
       textureId,
       sourceRectangle,
-      [x + offset, y, halfWidth, height],
+      [x, y, halfWidth, height],
       {
+        flip: leftFlip,
         blend,
       }
     );
     generator.drawTexture(
       textureId,
       sourceRectangle,
-      [x + halfWidth - offset, y, halfWidth, height],
+      [x + halfWidth, y, halfWidth, height],
       {
-        flip: "Horizontal",
+        flip: rightFlip,
         blend,
       }
     );
@@ -166,25 +148,24 @@ const script: ScriptDef = (generator: Generator) => {
   const innerPageWidth = A4.px.width - pageMargin * 2;
   const innerPageHeight = A4.px.height - pageMargin * 2;
 
-  const getSizeFromLabel = (sizeLabel: string | null | undefined) => {
-    if (sizeLabel === sizeSmall) return 16 * 2;
-    if (sizeLabel === sizeMedium) return 16 * 4;
-    if (sizeLabel === sizeLarge) return 16 * 8;
-    return 16 * 4;
+  const getScaleFromLabel = (sizeLabel: string | null | undefined) => {
+    if (sizeLabel === sizeSmall) return 2;
+    if (sizeLabel === sizeMedium) return 4;
+    if (sizeLabel === sizeLarge) return 8;
+    return 4;
   };
 
   const getItemDimensions = (selectedTextureFrame: SelectedTexture) => {
-    const size = getSizeFromLabel(selectedTextureFrame.itemSize);
+    const scale = getScaleFromLabel(selectedTextureFrame.itemSize);
     const frame = selectedTextureFrame.frame;
     if (!frame) {
-      return { width: size * 2, height: size };
+      return { width: 16 * scale * 2, height: 16 * scale };
     }
 
-    const [, , frameWidth, frameHeight] = frame.rectangle;
     const [, , cropWidth, cropHeight] = getFrameCrop(frame);
     return {
-      width: ((size * cropWidth) / frameWidth) * 2,
-      height: (size * cropHeight) / frameHeight,
+      width: cropWidth * scale * 2,
+      height: cropHeight * scale,
     };
   };
 
@@ -336,6 +317,7 @@ const script: ScriptDef = (generator: Generator) => {
     const pages: Array<{
       id: string;
       placements: Array<{
+        index: number;
         selectedTextureFrame: SelectedTexture;
         x: number;
         y: number;
@@ -347,6 +329,7 @@ const script: ScriptDef = (generator: Generator) => {
     let currentPage = {
       id: "Page 1",
       placements: [] as Array<{
+        index: number;
         selectedTextureFrame: SelectedTexture;
         x: number;
         y: number;
@@ -366,7 +349,7 @@ const script: ScriptDef = (generator: Generator) => {
       skyline = makeNewPageSkyline();
     };
 
-    selectedTextureFrames.forEach((selectedTextureFrame) => {
+    selectedTextureFrames.forEach((selectedTextureFrame, index) => {
       const { width, height } = getItemDimensions(selectedTextureFrame);
       const requiredWidth = width + itemMargin * 2;
       const requiredHeight = height + itemMargin * 2;
@@ -385,6 +368,7 @@ const script: ScriptDef = (generator: Generator) => {
       }
 
       currentPage.placements.push({
+        index,
         selectedTextureFrame,
         x: placement.x + itemMargin,
         y: placement.y + itemMargin,
@@ -401,7 +385,7 @@ const script: ScriptDef = (generator: Generator) => {
       generator.usePage(page.id);
       generator.drawImage("Background", [0, 0]);
       page.placements.forEach((placement) => {
-        const { selectedTextureFrame, x, y, width, height } = placement;
+        const { index, selectedTextureFrame, x, y, width, height } = placement;
         const {
           textureDefId,
           frame,
@@ -410,8 +394,39 @@ const script: ScriptDef = (generator: Generator) => {
         const blend: Blend | undefined = selectedBlend
           ? { kind: "MultiplyHex", hex: selectedBlend }
           : undefined;
+        const flippedSide = selectedTextureFrame.itemFlippedSide ?? "Right";
 
-        drawItem(textureDefId, frame, x, y, width, height, showFolds, blend);
+        drawItem(
+          textureDefId,
+          frame,
+          x,
+          y,
+          width,
+          height,
+          showFolds,
+          flippedSide,
+          blend
+        );
+        generator.defineRegionInput([x, y, width, height], () => {
+          const nextSelectedTextureFrames = selectedTextureFrames.map(
+            (frame, frameIndex): SelectedTexture => {
+              if (frameIndex !== index) {
+                return frame;
+              }
+
+              const itemFlippedSide: "Left" | "Right" =
+                (frame.itemFlippedSide ?? "Right") === "Right"
+                  ? "Left"
+                  : "Right";
+
+              return { ...frame, itemFlippedSide };
+            }
+          );
+          generator.setStringInputValue(
+            "SelectedTextureFrames",
+            encodeSelectedTextures(nextSelectedTextureFrames)
+          );
+        });
       });
       generator.drawImage("Title", [0, 0]);
     });
