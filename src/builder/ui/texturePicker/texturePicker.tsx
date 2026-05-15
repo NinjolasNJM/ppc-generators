@@ -1,16 +1,15 @@
 import React from "react";
 import { Button } from "@genroot/builder/ui/button/button";
-import { ArrowPathIcon, ArrowsRightLeftIcon, ArrowsUpDownIcon, BackspaceIcon, XMarkIcon } from "@genroot/builder/ui/icon";
+import {
+  ArrowPathIcon,
+  ArrowsRightLeftIcon,
+  ArrowsUpDownIcon,
+  BackspaceIcon,
+  XMarkIcon,
+} from "@genroot/builder/ui/icon";
 import { type TextureDef } from "@genroot/builder/modules/generatorDef";
-import {
-  type TextureFrame,
-  makeFrameLabel,
-} from "@genroot/builder/modules/textureData";
-import {
-  type Rotation,
-  makeNextRotation,
-  rotationToDegrees,
-} from "./rotation";
+import { type TextureFrame } from "@genroot/builder/modules/textureData";
+import { type Rotation, makeNextRotation, rotationToDegrees } from "./rotation";
 import { Flip, makeNextFlip, flipToTransform } from "./flip";
 import { type SelectedTexture } from "./selectedTexture";
 
@@ -99,7 +98,6 @@ function TileButton({
   onClick: () => void;
 }) {
   const [isHover, setIsHover] = React.useState(false);
-  const label = makeFrameLabel(frame);
   const tileStyle = makeTileStyle(textureDef, frame, isSelected, isHover, 32);
   const buttonStyle = {
     margin: makeMargin(0, borderSize, borderSize, 0),
@@ -107,7 +105,7 @@ function TileButton({
   const style = { ...tileStyle, ...buttonStyle };
   return (
     <button
-      title={label}
+      title={frame.label}
       style={style}
       onClick={onClick}
       onMouseEnter={() => setIsHover(true)}
@@ -187,20 +185,13 @@ export function Preview({
   return (
     <div className="flex flex-col items-center" style={{ width: "148px" }}>
       <div style={style}></div>
-      <div className="text-center text-gray-500 p-2 pt-0">
-        {makeFrameLabel(frame)}
-      </div>
+      <div className="text-center text-gray-500 p-2 pt-0">{frame.label}</div>
     </div>
   );
 }
 export function EraseButton({ onClick }: { onClick: () => void }) {
   return (
-    <Button
-      color="Red"
-      size="Small"
-      onClick={onClick}
-
-    >
+    <Button color="Red" size="Small" onClick={onClick}>
       <BackspaceIcon color="White" />
     </Button>
   );
@@ -208,12 +199,7 @@ export function EraseButton({ onClick }: { onClick: () => void }) {
 
 export function RotationButton({ onClick }: { onClick: () => void }) {
   return (
-    <Button
-      color="Blue"
-      size="Small"
-      onClick={onClick}
-
-    >
+    <Button color="Blue" size="Small" onClick={onClick}>
       <ArrowPathIcon color="White" />
     </Button>
   );
@@ -221,12 +207,7 @@ export function RotationButton({ onClick }: { onClick: () => void }) {
 
 export function FlipHorizontalButton({ onClick }: { onClick: () => void }) {
   return (
-    <Button
-      color="Green"
-      size="Small"
-      onClick={onClick}
-
-    >
+    <Button color="Green" size="Small" onClick={onClick}>
       <ArrowsRightLeftIcon color="White" />
     </Button>
   );
@@ -234,12 +215,7 @@ export function FlipHorizontalButton({ onClick }: { onClick: () => void }) {
 
 export function FlipVerticalButton({ onClick }: { onClick: () => void }) {
   return (
-    <Button
-      color="Green"
-      size="Small"
-      onClick={onClick}
-
-    >
+    <Button color="Green" size="Small" onClick={onClick}>
       <ArrowsUpDownIcon color="White" />
     </Button>
   );
@@ -270,29 +246,27 @@ export function TexturePicker({
   const searchLower = search.toLowerCase();
 
   const framesFiltered = searchLower
-    ? frames.filter((frame) => frame.name.toLowerCase().includes(searchLower))
+    ? frames.filter((frame) => frame.label.toLowerCase().includes(searchLower))
     : frames;
 
-    const onEraseClick = () => {
-      setRotation("Rot0");
-      setFlip("None");
-      setSelectedFrame(null);
-      const selectedTexture: SelectedTexture = {
-        textureDefId: "",
-        frame: {
-          id: "",
-          name: "",
-          rectangle: [0, 0, 0, 0],
-          frameIndex: 0,
-          frameCount: 0,
-        },
-        rotation: "Rot0",
-        flip: "None",
-      };
-      onSelect(selectedTexture);
+  const onEraseClick = () => {
+    setRotation("Rot0");
+    setFlip("None");
+    setSelectedFrame(null);
+    const selectedTexture: SelectedTexture = {
+      textureDefId: "",
+      frame: {
+        id: "",
+        label: "",
+        rectangle: [0, 0, 0, 0],
+      },
+      rotation: "Rot0",
+      flip: "None",
     };
-  
-    const onRotateClick = () => {
+    onSelect(selectedTexture);
+  };
+
+  const onRotateClick = () => {
     const nextRotation = makeNextRotation(rotation);
     setRotation(nextRotation);
     if (selectedFrame) {
@@ -389,12 +363,13 @@ export function TexturePicker({
           {enableRotation ? (
             <div>
               <div className="flex justify-around mt-3">
-              <EraseButton onClick={() => onEraseClick()} />
-              <RotationButton onClick={() => onRotateClick()} />
-            </div><div className="flex justify-around mt-3">
-              <FlipHorizontalButton onClick={() => onFlipHorizontalClick()} />
-              <FlipVerticalButton onClick={() => onFlipVerticalClick()} />
-            </div>
+                <EraseButton onClick={() => onEraseClick()} />
+                <RotationButton onClick={() => onRotateClick()} />
+              </div>
+              <div className="flex justify-around mt-3">
+                <FlipHorizontalButton onClick={() => onFlipHorizontalClick()} />
+                <FlipVerticalButton onClick={() => onFlipVerticalClick()} />
+              </div>
             </div>
           ) : null}
         </div>

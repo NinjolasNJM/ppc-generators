@@ -1,16 +1,8 @@
+import { type TextureFrame } from "@genroot/builder/modules/textureData";
 import { Flip } from "./flip";
 import { type Rotation } from "./rotation";
 
-/** [x, y, width, height] */
-type Rectangle = [number, number, number, number];
-
-export type TextureFrame = {
-  id: string;
-  name: string;
-  rectangle: Rectangle;
-  frameIndex: number;
-  frameCount: number;
-};
+export type { TextureFrame };
 
 export type SelectedTexture = {
   textureDefId: string;

@@ -15,10 +15,8 @@ export const customTextureDef: TextureDef = {
 
 export const customFrame: TextureFrame = {
   id: "custom",
-  name: "Custom",
+  label: "Custom",
   rectangle: [0, 0, 16, 16],
-  frameIndex: 0,
-  frameCount: 1,
 };
 
 export const customFrames: TextureFrame[] = [customFrame];
@@ -33,7 +31,7 @@ export function updateCustomTextureUrl(url: string): void {
 }
 
 export function updateCustomTextureName(name: string): void {
-  customFrame.name = name;
+  customFrame.label = name;
 }
 
 export function updateCustomTextureAtlas(url: string, atlas: Atlas): void {

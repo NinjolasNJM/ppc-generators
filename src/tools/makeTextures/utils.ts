@@ -3,6 +3,13 @@ import Fs from "fs";
 import ChildProcess from "child_process";
 import Jimp from "jimp";
 import { type ImageInfo, readImageInfo } from "../common/imageInfo";
+import {
+  type Rectangle,
+  type TextureData_Tile,
+  imageToTextureFrames,
+  sortTextureDataTiles,
+} from "../../builder/modules/textureData";
+import { packImages } from "../../builder/modules/texturePacking";
 
 type ImageWithInfo = {
   name: string;
@@ -13,22 +20,6 @@ type ImageWithInfo = {
 type ImageWithCoordinates = {
   image: ImageWithInfo;
   coordinates: [number, number];
-};
-
-type TileFrame = {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-};
-
-type TileInfo = {
-  name: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  frames: TileFrame[];
 };
 
 function makeSafeFileName(prefix: string, version: string): string {
@@ -65,67 +56,40 @@ function readImagesInDirectory(directoryPath: string): ImageWithInfo[] {
     .map(toImageWithInfo);
 }
 
-function sortImagesByHeight(images: ImageWithInfo[]): ImageWithInfo[] {
-  return images.sort((image1, image2) => {
-    return image1.info.height - image2.info.height;
-  });
-}
-
 function calculateImagesWithCoordinates(
   images: ImageWithInfo[],
   canvasWidth: number
 ): {
   imagesWithCoordinates: ImageWithCoordinates[];
-  canvasWidth: number;
   canvasHeight: number;
 } {
-  const imagesSorted = sortImagesByHeight(images);
-  let nextx = 0;
-  let nexty = 0;
-  let rowHeight = 0;
-  let canvasHeight = 0;
+  const packableImages = images.map((image, index) => ({
+    id: image.name,
+    label: image.name,
+    rectangle: [0, 0, image.info.width, image.info.height] satisfies Rectangle,
+    sourceIndex: index,
+  }));
 
-  const coordinates: Record<string, [number, number, number, number]> = {};
+  const packed = packImages(packableImages, canvasWidth);
+  const sourceImageById = new Map(
+    packableImages.map((image) => [image.id, image.sourceIndex] as const)
+  );
 
-  const imagesWithCoordinates: ImageWithCoordinates[] = [];
-  imagesSorted.forEach((sourceImage) => {
-    const { name, info } = sourceImage;
-    const { width, height } = info;
+  const imagesWithCoordinates = packed.frames
+    .map((frame) => ({
+      sourceIndex: sourceImageById.get(frame.id) ?? 0,
+      coordinates: [frame.rectangle[0], frame.rectangle[1]] as [number, number],
+    }))
+    .sort((a, b) => a.sourceIndex - b.sourceIndex)
+    .map((packedFrame) => ({
+      image: images[packedFrame.sourceIndex]!,
+      coordinates: packedFrame.coordinates,
+    }));
 
-    if (width > canvasWidth) {
-      console.warn(
-        `WARNING: ${name} has width ${width} greater than the canvas width ${canvasWidth} and was not added`
-      );
-    } else {
-      let x, y;
-      if (nextx + width > canvasWidth) {
-        x = 0;
-        y = nexty + rowHeight;
-
-        nextx = x + width;
-        nexty = y;
-
-        canvasHeight += rowHeight;
-        rowHeight = height;
-      } else {
-        x = nextx;
-        y = nexty;
-
-        nextx = x + width;
-
-        if (height > rowHeight) {
-          rowHeight = height;
-        }
-      }
-
-      coordinates[name] = [x, y, width, height];
-      imagesWithCoordinates.push({ image: sourceImage, coordinates: [x, y] });
-    }
-  });
-
-  canvasHeight += rowHeight;
-
-  return { imagesWithCoordinates, canvasWidth, canvasHeight };
+  return {
+    imagesWithCoordinates,
+    canvasHeight: packed.atlasHeight,
+  };
 }
 
 function makeCanvas(width: number, height: number): Promise<Jimp> {
@@ -172,21 +136,6 @@ async function writeTileImage(
   await canvas.writeAsync(tileImagePath);
 }
 
-function writeTileJson(
-  imagesWithCoordinates: ImageWithCoordinates[],
-  tileJsonPath: string
-): void {
-  const tileInfos = imagesWithCoordinates.map((imagesWithCoordinates) => {
-    const { image, coordinates } = imagesWithCoordinates;
-    const { name, info } = image;
-    const { width, height } = info;
-    const [x, y] = coordinates;
-    return { name, x, y, width, height };
-  });
-  const json = JSON.stringify(tileInfos, null, 2);
-  Fs.writeFileSync(tileJsonPath, json);
-}
-
 function printStdOutput(stdout: string | null, stderr: string | null): void {
   if (stdout && stdout.length > 0) {
     console.log(stdout);
@@ -212,7 +161,7 @@ function formatTypeScriptFile(path: string): Promise<void> {
 function writeTileTypeScript(
   id: string,
   tileImagePath: string,
-  tileInfos: TileInfo[],
+  tiles: TextureData_Tile[],
   canvasWidth: number,
   canvasHeight: number,
   tileTypeScriptPath: string
@@ -237,12 +186,53 @@ function writeTileTypeScript(
       standardHeight: ${canvasHeight},
     }
 
-    export const tiles = ${JSON.stringify(tileInfos)}
+    export const tiles = ${JSON.stringify(tiles)}
 
     export const data = { textureDef, tiles };
   `;
   Fs.writeFileSync(tileTypeScriptPath, code);
   formatTypeScriptFile(tileTypeScriptPath);
+}
+
+function makeTileInfos(
+  imagesWithCoordinates: ImageWithCoordinates[]
+): TextureData_Tile[] {
+  const tiles: Array<{ name: string; frames: Rectangle[] }> =
+    imagesWithCoordinates.map(({ image, coordinates }) => {
+      const { name, info } = image;
+      const { width, height } = info;
+      const [imageX, imageY] = coordinates;
+      const frames = imageToTextureFrames(name, width, height).map((frame) => {
+        const [frameX, frameY, frameWidth, frameHeight] = frame.rectangle;
+        return [
+          imageX + frameX,
+          imageY + frameY,
+          frameWidth,
+          frameHeight,
+        ] satisfies Rectangle;
+      });
+      return { name, frames };
+    });
+
+  return sortTextureDataTiles(tiles, inferUsualFrameSize(tiles));
+}
+
+function inferUsualFrameSize(tiles: Array<{ frames: Rectangle[] }>): number {
+  const frameSizes = tiles.flatMap((tile) => {
+    if (tile.frames.length !== 1) {
+      return [];
+    }
+
+    const frame = tile.frames[0];
+    if (!frame) {
+      return [];
+    }
+
+    const [, , width, height] = frame;
+    return width === height ? [width] : [];
+  });
+
+  return frameSizes.length > 0 ? Math.min(...frameSizes) : 0;
 }
 
 export async function makeTiledImages(
@@ -256,47 +246,19 @@ export async function makeTiledImages(
   const fileName = makeSafeFileName(outputPrefix, id);
   const basePath = outputDirectory + "/" + fileName;
   const tileImagePath = basePath + ".png";
-  const tileJsonPath = basePath + ".json";
   const tileTypeScriptPath = basePath + ".ts";
 
   const images = readImagesInDirectory(sourceDirectory);
 
-  await makeTiledImagesCanvas(images, canvasWidth).then((results) => {
-    const [imagesWithCoordinates, canvas, canvasWidth, canvasHeight] = results;
-    writeTileImage(canvas, tileImagePath).then(() => {
-      writeTileJson(imagesWithCoordinates, tileJsonPath);
-      const tileInfos = imagesWithCoordinates.map((imageWithCoordinates) => {
-        const { image, coordinates } = imageWithCoordinates;
-        const { name, info } = image;
-        const { width, height } = info;
-        const [x, y] = coordinates;
-
-        const frameWidth = width;
-        const frameHeight = width; // Assume square frames
-        const frameCount = Math.floor(height / frameHeight);
-
-        const frames = [];
-
-        for (let i = 0; i < frameCount; i++) {
-          frames.push({
-            x,
-            y: y + i * frameHeight,
-            width: frameWidth,
-            height: frameHeight,
-          });
-        }
-
-        return { name, x, y, width, height, frames };
-      });
-
-      writeTileTypeScript(
-        id,
-        tileImagePath,
-        tileInfos,
-        canvasWidth,
-        canvasHeight,
-        tileTypeScriptPath
-      );
-    });
-  });
+  const [imagesWithCoordinates, canvas, atlasWidth, atlasHeight] =
+    await makeTiledImagesCanvas(images, canvasWidth);
+  await writeTileImage(canvas, tileImagePath);
+  writeTileTypeScript(
+    id,
+    tileImagePath,
+    makeTileInfos(imagesWithCoordinates),
+    atlasWidth,
+    atlasHeight,
+    tileTypeScriptPath
+  );
 }

@@ -17,15 +17,15 @@ import * as Texture_26_1_2_Blocks from "@genroot/generators/_common/textures/tex
 import { customTextureVersion } from "./customTextureVersion";
 
 const blockDefinitions: [TextureData, number][] = [
-  [Texture_1_7_10_Blocks.data, 16],
-  [Texture_1_13_2_Blocks.data, 16],
-  [Texture_26_1_2_Blocks.data, 16],
+  [Texture_1_7_10_Blocks.data as unknown as TextureData, 16],
+  [Texture_1_13_2_Blocks.data as unknown as TextureData, 16],
+  [Texture_26_1_2_Blocks.data as unknown as TextureData, 16],
 ];
 
 const itemDefinitions: [TextureData, number][] = [
-  [Texture_1_7_10_Items.data, 16],
-  [Texture_1_13_2_Items.data, 16],
-  [Texture_26_1_2_Items.data, 16],
+  [Texture_1_7_10_Items.data as unknown as TextureData, 16],
+  [Texture_1_13_2_Items.data as unknown as TextureData, 16],
+  [Texture_26_1_2_Items.data as unknown as TextureData, 16],
 ];
 
 export type TextureVersion = {
@@ -33,21 +33,21 @@ export type TextureVersion = {
   frames: TextureFrame[];
 };
 
-export const blockTextureVersions: TextureVersion[] = blockDefinitions.map(
-  ([data, frameSize]) => {
-    const { textureDef, tiles } = data;
-    const frames = tilesToTextureFrames(tiles, frameSize);
-    return { textureDef, frames };
-  }
-);
+function toTextureVersion([data, frameSize]: [
+  TextureData,
+  number,
+]): TextureVersion {
+  return {
+    textureDef: data.textureDef,
+    frames: tilesToTextureFrames(data.tiles, frameSize),
+  };
+}
 
-export const itemTextureVersions: TextureVersion[] = itemDefinitions.map(
-  ([data, frameSize]) => {
-    const { textureDef, tiles } = data;
-    const frames = tilesToTextureFrames(tiles, frameSize);
-    return { textureDef, frames };
-  }
-);
+export const blockTextureVersions: TextureVersion[] =
+  blockDefinitions.map(toTextureVersion);
+
+export const itemTextureVersions: TextureVersion[] =
+  itemDefinitions.map(toTextureVersion);
 
 export const allTextureDefs = [
   ...blockTextureVersions,

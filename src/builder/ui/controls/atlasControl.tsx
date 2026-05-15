@@ -4,7 +4,11 @@ import {
   type Texture,
   makeTextureFromUrl,
 } from "@genroot/builder/modules/texture";
-import { type TextureFrame } from "@genroot/builder/modules/textureData";
+import {
+  type Rectangle,
+  imageToTextureFrames,
+} from "@genroot/builder/modules/textureData";
+import { packImages } from "@genroot/builder/modules/texturePacking";
 import { type SelectOption, Select } from "../form/select";
 
 /**
@@ -54,7 +58,9 @@ export function AtlasControl({
     const lowerFileName = file.name.toLowerCase();
     return (
       acceptedFileTypes.includes(file.type) ||
-      acceptedFileExtensions.some((extension) => lowerFileName.endsWith(extension))
+      acceptedFileExtensions.some((extension) =>
+        lowerFileName.endsWith(extension)
+      )
     );
   };
 
@@ -81,7 +87,12 @@ export function AtlasControl({
   // existing drawTexture rectangle shape.
   const createAtlas = (
     images: HTMLImageElement[]
-  ): { url: string; framesJson: string; atlasWidth: number; atlasHeight: number } => {
+  ): {
+    url: string;
+    framesJson: string;
+    atlasWidth: number;
+    atlasHeight: number;
+  } => {
     if (images.length === 0) {
       throw new Error("No images to pack into atlas");
     }
@@ -91,41 +102,41 @@ export function AtlasControl({
       standardHeight,
       Math.min(2048, Math.ceil(Math.sqrt(images.length)) * standardWidth)
     );
-    let x = 0;
-    let y = 0;
-    let rowHeight = 0;
-    let atlasHeight = 0;
-    const tiles: TextureFrame[] = [];
 
-    const positions = images.map((image) => {
-      const width = image.width;
-      const height = image.height;
-      if (x + width > estimateWidth) {
-        x = 0;
-        y += rowHeight;
-        atlasHeight += rowHeight;
-        rowHeight = 0;
-      }
+    const sourceFrameMap = new Map<
+      string,
+      { sourceIndex: number; sourceRectangle: Rectangle }
+    >();
 
-      const position = { x, y, width, height };
-      const fileName =
+    const packableImages = images.flatMap((image, index) => {
+      const id =
         (image as HTMLImageElement & { fileName?: string }).fileName ||
-        `image_${tiles.length}`;
-      tiles.push({
-        id: fileName,
-        name: fileName,
-        rectangle: [x, y, width, height],
-        frameIndex: 0,
-        frameCount: 1,
-      });
+        `image_${index}`;
+      const frames = imageToTextureFrames(id, image.width, image.height);
 
-      x += width;
-      rowHeight = Math.max(rowHeight, height);
-      return position;
+      return frames.map((frame) => {
+        sourceFrameMap.set(frame.id, {
+          sourceIndex: index,
+          sourceRectangle: frame.rectangle,
+        });
+
+        return {
+          id: frame.id,
+          label: frame.label,
+          rectangle: [
+            0,
+            0,
+            frame.rectangle[2],
+            frame.rectangle[3],
+          ] satisfies Rectangle,
+          sourceIndex: index,
+        };
+      });
     });
 
-    atlasHeight += rowHeight;
-    const atlasWidth = estimateWidth;
+    const packedAtlas = packImages(packableImages, estimateWidth);
+    const atlasWidth = packedAtlas.atlasWidth;
+    const atlasHeight = packedAtlas.atlasHeight;
 
     const canvas = document.createElement("canvas");
     canvas.width = atlasWidth;
@@ -135,16 +146,36 @@ export function AtlasControl({
       throw new Error("Failed to get canvas context");
     }
 
-    images.forEach((image, index) => {
-      const { x, y } = positions[index]!;
-      context.drawImage(image, x, y);
+    packedAtlas.frames.forEach((frame) => {
+      const sourceInfo = sourceFrameMap.get(frame.id);
+      if (!sourceInfo) {
+        return;
+      }
+
+      const image = images[sourceInfo.sourceIndex];
+      if (!image) {
+        return;
+      }
+
+      const [sx, sy, sw, sh] = sourceInfo.sourceRectangle;
+      context.drawImage(
+        image,
+        sx,
+        sy,
+        sw,
+        sh,
+        frame.rectangle[0],
+        frame.rectangle[1],
+        sw,
+        sh
+      );
     });
 
     const url = canvas.toDataURL("image/png");
     const framesJson = JSON.stringify({
       atlasWidth,
       atlasHeight,
-      frames: tiles,
+      frames: packedAtlas.frames,
     });
     return { url, framesJson, atlasWidth, atlasHeight };
   };
