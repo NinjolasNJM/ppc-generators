@@ -10,6 +10,7 @@ import type {
   ThumbnailDef,
 } from "@genroot/builder/modules/generatorDef";
 import { type Generator } from "@genroot/builder/modules/generator";
+import { type TextureFrame } from "@genroot/builder/modules/textureData";
 import { type Blend } from "@genroot/builder/modules/renderers/drawTexture";
 import {
   allTextureDefs,
@@ -97,6 +98,10 @@ function getTileWidth(rectangle: Rectangle): number {
   return tileWidth;
 }
 
+function getFrameCrop(frame: TextureFrame): Rectangle {
+  return frame.crop ?? [0, 0, frame.rectangle[2], frame.rectangle[3]];
+}
+
 const script: ScriptDef = (generator: Generator) => {
   const getSelectInputAsNumberWithDefault = (
     id: string,
@@ -108,7 +113,7 @@ const script: ScriptDef = (generator: Generator) => {
 
   const drawItem = (
     textureId: string,
-    rectangle: Rectangle,
+    frame: TextureFrame,
     x: number,
     y: number,
     width: number,
@@ -116,18 +121,31 @@ const script: ScriptDef = (generator: Generator) => {
     showFolds: boolean,
     blend?: Blend
   ) => {
-    const tileWidth = getTileWidth(rectangle);
-    const regionId = makeRegionId(textureId, rectangle);
+    const [sourceX, sourceY] = frame.rectangle;
+    const [cropX, cropY, cropWidth, cropHeight] = getFrameCrop(frame);
+    const sourceRectangle: Rectangle = [
+      sourceX + cropX,
+      sourceY + cropY,
+      cropWidth,
+      cropHeight,
+    ];
+    const tileWidth = getTileWidth(sourceRectangle);
+    const regionId = makeRegionId(textureId, sourceRectangle);
     const halfWidth = width / 2;
     const textureOffset = getSelectInputAsNumberWithDefault(regionId, 0);
     const offset = (textureOffset * halfWidth) / tileWidth;
 
-    generator.drawTexture(textureId, rectangle, [x + offset, y, halfWidth, height], {
-      blend,
-    });
     generator.drawTexture(
       textureId,
-      rectangle,
+      sourceRectangle,
+      [x + offset, y, halfWidth, height],
+      {
+        blend,
+      }
+    );
+    generator.drawTexture(
+      textureId,
+      sourceRectangle,
       [x + halfWidth - offset, y, halfWidth, height],
       {
         flip: "Horizontal",
@@ -155,9 +173,21 @@ const script: ScriptDef = (generator: Generator) => {
     return 16 * 4;
   };
 
-  const getItemDimensions = (selectedTextureFrame: SelectedTextureWithBlend) => {
+  const getItemDimensions = (
+    selectedTextureFrame: SelectedTextureWithBlend
+  ) => {
     const size = getSizeFromLabel(selectedTextureFrame.itemSize);
-    return { width: size * 2, height: size };
+    const frame = selectedTextureFrame.selectedTexture?.frame;
+    if (!frame) {
+      return { width: size * 2, height: size };
+    }
+
+    const [, , frameWidth, frameHeight] = frame.rectangle;
+    const [, , cropWidth, cropHeight] = getFrameCrop(frame);
+    return {
+      width: ((size * cropWidth) / frameWidth) * 2,
+      height: (size * cropHeight) / frameHeight,
+    };
   };
 
   type SkylineNode = { x: number; y: number; width: number };
@@ -383,7 +413,7 @@ const script: ScriptDef = (generator: Generator) => {
           ? { kind: "MultiplyHex", hex: selectedTextureFrame.blend }
           : undefined;
 
-        drawItem(textureDefId, frame.rectangle, x, y, width, height, showFolds, blend);
+        drawItem(textureDefId, frame, x, y, width, height, showFolds, blend);
       });
       generator.drawImage("Title", [0, 0]);
     });

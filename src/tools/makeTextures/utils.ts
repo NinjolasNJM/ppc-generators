@@ -22,6 +22,11 @@ type ImageWithCoordinates = {
   coordinates: [number, number];
 };
 
+type TileFrameWithCrop = {
+  rectangle: Rectangle;
+  crop: Rectangle;
+};
+
 function makeSafeFileName(prefix: string, version: string): string {
   return prefix + "_" + version.replace(/[-.]/g, "_");
 }
@@ -194,30 +199,68 @@ function writeTileTypeScript(
   formatTypeScriptFile(tileTypeScriptPath);
 }
 
-function makeTileInfos(
+function getFrameCrop(
+  image: Jimp,
+  [frameX, frameY, frameWidth, frameHeight]: Rectangle
+): Rectangle {
+  let minX = frameWidth;
+  let minY = frameHeight;
+  let maxX = -1;
+  let maxY = -1;
+
+  for (let y = 0; y < frameHeight; y += 1) {
+    for (let x = 0; x < frameWidth; x += 1) {
+      const { a } = Jimp.intToRGBA(image.getPixelColor(frameX + x, frameY + y));
+      if (a === 0) {
+        continue;
+      }
+
+      minX = Math.min(minX, x);
+      minY = Math.min(minY, y);
+      maxX = Math.max(maxX, x);
+      maxY = Math.max(maxY, y);
+    }
+  }
+
+  return maxX === -1
+    ? [0, 0, frameWidth, frameHeight]
+    : [minX, minY, maxX - minX + 1, maxY - minY + 1];
+}
+
+async function makeTileInfos(
   imagesWithCoordinates: ImageWithCoordinates[]
-): TextureData_Tile[] {
-  const tiles: Array<{ name: string; frames: Rectangle[] }> =
-    imagesWithCoordinates.map(({ image, coordinates }) => {
-      const { name, info } = image;
-      const { width, height } = info;
-      const [imageX, imageY] = coordinates;
-      const frames = imageToTextureFrames(name, width, height).map((frame) => {
-        const [frameX, frameY, frameWidth, frameHeight] = frame.rectangle;
-        return [
-          imageX + frameX,
-          imageY + frameY,
-          frameWidth,
-          frameHeight,
-        ] satisfies Rectangle;
-      });
-      return { name, frames };
-    });
+): Promise<TextureData_Tile[]> {
+  const tiles: Array<{ name: string; frames: TileFrameWithCrop[] }> =
+    await Promise.all(
+      imagesWithCoordinates.map(async ({ image, coordinates }) => {
+        const sourceImage = await Jimp.read(image.path);
+        const { name, info } = image;
+        const { width, height } = info;
+        const [imageX, imageY] = coordinates;
+        const frames = imageToTextureFrames(name, width, height).map(
+          (frame) => {
+            const [frameX, frameY, frameWidth, frameHeight] = frame.rectangle;
+            return {
+              rectangle: [
+                imageX + frameX,
+                imageY + frameY,
+                frameWidth,
+                frameHeight,
+              ],
+              crop: getFrameCrop(sourceImage, frame.rectangle),
+            } satisfies TileFrameWithCrop;
+          }
+        );
+        return { name, frames };
+      })
+    );
 
   return sortTextureDataTiles(tiles, inferUsualFrameSize(tiles));
 }
 
-function inferUsualFrameSize(tiles: Array<{ frames: Rectangle[] }>): number {
+function inferUsualFrameSize(
+  tiles: Array<{ frames: TileFrameWithCrop[] }>
+): number {
   const frameSizes = tiles.flatMap((tile) => {
     if (tile.frames.length !== 1) {
       return [];
@@ -228,7 +271,7 @@ function inferUsualFrameSize(tiles: Array<{ frames: Rectangle[] }>): number {
       return [];
     }
 
-    const [, , width, height] = frame;
+    const [, , width, height] = frame.rectangle;
     return width === height ? [width] : [];
   });
 
@@ -253,10 +296,11 @@ export async function makeTiledImages(
   const [imagesWithCoordinates, canvas, atlasWidth, atlasHeight] =
     await makeTiledImagesCanvas(images, canvasWidth);
   await writeTileImage(canvas, tileImagePath);
+  const tiles = await makeTileInfos(imagesWithCoordinates);
   writeTileTypeScript(
     id,
     tileImagePath,
-    makeTileInfos(imagesWithCoordinates),
+    tiles,
     atlasWidth,
     atlasHeight,
     tileTypeScriptPath

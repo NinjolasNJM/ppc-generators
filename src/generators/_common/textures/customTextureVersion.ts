@@ -17,6 +17,7 @@ export const customFrame: TextureFrame = {
   id: "custom",
   label: "Custom",
   rectangle: [0, 0, 16, 16],
+  crop: [0, 0, 16, 16],
 };
 
 export const customFrames: TextureFrame[] = [customFrame];

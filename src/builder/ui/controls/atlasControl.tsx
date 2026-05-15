@@ -82,6 +82,50 @@ export function AtlasControl({
     });
   };
 
+  const getFrameCrop = (
+    image: HTMLImageElement,
+    [frameX, frameY, frameWidth, frameHeight]: Rectangle
+  ): Rectangle => {
+    const canvas = document.createElement("canvas");
+    canvas.width = image.width;
+    canvas.height = image.height;
+    const context = canvas.getContext("2d");
+    if (!context) {
+      return [0, 0, frameWidth, frameHeight];
+    }
+
+    context.drawImage(image, 0, 0);
+    const pixels = context.getImageData(
+      frameX,
+      frameY,
+      frameWidth,
+      frameHeight
+    ).data;
+
+    let minX = frameWidth;
+    let minY = frameHeight;
+    let maxX = -1;
+    let maxY = -1;
+
+    for (let y = 0; y < frameHeight; y += 1) {
+      for (let x = 0; x < frameWidth; x += 1) {
+        const alpha = pixels[(y * frameWidth + x) * 4 + 3] ?? 0;
+        if (alpha === 0) {
+          continue;
+        }
+
+        minX = Math.min(minX, x);
+        minY = Math.min(minY, y);
+        maxX = Math.max(maxX, x);
+        maxY = Math.max(maxY, y);
+      }
+    }
+
+    return maxX === -1
+      ? [0, 0, frameWidth, frameHeight]
+      : [minX, minY, maxX - minX + 1, maxY - minY + 1];
+  };
+
   // Pack images into a single atlas and emit metadata for each tile.
   // Each tile is saved as a TextureFrame so generator scripts can use the
   // existing drawTexture rectangle shape.
@@ -115,6 +159,8 @@ export function AtlasControl({
       const frames = imageToTextureFrames(id, image.width, image.height);
 
       return frames.map((frame) => {
+        const crop = getFrameCrop(image, frame.rectangle);
+
         sourceFrameMap.set(frame.id, {
           sourceIndex: index,
           sourceRectangle: frame.rectangle,
@@ -129,6 +175,7 @@ export function AtlasControl({
             frame.rectangle[2],
             frame.rectangle[3],
           ] satisfies Rectangle,
+          crop,
           sourceIndex: index,
         };
       });
