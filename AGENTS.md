@@ -48,7 +48,3 @@ It includes many generators that turn characters, creatures, items, and other ga
 - Keep encoding and decoding logic encapsulated in the module or component that owns the data.
 - Treat encoded values as opaque to unrelated components; they should use the owning module's API instead of reimplementing serialization details.
 - Apply that pattern to selected texture state and similar generator payloads when they are persisted or restored.
-
-## Docs
-
-- Update the session handover notes when you learn a root cause, choose a testing strategy, or leave a follow-up for the next agent.
