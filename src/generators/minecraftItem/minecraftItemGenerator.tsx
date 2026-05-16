@@ -707,56 +707,6 @@ const script: ScriptDef = (generator: Generator) => {
     );
   });
 
-  const glint = defineGlintControls(generator);
-
-  // Define the Show Folds Variable
-
-  generator.defineBooleanInput("Show Folds", true);
-
-  const showFolds = generator.getBooleanInputValueWithDefault(
-    "Show Folds",
-    true
-  );
-
-  // Decode the selected texture
-
-  const selectedTextureJson = generator.getStringInputValue(
-    "SelectedTextureFrame"
-  );
-  const selectedTextureFrame: SelectedTexture | null = selectedTextureJson
-    ? decodeSelectedTexture(selectedTextureJson)
-    : null;
-
-  // Decode the added textures
-
-  const selectedTextureFramesJson = generator.getStringInputValue(
-    "SelectedTextureFrames"
-  );
-  const selectedTextureFrames: SelectedTexture[] = selectedTextureFramesJson
-    ? decodeSelectedTextures(selectedTextureFramesJson)
-    : [];
-
-  const addSelectedTextureFrame = (textureFrame: SelectedTexture) => [
-    ...selectedTextureFrames,
-    textureFrame,
-  ];
-
-  const toggleItemEnchantment = (itemIndex: number) => {
-    generator.setStringInputValue(
-      "SelectedTextureFrames",
-      encodeSelectedTextures(
-        selectedTextureFrames.map((textureFrame, index) =>
-          index === itemIndex
-            ? {
-                ...textureFrame,
-                enchanted: !(textureFrame.enchanted ?? false),
-              }
-            : textureFrame
-        )
-      )
-    );
-  };
-
   // Show a button which adds the selected texture to the page
 
   generator.defineButtonInput(
@@ -843,7 +793,7 @@ const script: ScriptDef = (generator: Generator) => {
     "Red"
   );
 
-  // Show a button which allows the items to be cleared
+    // Show a button which allows the items to be cleared
 
   generator.defineText("");
 
@@ -863,6 +813,57 @@ const script: ScriptDef = (generator: Generator) => {
     },
     "Red"
   );
+
+  const glint = defineGlintControls(generator);
+
+  // Define the Show Folds Variable
+
+  generator.defineBooleanInput("Show Folds", true);
+
+  const showFolds = generator.getBooleanInputValueWithDefault(
+    "Show Folds",
+    true
+  );
+
+  // Decode the selected texture
+
+  const selectedTextureJson = generator.getStringInputValue(
+    "SelectedTextureFrame"
+  );
+  const selectedTextureFrame: SelectedTexture | null = selectedTextureJson
+    ? decodeSelectedTexture(selectedTextureJson)
+    : null;
+
+  // Decode the added textures
+
+  const selectedTextureFramesJson = generator.getStringInputValue(
+    "SelectedTextureFrames"
+  );
+  const selectedTextureFrames: SelectedTexture[] = selectedTextureFramesJson
+    ? decodeSelectedTextures(selectedTextureFramesJson)
+    : [];
+
+  const addSelectedTextureFrame = (textureFrame: SelectedTexture) => [
+    ...selectedTextureFrames,
+    textureFrame,
+  ];
+
+  const toggleItemEnchantment = (itemIndex: number) => {
+  
+    generator.setStringInputValue(
+      "SelectedTextureFrames",
+      encodeSelectedTextures(
+        selectedTextureFrames.map((textureFrame, index) =>
+          index === itemIndex
+            ? {
+                ...textureFrame,
+                enchanted: !(textureFrame.enchanted ?? false),
+              }
+            : textureFrame
+        )
+      )
+    );
+  };
 
   // Show a blank page initially
 

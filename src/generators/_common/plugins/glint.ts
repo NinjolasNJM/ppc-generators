@@ -110,6 +110,8 @@ export const makeGlintPlugin: (
 ) => TexturePlugin = (glintTexture, glintOptions) => (coordinates, context) => {
   const { sx, sy, sw, sh, dw, dh } = coordinates;
   const { opacity, xOffset, yOffset } = glintOptions;
+  const glintWidth = glintTexture.standardWidth;
+  const glintHeight = glintTexture.standardHeight;
 
   // Create base-only canvas for masking
   const baseOnly = makeCanvasWithContext(dw, dh);
@@ -127,26 +129,39 @@ export const makeGlintPlugin: (
   glintLayer.context.globalCompositeOperation = "lighter";
 
   // Apply wrapped offsets to the glint texture
-  const sourceX = (sx + xOffset) % glintTexture.standardWidth;
-  const sourceY = (sy + yOffset) % glintTexture.standardHeight;
+  const sourceX = (sx + xOffset) % glintWidth;
+  const sourceY = (sy + yOffset) % glintHeight;
 
   // Wrap around if offsets push outside bounds
-  const wrappedX =
-    (sourceX + glintTexture.standardWidth) % glintTexture.standardWidth;
-  const wrappedY =
-    (sourceY + glintTexture.standardHeight) % glintTexture.standardHeight;
+  const wrappedX = (sourceX + glintWidth) % glintWidth;
+  const wrappedY = (sourceY + glintHeight) % glintHeight;
+  const glintCanvas = glintTexture.imageWithCanvas.canvasWithContext.canvas;
 
-  glintLayer.context.drawImage(
-    glintTexture.imageWithCanvas.canvasWithContext.canvas,
-    wrappedX,
-    wrappedY,
-    sw,
-    sh,
-    0,
-    0,
-    dw,
-    dh
-  );
+  for (let y = 0; y < sh; ) {
+    const tileY = (wrappedY + y) % glintHeight;
+    const tileHeight = Math.min(glintHeight - tileY, sh - y);
+
+    for (let x = 0; x < sw; ) {
+      const tileX = (wrappedX + x) % glintWidth;
+      const tileWidth = Math.min(glintWidth - tileX, sw - x);
+
+      glintLayer.context.drawImage(
+        glintCanvas,
+        tileX,
+        tileY,
+        tileWidth,
+        tileHeight,
+        (x / sw) * dw,
+        (y / sh) * dh,
+        (tileWidth / sw) * dw,
+        (tileHeight / sh) * dh
+      );
+
+      x += tileWidth;
+    }
+
+    y += tileHeight;
+  }
 
   glintLayer.context.restore();
 
