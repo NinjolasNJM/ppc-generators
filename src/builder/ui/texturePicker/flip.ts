@@ -1,43 +1,76 @@
-import { makeNextRotation, type Rotation } from "@genroot/builder/ui/texturePicker/rotation";
+import { type Rotation } from "@genroot/builder/ui/texturePicker/rotation";
 
 export type Flip = "None" | "Horizontal" | "Vertical";
+
+function rotationToQuarterTurns(rotation: Rotation): number {
+  switch (rotation) {
+    case "Rot0":
+      return 0;
+    case "Rot90":
+      return 1;
+    case "Rot180":
+      return 2;
+    case "Rot270":
+      return 3;
+  }
+}
+
+function quarterTurnsToRotation(quarterTurns: number): Rotation {
+  const normalized = ((quarterTurns % 4) + 4) % 4;
+  switch (normalized) {
+    case 0:
+      return "Rot0";
+    case 1:
+      return "Rot90";
+    case 2:
+      return "Rot180";
+    case 3:
+      return "Rot270";
+  }
+  return "Rot0";
+}
+
+function rotateBy(rotation: Rotation, quarterTurns: number, flip: Flip) {
+  const current = rotationToQuarterTurns(rotation);
+  const next =
+    flip === "None" ? current + quarterTurns : current - quarterTurns;
+  return quarterTurnsToRotation(next);
+}
+
+function getRotationOrientedFlip(flip: Flip, rotation: Rotation): Flip {
+  if (rotation === "Rot90" || rotation === "Rot270") {
+    switch (flip) {
+      case "Horizontal":
+        return "Vertical";
+      case "Vertical":
+        return "Horizontal";
+      case "None":
+        return "None";
+    }
+  }
+  return flip;
+}
 
 export function makeNextFlip(
   current: Flip,
   flip: Flip,
   rotation: Rotation
 ): [Flip, Rotation] {
-  switch (current) {
-    case "None":
-      switch (flip) {
-        case "None":
-          return ["None", rotation];
-        case "Vertical":
-          return ["Vertical", rotation];
-        case "Horizontal":
-          return ["Horizontal", rotation];
-      }
-      break;
-    case "Vertical":
-      switch (flip) {
-        case "None":
-          return ["Vertical", rotation];
-        case "Vertical":
-          return ["None", rotation];
-        case "Horizontal":
-          return ["None", makeNextRotation(rotation)];
-      }
-      break;
-    case "Horizontal":
-      switch (flip) {
-        case "None":
-          return ["Horizontal", rotation];
-        case "Vertical":
-          return ["None", makeNextRotation(rotation)];
-        case "Horizontal":
-          return ["None", rotation];
-      }
+  let nextFlip: Flip = "None";
+  let extraQuarterTurns = 0;
+  const orientedFlip = getRotationOrientedFlip(flip, rotation);
+
+  if (orientedFlip !== current) {
+    if (orientedFlip === "None") {
+      nextFlip = current;
+    } else if (current === "None") {
+      nextFlip = orientedFlip;
+    } else {
+      extraQuarterTurns = 2;
+    }
   }
+
+  return [nextFlip, rotateBy(rotation, extraQuarterTurns, nextFlip)];
 }
 
 export function flipToTransform(flip: Flip): string {

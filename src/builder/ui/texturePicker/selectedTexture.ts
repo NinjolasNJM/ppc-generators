@@ -11,7 +11,6 @@ export type SelectedTexture = {
   flip: Flip;
   blend: string | null;
   itemScale?: number | null;
-  itemFlippedSide?: "Left" | "Right";
   itemLayers?: SelectedTexture[];
 };
 

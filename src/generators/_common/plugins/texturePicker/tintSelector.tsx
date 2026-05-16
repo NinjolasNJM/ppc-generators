@@ -100,9 +100,36 @@ type TintSelectorState = {
   color: string | null;
 };
 
+function getStateFromValue(value: string | null): TintSelectorState {
+  if (value === null) {
+    return {
+      selectedOption: noneChoice,
+      selectedTint: { kind: "NoTint" },
+      color: null,
+    };
+  }
+
+  const tint = tints.find((tint) => tint.color === value);
+  if (tint) {
+    return {
+      selectedOption: { id: tint.id, label: tint.biome },
+      selectedTint: { kind: "SelectedTint", hex: tint.color },
+      color: tint.color,
+    };
+  }
+
+  return {
+    selectedOption: customChoice,
+    selectedTint: { kind: "CustomTint", hex: value },
+    color: value,
+  };
+}
+
 export function TintSelector({
+  value,
   onChange,
 }: {
+  value: string | null;
   onChange: (hex: string | null) => void;
 }) {
   const [state, setState] = React.useState<TintSelectorState>({
@@ -110,6 +137,10 @@ export function TintSelector({
     selectedTint: { kind: "NoTint" },
     color: null,
   });
+
+  React.useEffect(() => {
+    setState(getStateFromValue(value));
+  }, [value]);
 
   const { selectedTint, selectedOption, color } = state;
 
@@ -147,6 +178,7 @@ export function TintSelector({
             <input
               placeholder="Enter hex color"
               className="p-2 border border-gray-300"
+              value={color ?? ""}
               onChange={onInputChange}
             />
           </div>

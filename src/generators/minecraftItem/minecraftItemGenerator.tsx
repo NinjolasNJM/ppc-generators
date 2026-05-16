@@ -11,7 +11,6 @@ import type {
 } from "@genroot/builder/modules/generatorDef";
 import { type Generator } from "@genroot/builder/modules/generator";
 import { type TextureFrame } from "@genroot/builder/modules/textureData";
-import { type Blend } from "@genroot/builder/modules/renderers/drawTexture";
 import {
   allTextureDefs,
   versionIdsItemsFirst as versionIds,
@@ -31,6 +30,14 @@ import {
 } from "../_common/textures/customTextureVersion";
 import { A4 } from "@genroot/builder/modules/modelPage";
 import { TexturePicker } from "../_common/plugins/texturePicker/texturePicker";
+import {
+  makeNextFlip,
+  type Flip,
+} from "@genroot/builder/ui/texturePicker/flip";
+import {
+  rotationToDegrees,
+  type Rotation,
+} from "@genroot/builder/ui/texturePicker/rotation";
 
 /** [x, y, width, height] */
 type Rectangle = [number, number, number, number];
@@ -87,45 +94,41 @@ function getFrameCrop(frame: TextureFrame): Rectangle {
 }
 
 const script: ScriptDef = (generator: Generator) => {
-  const drawItem = (
-    textureId: string,
-    frame: TextureFrame,
-    crop: Rectangle,
+  const drawItemHalf = (
+    selectedTexture: SelectedTexture,
+    source: Rectangle,
     x: number,
     y: number,
     width: number,
     height: number,
-    flippedSide: "Left" | "Right",
-    blend?: Blend
+    flip: Flip = "None"
   ) => {
-    const [sourceX, sourceY] = frame.rectangle;
-    const [cropX, cropY, cropWidth, cropHeight] = crop;
+    const {
+      textureDefId,
+      frame,
+      rotation,
+      flip: selectedFlip,
+      blend,
+    } = selectedTexture;
+    const [nextFlip, nextRotation] = makeNextFlip(selectedFlip, flip, rotation);
+    const [frameX, frameY] = frame.rectangle;
+    const sourceScale = getFrameSourceScale(frame);
+    const [sourceX, sourceY, sourceWidth, sourceHeight] = source;
     const sourceRectangle: Rectangle = [
-      sourceX + cropX,
-      sourceY + cropY,
-      cropWidth,
-      cropHeight,
+      frameX + sourceX * sourceScale,
+      frameY + sourceY * sourceScale,
+      sourceWidth * sourceScale,
+      sourceHeight * sourceScale,
     ];
-    const halfWidth = width / 2;
-    const leftFlip = flippedSide === "Left" ? "Horizontal" : undefined;
-    const rightFlip = flippedSide === "Right" ? "Horizontal" : undefined;
 
     generator.drawTexture(
-      textureId,
+      textureDefId,
       sourceRectangle,
-      [x, y, halfWidth, height],
+      [x, y, width, height],
       {
-        flip: leftFlip,
-        blend,
-      }
-    );
-    generator.drawTexture(
-      textureId,
-      sourceRectangle,
-      [x + halfWidth, y, halfWidth, height],
-      {
-        flip: rightFlip,
-        blend,
+        flip: nextFlip,
+        rotate: rotationToDegrees(nextRotation),
+        blend: blend ? { kind: "MultiplyHex", hex: blend } : undefined,
       }
     );
   };
@@ -135,41 +138,89 @@ const script: ScriptDef = (generator: Generator) => {
   const innerPageWidth = A4.px.width - pageMargin * 2;
   const innerPageHeight = A4.px.height - pageMargin * 2;
   const defaultFrameSize = 16;
+  const enableItemRegionInput = false;
 
-  const getFrameSizeScale = (frame: TextureFrame) =>
-    defaultFrameSize / frame.rectangle[2];
-
-  const getItemFrameSizeScale = (layers: SelectedTexture[]) =>
-    getFrameSizeScale(layers[0]!.frame);
-
-  const getItemDimensions = (selectedTextureFrame: SelectedTexture) => {
-    const layers = getItemLayers(selectedTextureFrame);
-    const scale =
-      (selectedTextureFrame.itemScale ?? defaultItemScale) *
-      getItemFrameSizeScale(layers);
-    const [, , cropWidth, cropHeight] = getItemCropBounds(layers);
-    return {
-      width: cropWidth * scale * 2,
-      height: cropHeight * scale,
-    };
+  const getFrameSourceScale = (frame: TextureFrame) => {
+    const [, , width, height] = frame.rectangle;
+    return width === height &&
+      width > 0 &&
+      width % defaultFrameSize === 0 &&
+      height % defaultFrameSize === 0
+      ? width / defaultFrameSize
+      : 1;
   };
 
-  const getItemLayers = (selectedTextureFrame: SelectedTexture) =>
-    selectedTextureFrame.itemLayers ?? [selectedTextureFrame];
+  const getFrameLogicalCrop = (frame: TextureFrame): Rectangle => {
+    const scale = getFrameSourceScale(frame);
+    const [x, y, width, height] = getFrameCrop(frame);
+    return [x / scale, y / scale, width / scale, height / scale];
+  };
 
-  const doFrameSizesMatch = (a: TextureFrame, b: TextureFrame) =>
-    a.rectangle[2] === b.rectangle[2] && a.rectangle[3] === b.rectangle[3];
+  const getFrameLogicalBounds = (frame: TextureFrame): Rectangle => {
+    const scale = getFrameSourceScale(frame);
+    const [, , width, height] = frame.rectangle;
+    return [0, 0, width / scale, height / scale];
+  };
 
-  const canOverlayItem = (
-    previousItem: SelectedTexture,
-    newLayer: SelectedTexture
-  ) =>
-    getItemLayers(previousItem).every((layer) =>
-      doFrameSizesMatch(layer.frame, newLayer.frame)
+  const rotateCrop = (
+    crop: Rectangle,
+    bounds: Rectangle,
+    rotation: Rotation
+  ): Rectangle => {
+    const [x, y, width, height] = crop;
+    const [, , boundsWidth, boundsHeight] = bounds;
+
+    switch (rotation) {
+      case "Rot0":
+        return crop;
+      case "Rot90":
+        return [y, boundsWidth - (x + width), height, width];
+      case "Rot180":
+        return [
+          boundsWidth - (x + width),
+          boundsHeight - (y + height),
+          width,
+          height,
+        ];
+      case "Rot270":
+        return [boundsHeight - (y + height), x, height, width];
+    }
+  };
+
+  const flipCrop = (
+    crop: Rectangle,
+    bounds: Rectangle,
+    flip: Flip
+  ): Rectangle => {
+    const [x, y, width, height] = crop;
+    const [, , boundsWidth, boundsHeight] = bounds;
+
+    switch (flip) {
+      case "None":
+        return crop;
+      case "Horizontal":
+        return [boundsWidth - (x + width), y, width, height];
+      case "Vertical":
+        return [x, boundsHeight - (y + height), width, height];
+    }
+  };
+
+  const getTransformedCrop = (
+    layer: SelectedTexture,
+    appliedFlip: Flip
+  ): Rectangle => {
+    const [flip, rotation] = makeNextFlip(
+      layer.flip,
+      appliedFlip,
+      layer.rotation
     );
+    const crop = getFrameLogicalCrop(layer.frame);
+    const bounds = getFrameLogicalBounds(layer.frame);
+    const flippedCrop = flipCrop(crop, bounds, flip);
+    return rotateCrop(flippedCrop, bounds, rotation);
+  };
 
-  const getItemCropBounds = (layers: SelectedTexture[]): Rectangle => {
-    const crops = layers.map((layer) => getFrameCrop(layer.frame));
+  const getCropBounds = (crops: Rectangle[]): Rectangle => {
     const minX = Math.min(...crops.map(([x]) => x));
     const minY = Math.min(...crops.map(([, y]) => y));
     const maxX = Math.max(...crops.map(([x, , width]) => x + width));
@@ -177,41 +228,77 @@ const script: ScriptDef = (generator: Generator) => {
     return [minX, minY, maxX - minX, maxY - minY];
   };
 
-  const clipCropToFrame = (
-    frame: TextureFrame,
-    crop: Rectangle
-  ): Rectangle | null => {
-    const [, , frameWidth, frameHeight] = frame.rectangle;
-    const [cropX, cropY, cropWidth, cropHeight] = crop;
-    const x = Math.max(0, cropX);
-    const y = Math.max(0, cropY);
-    const right = Math.min(frameWidth, cropX + cropWidth);
-    const bottom = Math.min(frameHeight, cropY + cropHeight);
-    if (right <= x || bottom <= y) {
-      return null;
-    }
-    return [x, y, right - x, bottom - y];
+  const getItemHalfCropBounds = (
+    layers: SelectedTexture[],
+    appliedFlip: Flip
+  ): Rectangle =>
+    getCropBounds(
+      layers.map((layer) => getTransformedCrop(layer, appliedFlip))
+    );
+
+  const getItemLayout = (layers: SelectedTexture[]) => {
+    const leftBounds = getItemHalfCropBounds(layers, "None");
+    const rightBounds = getItemHalfCropBounds(layers, "Horizontal");
+    const minY = Math.min(leftBounds[1], rightBounds[1]);
+    const maxY = Math.max(
+      leftBounds[1] + leftBounds[3],
+      rightBounds[1] + rightBounds[3]
+    );
+
+    return {
+      leftBounds,
+      rightBounds,
+      height: maxY - minY,
+      minY,
+    };
   };
 
-  const getLayerDestination = (
-    itemCropBounds: Rectangle,
-    layerFrame: TextureFrame,
+  const getItemDimensions = (selectedTextureFrame: SelectedTexture) => {
+    const layers = getItemLayers(selectedTextureFrame);
+    const scale = selectedTextureFrame.itemScale ?? defaultItemScale;
+    const { leftBounds, rightBounds, height } = getItemLayout(layers);
+    const leftHalfWidth = leftBounds[2] * scale;
+    const rightHalfWidth = rightBounds[2] * scale;
+    return {
+      leftHalfWidth,
+      rightHalfWidth,
+      width: leftHalfWidth + rightHalfWidth,
+      height: height * scale,
+    };
+  };
+
+  const getItemLayers = (selectedTextureFrame: SelectedTexture) =>
+    selectedTextureFrame.itemLayers ?? [selectedTextureFrame];
+
+  const getLayerHalfDestination = (
+    halfCropBounds: Rectangle,
+    itemMinY: number,
+    layer: SelectedTexture,
     x: number,
     y: number,
-    scale: number
+    scale: number,
+    appliedFlip: Flip
   ) => {
-    const [itemCropX, itemCropY] = itemCropBounds;
-    const layerCrop = clipCropToFrame(layerFrame, itemCropBounds);
-    if (!layerCrop) {
-      return null;
-    }
-    const [layerCropX, layerCropY, layerCropWidth, layerCropHeight] = layerCrop;
+    const [halfCropX] = halfCropBounds;
+    const layerCrop = getFrameLogicalCrop(layer.frame);
+    const [, rotation] = makeNextFlip(layer.flip, appliedFlip, layer.rotation);
+    const [layerCropX, layerCropY] = getTransformedCrop(layer, appliedFlip);
+    const [, , cropWidth, cropHeight] = layerCrop;
+    const drawWidth = cropWidth * scale;
+    const drawHeight = cropHeight * scale;
+    const orientedX = x + (layerCropX - halfCropX) * scale;
+    const orientedY = y + (layerCropY - itemMinY) * scale;
+    const rotateOffset =
+      rotation === "Rot90" || rotation === "Rot270"
+        ? (drawWidth - drawHeight) / 2
+        : 0;
+
     return {
       crop: layerCrop,
-      x: x + (layerCropX - itemCropX) * scale * 2,
-      y: y + (layerCropY - itemCropY) * scale,
-      width: layerCropWidth * scale * 2,
-      height: layerCropHeight * scale,
+      x: orientedX - rotateOffset,
+      y: orientedY + rotateOffset,
+      width: drawWidth,
+      height: drawHeight,
     };
   };
 
@@ -363,10 +450,10 @@ const script: ScriptDef = (generator: Generator) => {
     const pages: Array<{
       id: string;
       placements: Array<{
-        index: number;
         selectedTextureFrame: SelectedTexture;
         x: number;
         y: number;
+        leftHalfWidth: number;
         width: number;
         height: number;
       }>;
@@ -375,10 +462,10 @@ const script: ScriptDef = (generator: Generator) => {
     let currentPage = {
       id: "Page 1",
       placements: [] as Array<{
-        index: number;
         selectedTextureFrame: SelectedTexture;
         x: number;
         y: number;
+        leftHalfWidth: number;
         width: number;
         height: number;
       }>,
@@ -395,8 +482,9 @@ const script: ScriptDef = (generator: Generator) => {
       skyline = makeNewPageSkyline();
     };
 
-    selectedTextureFrames.forEach((selectedTextureFrame, index) => {
-      const { width, height } = getItemDimensions(selectedTextureFrame);
+    selectedTextureFrames.forEach((selectedTextureFrame) => {
+      const { leftHalfWidth, width, height } =
+        getItemDimensions(selectedTextureFrame);
       const requiredWidth = width + itemMargin * 2;
       const requiredHeight = height + itemMargin * 2;
       let placement = placeRect(skyline, requiredWidth, requiredHeight);
@@ -414,10 +502,10 @@ const script: ScriptDef = (generator: Generator) => {
       }
 
       currentPage.placements.push({
-        index,
         selectedTextureFrame,
         x: placement.x + itemMargin,
         y: placement.y + itemMargin,
+        leftHalfWidth,
         width,
         height,
       });
@@ -431,68 +519,62 @@ const script: ScriptDef = (generator: Generator) => {
       generator.usePage(page.id);
       generator.drawImage("Background", [0, 0]);
       page.placements.forEach((placement) => {
-        const { index, selectedTextureFrame, x, y, width, height } = placement;
-        const flippedSide = selectedTextureFrame.itemFlippedSide ?? "Right";
+        const { selectedTextureFrame, x, y, leftHalfWidth, width, height } =
+          placement;
         const layers = getItemLayers(selectedTextureFrame);
-        const itemScale =
-          (selectedTextureFrame.itemScale ?? defaultItemScale) *
-          getItemFrameSizeScale(layers);
-        const itemCropBounds = getItemCropBounds(layers);
+        const itemScale = selectedTextureFrame.itemScale ?? defaultItemScale;
+        const itemLayout = getItemLayout(layers);
 
         layers.forEach((layer) => {
-          const layerDestination = getLayerDestination(
-            itemCropBounds,
-            layer.frame,
+          const leftDestination = getLayerHalfDestination(
+            itemLayout.leftBounds,
+            itemLayout.minY,
+            layer,
             x,
             y,
-            itemScale
+            itemScale,
+            "None"
           );
-          if (!layerDestination) {
-            return;
-          }
-          const layerBlend: Blend | undefined = layer.blend
-            ? { kind: "MultiplyHex", hex: layer.blend }
-            : undefined;
+          const rightDestination = getLayerHalfDestination(
+            itemLayout.rightBounds,
+            itemLayout.minY,
+            layer,
+            x + leftHalfWidth,
+            y,
+            itemScale,
+            "Horizontal"
+          );
 
-          drawItem(
-            layer.textureDefId,
-            layer.frame,
-            layerDestination.crop,
-            layerDestination.x,
-            layerDestination.y,
-            layerDestination.width,
-            layerDestination.height,
-            flippedSide,
-            layerBlend
+          drawItemHalf(
+            layer,
+            leftDestination.crop,
+            leftDestination.x,
+            leftDestination.y,
+            leftDestination.width,
+            leftDestination.height
+          );
+          drawItemHalf(
+            layer,
+            rightDestination.crop,
+            rightDestination.x,
+            rightDestination.y,
+            rightDestination.width,
+            rightDestination.height,
+            "Horizontal"
           );
         });
         if (showFolds) {
           generator.drawTexture(
             "CenterFold",
             [0, 0, 2, height],
-            [x + width / 2 - 1, y, 2, height]
+            [x + leftHalfWidth - 1, y, 2, height]
           );
         }
-        generator.defineRegionInput([x, y, width, height], () => {
-          const nextSelectedTextureFrames = selectedTextureFrames.map(
-            (frame, frameIndex): SelectedTexture => {
-              if (frameIndex !== index) {
-                return frame;
-              }
-
-              const itemFlippedSide: "Left" | "Right" =
-                (frame.itemFlippedSide ?? "Right") === "Right"
-                  ? "Left"
-                  : "Right";
-
-              return { ...frame, itemFlippedSide };
-            }
-          );
-          generator.setStringInputValue(
-            "SelectedTextureFrames",
-            encodeSelectedTextures(nextSelectedTextureFrames)
-          );
-        });
+        if (enableItemRegionInput) {
+          generator.defineRegionInput([x, y, width, height], () => {
+            // Reserved for a future per-item region action.
+          });
+        }
       });
       generator.drawImage("Title", [0, 0]);
     });
@@ -586,7 +668,7 @@ const script: ScriptDef = (generator: Generator) => {
     return (
       <TexturePicker
         versionId={versionId}
-        enableRotation={false}
+        enableErase={false}
         selectedTexture={currentTexture}
         onChange={(selectedTexture) => {
           onChange(encodeSelectedTexture(selectedTexture));
@@ -661,18 +743,16 @@ const script: ScriptDef = (generator: Generator) => {
           itemLayers: undefined,
         };
         const previousItem = selectedTextureFrames.at(-1);
-        const newSelectedTextureFrames: SelectedTexture[] =
-          previousItem && canOverlayItem(previousItem, newLayer)
-            ? [
-                ...selectedTextureFrames.slice(0, -1),
-                {
-                  ...newLayer,
-                  itemFlippedSide: newLayer.itemFlippedSide,
-                  itemScale: selectedItemScale,
-                  itemLayers: [...getItemLayers(previousItem), newLayer],
-                },
-              ]
-            : addSelectedTextureFrame(newLayer);
+        const newSelectedTextureFrames: SelectedTexture[] = previousItem
+          ? [
+              ...selectedTextureFrames.slice(0, -1),
+              {
+                ...newLayer,
+                itemScale: selectedItemScale,
+                itemLayers: [...getItemLayers(previousItem), newLayer],
+              },
+            ]
+          : addSelectedTextureFrame(newLayer);
         generator.setStringInputValue(
           "SelectedTextureFrames",
           encodeSelectedTextures(newSelectedTextureFrames)
@@ -723,6 +803,12 @@ const script: ScriptDef = (generator: Generator) => {
         "SelectedTextureFrames",
         encodeSelectedTextures([])
       );
+      if (selectedTextureFrame) {
+        generator.setStringInputValue(
+          "SelectedTextureFrame",
+          encodeSelectedTexture({ ...selectedTextureFrame, blend: null })
+        );
+      }
     },
     "Red"
   );

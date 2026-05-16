@@ -225,13 +225,13 @@ export function TexturePicker({
   textureDef,
   frames,
   onSelect,
-  enableRotation,
+  enableErase,
   blend,
 }: {
   textureDef: TextureDef;
   frames: TextureFrame[];
   onSelect: (selectedTexture: SelectedTexture) => void;
-  enableRotation: boolean;
+  enableErase: boolean;
   blend: string | null;
 }) {
   const [search, setSearch] = React.useState("");
@@ -263,7 +263,7 @@ export function TexturePicker({
       },
       rotation: "Rot0",
       flip: "None",
-      blend,
+      blend: null,
     };
     onSelect(selectedTexture);
   };
@@ -317,11 +317,13 @@ export function TexturePicker({
 
   const onSelectClick = (frame: TextureFrame) => {
     setSelectedFrame(frame);
+    setRotation("Rot0");
+    setFlip("None");
     const selectedTexture = {
       textureDefId: textureDef.id,
       frame: frame,
-      rotation: rotation,
-      flip: flip,
+      rotation: "Rot0" as const,
+      flip: "None" as const,
       blend,
     };
     onSelect(selectedTexture);
@@ -365,18 +367,18 @@ export function TexturePicker({
             flip={flip}
             blend={blend}
           />
-          {enableRotation ? (
-            <div>
-              <div className="flex justify-around mt-3">
+          <div>
+            <div className="flex justify-around mt-3">
+              {enableErase ? (
                 <EraseButton onClick={() => onEraseClick()} />
-                <RotationButton onClick={() => onRotateClick()} />
-              </div>
-              <div className="flex justify-around mt-3">
-                <FlipHorizontalButton onClick={() => onFlipHorizontalClick()} />
-                <FlipVerticalButton onClick={() => onFlipVerticalClick()} />
-              </div>
+              ) : null}
+              <RotationButton onClick={() => onRotateClick()} />
             </div>
-          ) : null}
+            <div className="flex justify-around mt-3">
+              <FlipHorizontalButton onClick={() => onFlipHorizontalClick()} />
+              <FlipVerticalButton onClick={() => onFlipVerticalClick()} />
+            </div>
+          </div>
         </div>
       </div>
     </div>

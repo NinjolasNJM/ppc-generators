@@ -109,7 +109,7 @@ export function defineInputRegion(
     (),
   )
 }*/
-function drawTexture(
+export function drawSelectedTexture(
   generator: Generator,
   face: SelectedTexture,
   source: Region,
@@ -124,7 +124,7 @@ function drawTexture(
 
   const flipOption = options?.flip ?? "None";
 
-  const [nextFlip, nextRotation] = makeNextFlip(flipOption, flip, rotation);
+  const [nextFlip, nextRotation] = makeNextFlip(flip, flipOption, rotation);
 
   const scale =
     fw === fh && fw > 0 && fw % 16 === 0 && fh % 16 === 0 ? fw / 16 : 1;
@@ -187,6 +187,8 @@ function drawTexture(
     blend: textureBlend,
   };
 
+  console.log("Texture: ", textureDefId, "Options: ", optionsWithTransforms);
+
   generator.drawTexture(
     textureDefId,
     sourceRegion,
@@ -206,7 +208,13 @@ export function drawFace(
   if (faceTexturesJson) {
     const faceTextures = decodeSelectedTextures(faceTexturesJson);
     faceTextures.forEach((selectedTexture: SelectedTexture) => {
-      drawTexture(generator, selectedTexture, source, destination, options);
+      drawSelectedTexture(
+        generator,
+        selectedTexture,
+        source,
+        destination,
+        options
+      );
     });
   }
 }
