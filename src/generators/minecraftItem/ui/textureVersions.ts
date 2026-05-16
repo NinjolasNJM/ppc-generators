@@ -1,9 +1,8 @@
-import { type TextureDef } from "@genroot/builder/modules/generatorDef";
 import {
-  type TextureData,
-  type TextureFrame,
-  tilesToTextureFrames,
-} from "../../_common/textureData";
+  makeTextureVersions,
+  type TextureVersion as CommonTextureVersion,
+  type TextureVersionDefinition,
+} from "../../_common/textureVersions";
 
 import * as Texture_1_7_10_Items from "../../../textures/texture_minecraft_1_7_10_items";
 import * as Texture_1_7_10_Blocks from "../../../textures/texture_minecraft_1_7_10_blocks";
@@ -20,7 +19,7 @@ import * as Texture_1_20_4_Blocks from "../../../textures/texture_minecraft_1_20
 import * as Texture_26_1_2_Items from "../../../textures/texture_minecraft_26_1_2_items";
 import * as Texture_26_1_2_Blocks from "../../../textures/texture_minecraft_26_1_2_blocks";
 
-const definitions: [TextureData, number][] = [
+const definitions: TextureVersionDefinition[] = [
   [Texture_1_7_10_Items.data, 16],
   [Texture_1_7_10_Blocks.data, 16],
   [Texture_1_13_2_Items.data, 16],
@@ -33,18 +32,8 @@ const definitions: [TextureData, number][] = [
   [Texture_26_1_2_Blocks.data, 16],
 ];
 
-export type TextureVersion = {
-  textureDef: TextureDef;
-  frames: TextureFrame[];
-};
-
-export const textureVersions: TextureVersion[] = definitions.map(
-  ([data, frameSize]) => {
-    const { textureDef, tiles } = data;
-    const frames = tilesToTextureFrames(tiles, frameSize);
-    return { textureDef, frames };
-  }
-);
+export const textureVersions: TextureVersion[] = makeTextureVersions(definitions);
+export type TextureVersion = CommonTextureVersion;
 
 export const allTextureDefs = textureVersions.map(
   ({ textureDef }) => textureDef

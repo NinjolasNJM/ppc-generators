@@ -5,6 +5,7 @@
 - The sibling project lives at `/Users/kevanstannard/dev/pixel-papercraft-generators-ninjolas`.
 - This branch is migrating block-generator and texture-picker features from that sibling project into the current repo.
 - The sibling implementation has drifted and accumulated enough rough edges that it is no longer a good base for continued work, so the features are being rewritten here instead of extended in place.
+- The sibling branch at `/Users/kevanstannard/dev/pixel-papercraft-generators-ninjolas` is still the best reference for intended item tint behavior while the rewrite is completed here.
 - The block generator update work is committed on `block-generator-updates-v2` and now includes the picker/texture-data boundary moves made in this repo.
 - The remaining untracked docs were cleaned up so this is the only handover document left.
 - The current codebase already includes:
@@ -17,6 +18,7 @@
   - the builder directory no longer references anything under `src/generators/_common`
   - `TexturePicker` and `TintSelector` are now separate shared primitives
   - `SelectedTextureWithBlend` plumbing for the block flow
+  - item tint support is now confirmed to be part of the remaining migration work
   - block face rendering that combines rotation, flip, and blend
   - renderer-level and Playwright visual regression coverage for the block generator
   - a dedicated `testing` generator for shared visual regressions
@@ -31,7 +33,7 @@
 - Shared texture frame data moved out of `src/builder/modules` and into `src/generators/_common/textureData`.
 - The block generator stores the selected texture plus blend/tint state.
 - The block and item texture version files now resolve their shared texture data and texture assets without depending on `src/builder/ui`.
-- The block picker composes `TexturePicker` and `TintSelector` directly; the item picker still omits tint UI.
+- The block picker composes `TexturePicker` and `TintSelector` directly; the item picker still needs the same tint-selector path threaded through it.
 - Block face rendering forwards the full orientation state to the renderer.
 - The block texture picker preview now shows the selected tint color.
 - Texture picker search now normalizes underscores to spaces, so `grass block top` matches `grass_block_top`.
@@ -66,7 +68,7 @@
 
 3. Review the remaining migration items from the sibling project one at a time.
    - keep `TexturePicker` and `TintSelector` as sibling primitives
-   - wire item tint support through the shared tint selector only if the item flow needs it
+   - wire item tint support through the shared tint selector because the item flow now explicitly needs it
    - shared texture version assembly
 
 ## Verification Notes
@@ -88,7 +90,7 @@
 - Inspect the existing changes before adding new ones.
 - Use the existing screenshot harness rather than introducing a new visual testing system.
 - Use the `testing` generator as the first home for shared visual regressions.
-- The next small task is keeping the tint-selector path separate from the texture-picker path while deciding whether item tint support is actually needed.
+- The next small task is threading the tint-selector path into the item generator while keeping it separate from the texture-picker primitive.
 
 ## Next Session Checklist
 
@@ -101,6 +103,7 @@
 2. Keep `TexturePicker` and `TintSelector` as separate shared primitives.
 
 3. Add item tint support only if the item flow genuinely needs it.
+   - item tint support is confirmed as needed; use the sibling branch as the behavioral reference.
 
 4. Add or update focused tests before changing behavior:
    - a unit test for the shared tint component, if it changes
