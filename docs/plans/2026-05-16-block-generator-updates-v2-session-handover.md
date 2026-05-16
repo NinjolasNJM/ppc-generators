@@ -15,6 +15,7 @@
   - the shared generator texture picker primitives now live in `src/generators/_common/texturePicker`
   - the shared tint selector primitive now lives in `src/generators/_common/tintSelector`
   - shared texture data and frame-label logic now live in `src/generators/_common/textureData`
+  - shared Minecraft texture version definitions now live in `src/generators/_common/minecraftTextureVersions`
   - the builder directory no longer references anything under `src/generators/_common`
   - `TexturePicker` and `TintSelector` are now separate shared primitives
   - `SelectedTextureWithBlend` plumbing for the block flow
@@ -32,6 +33,7 @@
 - The shared texture picker implementation has moved out of `src/builder/ui` and into `src/generators/_common/texturePicker`.
 - The shared tint selector implementation has moved out of `src/generators/minecraftBlock` and into `src/generators/_common/tintSelector`.
 - Shared texture frame data moved out of `src/builder/modules` and into `src/generators/_common/textureData`.
+- Shared Minecraft texture version definitions moved out of the per-generator `textureVersions.ts` files and into `src/generators/_common/minecraftTextureVersions.ts`.
 - The block generator stores the selected texture plus blend/tint state.
 - The block and item texture version files now resolve their shared texture data and texture assets without depending on `src/builder/ui`.
 - The block and item pickers compose `TexturePicker` and `TintSelector` directly.
@@ -69,7 +71,7 @@
 
 3. Review the remaining migration items from the sibling project one at a time.
    - keep `TexturePicker` and `TintSelector` as sibling primitives
-   - shared texture version assembly
+   - shared texture version assembly is now complete
 
 ## Verification Notes
 
@@ -111,3 +113,4 @@
 5. Verify the narrowest relevant surface first:
    - `npx vitest run src/generators/_common/tintSelector/*.test.ts src/generators/_common/texturePicker/*.test.ts`
    - then the block/item texture-version tests if imports change
+   - `npx vitest run src/generators/_common/minecraftTextureVersions.test.ts`
