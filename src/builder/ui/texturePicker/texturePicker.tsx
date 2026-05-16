@@ -18,6 +18,7 @@ import {
   makeNextFlip,
   flipForRotation,
 } from "./flip";
+import { matchesTextureSearch } from "./textureSearch";
 import { type SelectedTexture } from "./selectedTexture";
 import { makePreviewStyle } from "./previewStyle";
 
@@ -257,10 +258,8 @@ export function TexturePicker({
   const [rotation, setRotation] = React.useState<Rotation>("Rot0");
   const [flip, setFlip] = React.useState<Flip>("None");
 
-  const searchLower = search.toLowerCase();
-
-  const framesFiltered = searchLower
-    ? frames.filter((frame) => frame.name.toLowerCase().includes(searchLower))
+  const framesFiltered = search
+    ? frames.filter((frame) => matchesTextureSearch(frame.name, search))
     : frames;
 
   const onRotateClick = () => {
