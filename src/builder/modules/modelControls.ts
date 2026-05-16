@@ -100,6 +100,7 @@ export type RangeControl = {
 export type ButtonControl = {
   kind: "Button";
   id: string;
+  color?: "Gray" | "Blue" | "Red" | "Green";
   onClick: () => void;
 };
 

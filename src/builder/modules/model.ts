@@ -130,10 +130,15 @@ export class Model {
     }
   }
 
-  addButtonControl(id: string, onClick: () => void) {
+  addButtonControl(
+    id: string,
+    onClick: () => void,
+    color?: "Gray" | "Blue" | "Red" | "Green"
+  ) {
     this.addControl({
       kind: "Button",
       id,
+      color,
       onClick,
     });
   }

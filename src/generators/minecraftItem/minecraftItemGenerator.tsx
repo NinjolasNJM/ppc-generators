@@ -615,60 +615,104 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Show a button which adds the selected texture to the page
 
-  generator.defineButtonInput("Add Item", () => {
-    if (selectedTextureFrame) {
-      const newSelectedTextureFrame: SelectedTexture = {
-        ...selectedTextureFrame,
-        itemScale: selectedItemScale,
-        itemLayers: undefined,
-      };
-      const newSelectedTextureFrames: SelectedTexture[] = [
-        ...selectedTextureFrames,
-        newSelectedTextureFrame,
-      ];
-      generator.setStringInputValue(
-        "SelectedTextureFrames",
-        encodeSelectedTextures(newSelectedTextureFrames)
-      );
-    }
-  });
+  generator.defineButtonInput(
+    "Add Item",
+    () => {
+      if (selectedTextureFrame) {
+        const newSelectedTextureFrame: SelectedTexture = {
+          ...selectedTextureFrame,
+          itemScale: selectedItemScale,
+          itemLayers: undefined,
+        };
+        const newSelectedTextureFrames: SelectedTexture[] = [
+          ...selectedTextureFrames,
+          newSelectedTextureFrame,
+        ];
+        generator.setStringInputValue(
+          "SelectedTextureFrames",
+          encodeSelectedTextures(newSelectedTextureFrames)
+        );
+      }
+    },
+    "Blue"
+  );
 
   // Show a button which overlays the selected texture onto the last added texture
 
-  generator.defineButtonInput("Overlay Item", () => {
-    if (selectedTextureFrame) {
-      const newLayer: SelectedTexture = {
-        ...selectedTextureFrame,
-        itemScale: selectedItemScale,
-        itemLayers: undefined,
-      };
+  generator.defineButtonInput(
+    "Overlay Item",
+    () => {
+      if (selectedTextureFrame) {
+        const newLayer: SelectedTexture = {
+          ...selectedTextureFrame,
+          itemScale: selectedItemScale,
+          itemLayers: undefined,
+        };
+        const previousItem = selectedTextureFrames.at(-1);
+        const newSelectedTextureFrames: SelectedTexture[] = previousItem
+          ? [
+              ...selectedTextureFrames.slice(0, -1),
+              {
+                ...newLayer,
+                itemFlippedSide: newLayer.itemFlippedSide,
+                itemScale: selectedItemScale,
+                itemLayers: [...getItemLayers(previousItem), newLayer],
+              },
+            ]
+          : [newLayer];
+        generator.setStringInputValue(
+          "SelectedTextureFrames",
+          encodeSelectedTextures(newSelectedTextureFrames)
+        );
+      }
+    },
+    "Green"
+  );
+
+  // Show a button which removes the last placed item or top overlay layer
+
+  generator.defineButtonInput(
+    "Remove Item",
+    () => {
       const previousItem = selectedTextureFrames.at(-1);
-      const newSelectedTextureFrames: SelectedTexture[] = previousItem
-        ? [
-            ...selectedTextureFrames.slice(0, -1),
-            {
-              ...newLayer,
-              itemFlippedSide: newLayer.itemFlippedSide,
-              itemScale: selectedItemScale,
-              itemLayers: [...getItemLayers(previousItem), newLayer],
-            },
-          ]
-        : [newLayer];
+      if (!previousItem) {
+        return;
+      }
+
+      const previousLayers = getItemLayers(previousItem);
+      const newSelectedTextureFrames: SelectedTexture[] =
+        previousLayers.length > 1
+          ? [
+              ...selectedTextureFrames.slice(0, -1),
+              {
+                ...previousItem,
+                itemLayers: previousLayers.slice(0, -1),
+              },
+            ]
+          : selectedTextureFrames.slice(0, -1);
+
       generator.setStringInputValue(
         "SelectedTextureFrames",
         encodeSelectedTextures(newSelectedTextureFrames)
       );
-    }
-  });
+    },
+    "Red"
+  );
 
   // Show a button which allows the items to be cleared
 
-  generator.defineButtonInput("Clear", () => {
-    generator.setStringInputValue(
-      "SelectedTextureFrames",
-      encodeSelectedTextures([])
-    );
-  });
+  generator.defineText("");
+
+  generator.defineButtonInput(
+    "Clear",
+    () => {
+      generator.setStringInputValue(
+        "SelectedTextureFrames",
+        encodeSelectedTextures([])
+      );
+    },
+    "Red"
+  );
 
   // Show a blank page initially
 

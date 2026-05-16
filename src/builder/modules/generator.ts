@@ -141,8 +141,12 @@ export class Generator {
     this.model.addCustomInputControl(id, render);
   }
 
-  defineButtonInput(id: string, onClick: () => void): void {
-    this.model.addButtonControl(id, onClick);
+  defineButtonInput(
+    id: string,
+    onClick: () => void,
+    color?: "Gray" | "Blue" | "Red" | "Green"
+  ): void {
+    this.model.addButtonControl(id, onClick, color);
   }
 
   hasTexture(id: string): boolean {

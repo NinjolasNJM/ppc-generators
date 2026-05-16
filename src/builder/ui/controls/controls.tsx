@@ -191,6 +191,7 @@ export function Controls({
               <ButtonControl
                 key={control.id}
                 id={control.id}
+                color={control.color}
                 onClick={() => {
                   control.onClick();
                   onButtonControlClick();
