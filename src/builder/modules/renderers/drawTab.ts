@@ -1,8 +1,9 @@
 import type { Point, Rectangle } from "./types";
-import { drawLine, drawFoldLine } from "./drawLine";
+import { drawFoldLine, drawLine } from "./drawLine";
 import { CanvasWithContext } from "../canvasWithContext";
 
 export type TabOrientation = "North" | "South" | "East" | "West";
+export type TabType = "Regular" | "Left" | "Middle" | "Right";
 
 function translatePoint([x, y]: Point, dx: number, dy: number): Point {
   return [x + dx, y + dy];
@@ -12,11 +13,27 @@ function toRadians(degrees: number): number {
   return degrees * (Math.PI / 180);
 }
 
+function drawTabOutline(page: CanvasWithContext, points: Point[]) {
+  const [firstPoint] = points;
+  if (!firstPoint) {
+    return;
+  }
+
+  for (let i = 1; i < points.length; i += 1) {
+    const from = points[i - 1];
+    const to = points[i];
+    if (from && to) {
+      drawLine(page, from, to);
+    }
+  }
+}
+
 function drawTabNorth(
   page: CanvasWithContext,
   rectangle: Rectangle,
   showFoldLine: boolean,
-  tabAngle: number
+  tabAngle: number,
+  tabType: TabType
 ) {
   //
   //    p2 ______ p3
@@ -39,22 +56,31 @@ function drawTabNorth(
       ? [maxInset, Math.tan(tabAngleRad) * maxInset]
       : [inset, h];
 
-  let p1: Point = [0, h];
-  let p2: Point = [0 + inset, h - tabHeight];
-  let p3: Point = [w - inset, h - tabHeight];
-  let p4: Point = [w, h];
+  const outerY = h - tabHeight;
+  const baseLeft = translatePoint([0, h], x, y);
+  const baseRight = translatePoint([w, h], x, y);
+  const outerLeft = translatePoint([inset, outerY], x, y);
+  const outerRight = translatePoint([w - inset, outerY], x, y);
+  const fullOuterLeft = translatePoint([0, outerY], x, y);
+  const fullOuterRight = translatePoint([w, outerY], x, y);
 
-  p1 = translatePoint(p1, x, y);
-  p2 = translatePoint(p2, x, y);
-  p3 = translatePoint(p3, x, y);
-  p4 = translatePoint(p4, x, y);
-
-  drawLine(page, p2, p1);
-  drawLine(page, p2, p3);
-  drawLine(page, p4, p3);
+  switch (tabType) {
+    case "Regular":
+      drawTabOutline(page, [baseLeft, outerLeft, outerRight, baseRight]);
+      break;
+    case "Left":
+      drawTabOutline(page, [baseLeft, outerLeft, fullOuterRight]);
+      break;
+    case "Middle":
+      drawTabOutline(page, [fullOuterLeft, fullOuterRight]);
+      break;
+    case "Right":
+      drawTabOutline(page, [fullOuterLeft, outerRight, baseRight]);
+      break;
+  }
 
   if (showFoldLine) {
-    drawFoldLine(page, p4, p1);
+    drawFoldLine(page, baseRight, baseLeft);
   }
 }
 
@@ -62,7 +88,8 @@ function drawTabEast(
   page: CanvasWithContext,
   rectangle: Rectangle,
   showFoldLine: boolean,
-  tabAngle: number
+  tabAngle: number,
+  tabType: TabType
 ) {
   //
   //  p1
@@ -90,22 +117,30 @@ function drawTabEast(
       ? [maxInset, Math.tan(tabAngleRad) * maxInset]
       : [inset, w];
 
-  let p1: Point = [0, 0];
-  let p2: Point = [tabHeight, 0 + inset];
-  let p3: Point = [tabHeight, h - inset];
-  let p4: Point = [0, h];
+  const baseTop = translatePoint([0, 0], x, y);
+  const baseBottom = translatePoint([0, h], x, y);
+  const outerTop = translatePoint([tabHeight, inset], x, y);
+  const outerBottom = translatePoint([tabHeight, h - inset], x, y);
+  const fullOuterTop = translatePoint([tabHeight, 0], x, y);
+  const fullOuterBottom = translatePoint([tabHeight, h], x, y);
 
-  p1 = translatePoint(p1, x, y);
-  p2 = translatePoint(p2, x, y);
-  p3 = translatePoint(p3, x, y);
-  p4 = translatePoint(p4, x, y);
-
-  drawLine(page, p1, p2);
-  drawLine(page, p3, p2);
-  drawLine(page, p3, p4);
+  switch (tabType) {
+    case "Regular":
+      drawTabOutline(page, [baseTop, outerTop, outerBottom, baseBottom]);
+      break;
+    case "Left":
+      drawTabOutline(page, [baseTop, outerTop, fullOuterBottom]);
+      break;
+    case "Middle":
+      drawTabOutline(page, [fullOuterTop, fullOuterBottom]);
+      break;
+    case "Right":
+      drawTabOutline(page, [fullOuterTop, outerBottom, baseBottom]);
+      break;
+  }
 
   if (showFoldLine) {
-    drawFoldLine(page, p1, p4);
+    drawFoldLine(page, baseTop, baseBottom);
   }
 }
 
@@ -113,7 +148,8 @@ function drawTabSouth(
   page: CanvasWithContext,
   rectangle: Rectangle,
   showFoldLine: boolean,
-  tabAngle: number
+  tabAngle: number,
+  tabType: TabType
 ) {
   // p4 +----------+ p1
   //     \         /
@@ -134,22 +170,30 @@ function drawTabSouth(
       ? [maxInset, Math.tan(tabAngleRad) * maxInset]
       : [inset, h];
 
-  let p1: Point = [w, 0];
-  let p2: Point = [w - inset, tabHeight];
-  let p3: Point = [inset, tabHeight];
-  let p4: Point = [0, 0];
+  const baseLeft = translatePoint([0, 0], x, y);
+  const baseRight = translatePoint([w, 0], x, y);
+  const outerLeft = translatePoint([inset, tabHeight], x, y);
+  const outerRight = translatePoint([w - inset, tabHeight], x, y);
+  const fullOuterLeft = translatePoint([0, tabHeight], x, y);
+  const fullOuterRight = translatePoint([w, tabHeight], x, y);
 
-  p1 = translatePoint(p1, x, y);
-  p2 = translatePoint(p2, x, y);
-  p3 = translatePoint(p3, x, y);
-  p4 = translatePoint(p4, x, y);
-
-  drawLine(page, p2, p1);
-  drawLine(page, p2, p3);
-  drawLine(page, p4, p3);
+  switch (tabType) {
+    case "Regular":
+      drawTabOutline(page, [baseLeft, outerLeft, outerRight, baseRight]);
+      break;
+    case "Left":
+      drawTabOutline(page, [baseLeft, outerLeft, fullOuterRight]);
+      break;
+    case "Middle":
+      drawTabOutline(page, [fullOuterLeft, fullOuterRight]);
+      break;
+    case "Right":
+      drawTabOutline(page, [fullOuterLeft, outerRight, baseRight]);
+      break;
+  }
 
   if (showFoldLine) {
-    drawFoldLine(page, p4, p1);
+    drawFoldLine(page, baseLeft, baseRight);
   }
 }
 
@@ -157,7 +201,8 @@ function drawTabWest(
   page: CanvasWithContext,
   rectangle: Rectangle,
   showFoldLine: boolean,
-  tabAngle: number
+  tabAngle: number,
+  tabType: TabType
 ) {
   //
   // p4
@@ -183,22 +228,30 @@ function drawTabWest(
       ? [maxInset, Math.tan(tabAngleRad) * maxInset]
       : [inset, w];
 
-  let p1: Point = [w, h];
-  let p2: Point = [w - tabHeight, h - inset];
-  let p3: Point = [w - tabHeight, inset];
-  let p4: Point = [w, 0];
+  const baseTop = translatePoint([w, 0], x, y);
+  const baseBottom = translatePoint([w, h], x, y);
+  const outerTop = translatePoint([w - tabHeight, inset], x, y);
+  const outerBottom = translatePoint([w - tabHeight, h - inset], x, y);
+  const fullOuterTop = translatePoint([w - tabHeight, 0], x, y);
+  const fullOuterBottom = translatePoint([w - tabHeight, h], x, y);
 
-  p1 = translatePoint(p1, x, y);
-  p2 = translatePoint(p2, x, y);
-  p3 = translatePoint(p3, x, y);
-  p4 = translatePoint(p4, x, y);
-
-  drawLine(page, p1, p2);
-  drawLine(page, p3, p2);
-  drawLine(page, p3, p4);
+  switch (tabType) {
+    case "Regular":
+      drawTabOutline(page, [baseTop, outerTop, outerBottom, baseBottom]);
+      break;
+    case "Left":
+      drawTabOutline(page, [baseTop, outerTop, fullOuterBottom]);
+      break;
+    case "Middle":
+      drawTabOutline(page, [fullOuterTop, fullOuterBottom]);
+      break;
+    case "Right":
+      drawTabOutline(page, [fullOuterTop, outerBottom, baseBottom]);
+      break;
+  }
 
   if (showFoldLine) {
-    drawFoldLine(page, p1, p4);
+    drawFoldLine(page, baseBottom, baseTop);
   }
 }
 
@@ -232,20 +285,21 @@ export function drawTab(
   rectangle: Rectangle,
   orientation: TabOrientation,
   showFoldLine: boolean = true,
-  tabAngle: number = 45
+  tabAngle: number = 45,
+  tabType: TabType = "Regular"
 ) {
   switch (orientation) {
     case "North":
-      drawTabNorth(page, rectangle, showFoldLine, tabAngle);
+      drawTabNorth(page, rectangle, showFoldLine, tabAngle, tabType);
       break;
     case "East":
-      drawTabEast(page, rectangle, showFoldLine, tabAngle);
+      drawTabEast(page, rectangle, showFoldLine, tabAngle, tabType);
       break;
     case "South":
-      drawTabSouth(page, rectangle, showFoldLine, tabAngle);
+      drawTabSouth(page, rectangle, showFoldLine, tabAngle, tabType);
       break;
     case "West":
-      drawTabWest(page, rectangle, showFoldLine, tabAngle);
+      drawTabWest(page, rectangle, showFoldLine, tabAngle, tabType);
       break;
   }
 }

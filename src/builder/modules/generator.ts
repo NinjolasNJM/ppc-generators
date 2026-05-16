@@ -22,8 +22,12 @@ import {
   drawRectangle,
 } from "./renderers/drawRectangle";
 import { type LineProps, drawLine } from "./renderers/drawLine";
-import { type TabOrientation, drawTab } from "./renderers/drawTab";
 import { drawText } from "./renderers/drawText";
+import {
+  type TabOrientation,
+  type TabType,
+  drawTab,
+} from "./renderers/drawTab";
 import { fillBackgroundColor } from "./renderers/fillBackgroundColor";
 import { type Page } from "./modelPage";
 import { fillRect } from "./renderers/fillRect";
@@ -93,11 +97,7 @@ export class Generator {
     return this.getSelectInputValue(id);
   }
 
-  defineRegionInput(
-    region: Region,
-    onClick: () => void,
-    id?: string
-  ): void {
+  defineRegionInput(region: Region, onClick: () => void, id?: string): void {
     const currentPage = this.getCurrentPage();
     this.model.addRegionControl(currentPage.id, region, onClick, id);
   }
@@ -128,6 +128,7 @@ export class Generator {
       max: number;
       value: number;
       step: number;
+      showValue?: boolean;
     }
   ): number {
     this.defineRangeInput(id, options);
@@ -284,7 +285,8 @@ export class Generator {
     rectangle: Rectangle,
     orientation: TabOrientation,
     showFoldLine?: boolean,
-    tabAngle?: number
+    tabAngle?: number,
+    tabType?: TabType
   ): void {
     const currentPage = this.getCurrentPage();
     drawTab(
@@ -292,7 +294,8 @@ export class Generator {
       rectangle,
       orientation,
       showFoldLine,
-      tabAngle
+      tabAngle,
+      tabType
     );
   }
 

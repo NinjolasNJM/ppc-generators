@@ -25,9 +25,9 @@ import {
   allTextureDefs,
   versionIdsBlocksFirst as versionIds,
 } from "../_common/textures/textureVersions";
-import { drawFace } from "../_common/plugins/texturePicker/face";
 import { TexturePicker } from "../_common/plugins/texturePicker/texturePicker";
-import { blockTintChoiceGroups } from "../_common/plugins/texturePicker/tints";
+import { blockTintChoiceGroups } from "../_common/tintSelector/tints";
+import * as Face from "../minecraftBlock/face";
 
 import thumbnailImage from "./thumbnail/v2-thumbnail-256.jpeg";
 import backgroundImage from "./images/Background.png";
@@ -152,6 +152,7 @@ type DioramaOptions = {
   columns: number;
   rows: number;
   editMode: EditMode | string | null;
+  showEditRegions: boolean;
 };
 
 type RegionDef = {
@@ -306,52 +307,18 @@ function drawBlocks(generator: Generator, options: DioramaOptions) {
 
   regions.forEach(({ id: faceId, region }) => {
     if (options.editMode === "Blocks") {
-      drawRectangleButton(generator, region);
-      defineBlockRegion(generator, faceId, region);
+      if (options.showEditRegions) {
+        drawRectangleButton(generator, region);
+      }
+      Face.defineInputRegion(generator, faceId, region);
     }
 
-    drawFace(generator, faceId, [0, 0, 16, 16], region);
-  });
-}
-
-function defineBlockRegion(
-  generator: Generator,
-  faceId: string,
-  region: Region
-) {
-  generator.defineRegionInput(region, () => {
-    const selectedTextureJson = generator.getStringInputValue(
-      "CurrentBlockTexture"
-    );
-    if (!selectedTextureJson) {
-      return;
-    }
-
-    const selectedTexture = decodeSelectedTexture(selectedTextureJson);
-    generator.setStringInputValue(
-      faceId,
-      selectedTexture.textureDefId === "" ? "[]" : `[${selectedTextureJson}]`
-    );
+    Face.drawFace(generator, faceId, [0, 0, 16, 16], region);
   });
 }
 
 function getNextTabValue(value: number): number {
   return value === 4 ? 0 : value + 1;
-}
-
-function getTabTextureId(value: number): string | null {
-  switch (value) {
-    case 1:
-      return "Diorama Tab";
-    case 2:
-      return "Diorama Tab Left";
-    case 3:
-      return "Diorama Tab Middle";
-    case 4:
-      return "Diorama Tab Right";
-    default:
-      return null;
-  }
 }
 
 function drawTabs(generator: Generator, options: DioramaOptions) {
@@ -362,7 +329,9 @@ function drawTabs(generator: Generator, options: DioramaOptions) {
     const tabValue = parseInt(generator.getSelectInputValue(tabId) ?? "0", 10);
 
     if (options.editMode === "Tabs") {
-      drawRectangleButton(generator, region);
+      if (options.showEditRegions) {
+        drawRectangleButton(generator, region);
+      }
       generator.defineRegionInput(region, () => {
         generator.setSelectInputValue(
           tabId,
@@ -371,13 +340,44 @@ function drawTabs(generator: Generator, options: DioramaOptions) {
       });
     }
 
-    const textureId = getTabTextureId(tabValue);
-    if (textureId) {
-      generator.drawTexture(textureId, [0, 0, 128, 128], region, {
-        rotate: rotation * 90,
-      });
+    if (tabValue > 0) {
+      generator.drawTab(
+        region,
+        getTabOrientation(rotation),
+        false,
+        45,
+        getTabType(tabValue)
+      );
     }
   });
+}
+
+function getTabType(value: number) {
+  switch (value) {
+    case 1:
+      return "Regular";
+    case 2:
+      return "Left";
+    case 3:
+      return "Middle";
+    case 4:
+      return "Right";
+    default:
+      return "Regular";
+  }
+}
+
+function getTabOrientation(rotation: RegionDef["rotation"]) {
+  switch (rotation) {
+    case 0:
+      return "North";
+    case 1:
+      return "East";
+    case 2:
+      return "South";
+    case 3:
+      return "West";
+  }
 }
 
 function drawFolds(generator: Generator, options: DioramaOptions) {
@@ -388,7 +388,9 @@ function drawFolds(generator: Generator, options: DioramaOptions) {
     const isFoldEnabled = generator.getBooleanInputValue(foldId) ?? false;
 
     if (options.editMode === "Folds") {
-      drawRectangleButton(generator, region);
+      if (options.showEditRegions) {
+        drawRectangleButton(generator, region);
+      }
       generator.defineRegionInput(region, () => {
         generator.setBooleanInputValue(foldId, !isFoldEnabled);
       });
@@ -496,6 +498,10 @@ const script: ScriptDef = (generator: Generator) => {
     "Landscape Mode",
     false
   );
+  const showEditRegions = generator.defineAndGetBooleanInput(
+    "Show Edit Regions",
+    false
+  );
 
   generator.usePage("Page");
   generator.fillBackgroundColorWithWhite();
@@ -516,6 +522,7 @@ const script: ScriptDef = (generator: Generator) => {
     columns: Math.max(1, Math.floor(baseWidth / width)),
     rows: Math.max(1, Math.floor(baseHeight / height)),
     editMode,
+    showEditRegions,
   });
 
   generator.defineButtonInput("Clear", () => {
@@ -526,6 +533,7 @@ const script: ScriptDef = (generator: Generator) => {
     const currentEditMode = editMode;
     const currentDioramaSize = dioramaSize;
     const currentPageFormat = isLandscape;
+    const currentShowEditRegions = showEditRegions;
 
     generator.clearAllVariables();
 
@@ -545,6 +553,7 @@ const script: ScriptDef = (generator: Generator) => {
       generator.setSelectInputValue("Diorama Size", currentDioramaSize);
     }
     generator.setBooleanInputValue("Landscape Mode", currentPageFormat);
+    generator.setBooleanInputValue("Show Edit Regions", currentShowEditRegions);
   });
 
   generator.drawImage(
