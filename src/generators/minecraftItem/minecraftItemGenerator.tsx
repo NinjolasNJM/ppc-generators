@@ -140,10 +140,19 @@ const script: ScriptDef = (generator: Generator) => {
   const itemMargin = 5;
   const innerPageWidth = A4.px.width - pageMargin * 2;
   const innerPageHeight = A4.px.height - pageMargin * 2;
+  const defaultFrameSize = 16;
+
+  const getFrameSizeScale = (frame: TextureFrame) =>
+    defaultFrameSize / frame.rectangle[2];
+
+  const getItemFrameSizeScale = (layers: SelectedTexture[]) =>
+    getFrameSizeScale(layers[0]!.frame);
 
   const getItemDimensions = (selectedTextureFrame: SelectedTexture) => {
-    const scale = selectedTextureFrame.itemScale ?? defaultItemScale;
     const layers = getItemLayers(selectedTextureFrame);
+    const scale =
+      (selectedTextureFrame.itemScale ?? defaultItemScale) *
+      getItemFrameSizeScale(layers);
     const [, , cropWidth, cropHeight] = getItemCropBounds(layers);
     return {
       width: cropWidth * scale * 2,
@@ -430,8 +439,10 @@ const script: ScriptDef = (generator: Generator) => {
       page.placements.forEach((placement) => {
         const { index, selectedTextureFrame, x, y, width, height } = placement;
         const flippedSide = selectedTextureFrame.itemFlippedSide ?? "Right";
-        const itemScale = selectedTextureFrame.itemScale ?? defaultItemScale;
         const layers = getItemLayers(selectedTextureFrame);
+        const itemScale =
+          (selectedTextureFrame.itemScale ?? defaultItemScale) *
+          getItemFrameSizeScale(layers);
         const itemCropBounds = getItemCropBounds(layers);
 
         layers.forEach((layer) => {
@@ -495,13 +506,15 @@ const script: ScriptDef = (generator: Generator) => {
 
   const sizeMedium = "Standard (400%)";
   const sizeLarge = "Large (700%)";
+  const sizeExtraLarge = "Extra Large (1400%)";
   const sizeSmall = "Small (200%)";
   const sizeCustom = "Custom";
-  const sizes = [sizeMedium, sizeLarge, sizeSmall, sizeCustom];
+  const sizes = [sizeMedium, sizeLarge, sizeExtraLarge, sizeSmall, sizeCustom];
   const defaultItemScale = 4;
   const scaleBySize = new Map([
     [sizeMedium, 4],
     [sizeLarge, 7],
+    [sizeExtraLarge, 14],
     [sizeSmall, 2],
   ]);
 
