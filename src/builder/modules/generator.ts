@@ -104,14 +104,16 @@ export class Generator {
       max,
       value,
       step,
+      showValue,
     }: {
       min: number;
       max: number;
       value: number;
       step: number;
+      showValue?: boolean;
     }
   ): void {
-    this.model.addRangeControl(id, min, max, value, step);
+    this.model.addRangeControl(id, min, max, value, step, showValue);
   }
 
   defineAndGetRangeInput(
@@ -121,6 +123,7 @@ export class Generator {
       max: number;
       value: number;
       step: number;
+      showValue?: boolean;
     }
   ): number {
     this.defineRangeInput(id, options);

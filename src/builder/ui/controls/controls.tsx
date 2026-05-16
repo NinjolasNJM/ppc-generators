@@ -141,7 +141,8 @@ export function Controls({
               model.getStringVariable(getMinecraftSkinInputValueKey(control.id))
             );
             const value =
-              storedValue ?? getDefaultMinecraftSkinInputValue(control.props.options);
+              storedValue ??
+              getDefaultMinecraftSkinInputValue(control.props.options);
 
             return (
               <MinecraftSkinControl
@@ -206,6 +207,7 @@ export function Controls({
                 max={control.max}
                 step={control.step}
                 value={control.value}
+                showValue={control.showValue}
                 onChange={(value) => onRangeInputChange(control.id, value)}
               />
             );

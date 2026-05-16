@@ -10,7 +10,7 @@ export type SelectedTexture = {
   rotation: Rotation;
   flip: Flip;
   blend: string | null;
-  itemSize?: string | null;
+  itemScale?: number | null;
   itemFlippedSide?: "Left" | "Right";
 };
 

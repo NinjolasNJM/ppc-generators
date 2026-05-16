@@ -6,6 +6,7 @@ export function RangeControl({
   max,
   step,
   value,
+  showValue,
   onChange,
 }: {
   id: string;
@@ -13,12 +14,16 @@ export function RangeControl({
   max: number;
   step: number;
   value: number;
+  showValue?: boolean;
   onChange: (value: number) => void;
 }) {
   const inputId = React.useId();
+  const [currentValue, setCurrentValue] = React.useState(value);
 
   const onRangeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange(parseInt(e.target.value));
+    const nextValue = parseInt(e.target.value);
+    setCurrentValue(nextValue);
+    onChange(nextValue);
   };
 
   return (
@@ -26,15 +31,18 @@ export function RangeControl({
       <label className="font-bold mb-1 block" htmlFor={inputId}>
         {id}
       </label>
-      <input
-        id={inputId}
-        type="range"
-        min={min}
-        max={max}
-        defaultValue={value}
-        step={step}
-        onChange={onRangeChange}
-      />
+      <div className="flex items-center">
+        <input
+          id={inputId}
+          type="range"
+          min={min}
+          max={max}
+          value={currentValue}
+          step={step}
+          onChange={onRangeChange}
+        />
+        {showValue ? <span className="ml-2">{currentValue}</span> : null}
+      </div>
     </div>
   );
 }

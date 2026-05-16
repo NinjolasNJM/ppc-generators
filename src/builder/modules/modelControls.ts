@@ -94,6 +94,7 @@ export type RangeControl = {
   max: number;
   value: number;
   step: number;
+  showValue?: boolean;
 };
 
 export type ButtonControl = {

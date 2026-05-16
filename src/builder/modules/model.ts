@@ -112,7 +112,8 @@ export class Model {
     min: number,
     max: number,
     value: number,
-    step: number
+    step: number,
+    showValue?: boolean
   ) {
     this.addControl({
       kind: "Range",
@@ -121,6 +122,7 @@ export class Model {
       max,
       value,
       step,
+      showValue,
     });
     const currentValue = this.getNumberVariable(id);
     if (currentValue === null) {

@@ -148,15 +148,8 @@ const script: ScriptDef = (generator: Generator) => {
   const innerPageWidth = A4.px.width - pageMargin * 2;
   const innerPageHeight = A4.px.height - pageMargin * 2;
 
-  const getScaleFromLabel = (sizeLabel: string | null | undefined) => {
-    if (sizeLabel === sizeSmall) return 2;
-    if (sizeLabel === sizeMedium) return 4;
-    if (sizeLabel === sizeLarge) return 8;
-    return 4;
-  };
-
   const getItemDimensions = (selectedTextureFrame: SelectedTexture) => {
-    const scale = getScaleFromLabel(selectedTextureFrame.itemSize);
+    const scale = selectedTextureFrame.itemScale ?? defaultItemScale;
     const frame = selectedTextureFrame.frame;
     if (!frame) {
       return { width: 16 * scale * 2, height: 16 * scale };
@@ -432,10 +425,17 @@ const script: ScriptDef = (generator: Generator) => {
     });
   };
 
-  const sizeSmall = "Standard (200%)";
-  const sizeMedium = "Medium (400%)";
-  const sizeLarge = "Large (800%)";
-  const sizes = [sizeSmall, sizeMedium, sizeLarge];
+  const sizeMedium = "Standard (400%)";
+  const sizeLarge = "Large (700%)";
+  const sizeSmall = "Small (200%)";
+  const sizeCustom = "Custom";
+  const sizes = [sizeMedium, sizeLarge, sizeSmall, sizeCustom];
+  const defaultItemScale = 4;
+  const scaleBySize = new Map([
+    [sizeMedium, 4],
+    [sizeLarge, 7],
+    [sizeSmall, 2],
+  ]);
 
   // Show a drop down of different texture versions
 
@@ -476,6 +476,23 @@ const script: ScriptDef = (generator: Generator) => {
 
   const selectedItemSize =
     generator.getSelectInputValue("Item Size") ?? sizeMedium;
+  const selectedCustomScalePercent =
+    generator.getNumberVariable("Custom Scale (%)") ?? 400;
+
+  if (selectedItemSize === sizeCustom) {
+    generator.defineRangeInput("Custom Scale (%)", {
+      min: 50,
+      max: 1600,
+      value: selectedCustomScalePercent,
+      step: 50,
+      showValue: true,
+    });
+  }
+
+  const selectedItemScale =
+    selectedItemSize === sizeCustom
+      ? selectedCustomScalePercent / 100
+      : scaleBySize.get(selectedItemSize) ?? defaultItemScale;
 
   // Show the Texture Picker
   // When a texture is selected, we need to encode it into a string variable
@@ -536,7 +553,7 @@ const script: ScriptDef = (generator: Generator) => {
     if (selectedTextureFrame) {
       const newSelectedTextureFrame: SelectedTexture = {
         ...selectedTextureFrame,
-        itemSize: selectedItemSize,
+        itemScale: selectedItemScale,
       };
       const newSelectedTextureFrames: SelectedTexture[] = [
         ...selectedTextureFrames,
