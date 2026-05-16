@@ -30,6 +30,9 @@ It includes many generators that turn characters, creatures, items, and other ga
 - Add short code comments for board pages or other non-obvious test intent so future agents do not need to rediscover the rationale.
 - Update the session handover notes when you learn a root cause, choose a testing strategy, or leave a follow-up for the next agent.
 - Run the smallest relevant verification set first, then expand to the broader checks if the change touches shared behavior.
+- Keep encoding and decoding logic encapsulated in the module or component that owns the data.
+- Treat encoded values as opaque to unrelated components; they should use the owning module's API instead of reimplementing serialization details.
+- Apply that pattern to selected texture state and similar generator payloads when they are persisted or restored.
 - Push back on multiple independent features in a single change.
   - Split unrelated generator work into separate PRs.
   - Split builder changes and new-generator work into separate PRs unless the builder change is fully proven by tests first and the follow-on generator change is clearly dependent.
