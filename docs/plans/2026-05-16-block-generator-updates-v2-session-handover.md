@@ -18,7 +18,8 @@
   - the builder directory no longer references anything under `src/generators/_common`
   - `TexturePicker` and `TintSelector` are now separate shared primitives
   - `SelectedTextureWithBlend` plumbing for the block flow
-  - item tint support is now confirmed to be part of the remaining migration work
+  - `SelectedTextureWithBlend` plumbing for the item flow
+  - item tint support now flows through the shared tint selector and item serializer
   - block face rendering that combines rotation, flip, and blend
   - renderer-level and Playwright visual regression coverage for the block generator
   - a dedicated `testing` generator for shared visual regressions
@@ -33,7 +34,7 @@
 - Shared texture frame data moved out of `src/builder/modules` and into `src/generators/_common/textureData`.
 - The block generator stores the selected texture plus blend/tint state.
 - The block and item texture version files now resolve their shared texture data and texture assets without depending on `src/builder/ui`.
-- The block picker composes `TexturePicker` and `TintSelector` directly; the item picker still needs the same tint-selector path threaded through it.
+- The block and item pickers compose `TexturePicker` and `TintSelector` directly.
 - Block face rendering forwards the full orientation state to the renderer.
 - The block texture picker preview now shows the selected tint color.
 - Texture picker search now normalizes underscores to spaces, so `grass block top` matches `grass_block_top`.
@@ -68,7 +69,6 @@
 
 3. Review the remaining migration items from the sibling project one at a time.
    - keep `TexturePicker` and `TintSelector` as sibling primitives
-   - wire item tint support through the shared tint selector because the item flow now explicitly needs it
    - shared texture version assembly
 
 ## Verification Notes
@@ -90,7 +90,7 @@
 - Inspect the existing changes before adding new ones.
 - Use the existing screenshot harness rather than introducing a new visual testing system.
 - Use the `testing` generator as the first home for shared visual regressions.
-- The next small task is threading the tint-selector path into the item generator while keeping it separate from the texture-picker primitive.
+- The item tint path is now threaded through the item generator while keeping `TexturePicker` and `TintSelector` separate.
 
 ## Next Session Checklist
 
@@ -102,8 +102,7 @@
 
 2. Keep `TexturePicker` and `TintSelector` as separate shared primitives.
 
-3. Add item tint support only if the item flow genuinely needs it.
-   - item tint support is confirmed as needed; use the sibling branch as the behavioral reference.
+3. Use the sibling branch only as a behavioral reference for future migration items.
 
 4. Add or update focused tests before changing behavior:
    - a unit test for the shared tint component, if it changes
