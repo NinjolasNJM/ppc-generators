@@ -19,7 +19,8 @@ It includes many generators that turn characters, creatures, items, and other ga
   - verify the smallest relevant test set first
   - expand to broader checks when shared behavior changes
 - When behavior can regress visually, add or extend a focused visual regression test before changing the implementation.
-- Prefer the existing `testing` generator as the first place for shared screenshot cases that apply across generators.
+- Prefer the existing `testing` generator for Generator Builder features and other shared builder-level screenshot cases.
+- Keep generator-specific visual regressions in the specific generator unless the behavior is genuinely shared across generators.
 - Keep the testing board small and purposeful:
   - include a reference sheet or fixture page when useful
   - group common render cases together
