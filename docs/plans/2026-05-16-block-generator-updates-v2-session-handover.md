@@ -2,6 +2,9 @@
 
 ## Current State
 
+- The sibling project lives at `/Users/kevanstannard/dev/pixel-papercraft-generators-ninjolas`.
+- This branch is migrating block-generator and texture-picker features from that sibling project into the current repo.
+- The sibling implementation has drifted and accumulated enough rough edges that it is no longer a good base for continued work, so the features are being rewritten here instead of extended in place.
 - The block generator update work is committed on `block-generator-updates-v2` at `64876d5`.
 - The remaining untracked docs were cleaned up so this is the only handover document left.
 - The current codebase already includes:
@@ -31,6 +34,7 @@
 - Core logic has direct unit coverage for:
   - flip transitions
   - button sizing
+  - texture frame counting and frame labels
   - renderer transform composition
   - block face forwarding
   - preview tint style composition
@@ -50,10 +54,17 @@
    - Add targeted tests before changing behavior.
    - Prefer a small unit test, and only add more Playwright coverage if the visual output actually changes.
 
+3. Review the remaining migration items from the sibling project one at a time.
+   - textureDef frame counting for multi-frame textures and single-frame large textures
+   - block and item textures plus the texture picker living in the same files and under plugins
+   - block generator flip and erase support
+   - item generator tint support through the shared texture picker
+
 ## Verification Notes
 
 - `npm run types:check`
 - `npm run lint`
+- `npx vitest run src/builder/modules/textureData.test.ts`
 - `npx vitest run src/builder/ui/texturePicker/textureSearch.test.ts src/builder/ui/texturePicker/flip.test.ts src/builder/ui/texturePicker/texturePicker.test.ts`
 - `npx vitest run src/builder/modules/renderers/drawTexture.test.ts src/generators/minecraftBlock/face.test.ts src/builder/ui/texturePicker/flip.test.ts src/builder/ui/button/buttonStyles.test.ts`
 - `npx playwright test tests/generators/minecraftBlockGenerator/minecraftBlockGenerator.spec.ts`
@@ -65,4 +76,4 @@
 - Inspect the existing changes before adding new ones.
 - Use the existing screenshot harness rather than introducing a new visual testing system.
 - Use the `testing` generator as the first home for shared visual regressions.
-- The next small task is search normalization for the block texture picker.
+- The next small task is the next remaining migration item from the sibling project, one at a time.
