@@ -1,4 +1,4 @@
-import { type TextureDef } from "./generatorDef";
+import { type TextureDef } from "@genroot/builder/modules/generatorDef";
 
 // These "TextureData" types are the shapes of the generated texture data.
 

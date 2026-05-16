@@ -12,6 +12,7 @@
   - `SelectedTexture.flip`
   - the shared `Icon` button size
   - the shared generator texture picker primitives now live in `src/generators/_common/texturePicker`
+  - shared texture data and frame-label logic now live in `src/generators/_common/textureData`
   - `SelectedTextureWithBlend` plumbing for the block flow
   - block face rendering that combines rotation, flip, and blend
   - renderer-level and Playwright visual regression coverage for the block generator
@@ -23,6 +24,7 @@
 
 - Picker controls now support rotation, horizontal flip, vertical flip, and erase/reset.
 - The shared texture picker implementation has moved out of `src/builder/ui` and into `src/generators/_common/texturePicker`.
+- Shared texture frame data moved out of `src/builder/modules` and into `src/generators/_common/textureData`.
 - The block generator stores the selected texture plus blend/tint state.
 - Block face rendering forwards the full orientation state to the renderer.
 - The block texture picker preview now shows the selected tint color.
@@ -65,7 +67,7 @@
 
 - `npm run types:check`
 - `npm run lint`
-- `npx vitest run src/builder/modules/textureData.test.ts`
+- `npx vitest run src/generators/_common/textureData.test.ts`
 - `npx vitest run src/generators/_common/texturePicker/textureSearch.test.ts src/generators/_common/texturePicker/flip.test.ts src/generators/_common/texturePicker/texturePicker.test.ts`
 - `npx vitest run src/builder/modules/renderers/drawTexture.test.ts src/generators/minecraftBlock/face.test.ts src/generators/_common/texturePicker/flip.test.ts src/builder/ui/button/buttonStyles.test.ts`
 - `npx playwright test tests/generators/minecraftBlockGenerator/minecraftBlockGenerator.spec.ts`

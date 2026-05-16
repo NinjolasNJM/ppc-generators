@@ -11,7 +11,7 @@ import { type TextureDef } from "@genroot/builder/modules/generatorDef";
 import {
   type TextureFrame,
   makeFrameLabel,
-} from "@genroot/builder/modules/textureData";
+} from "../textureData";
 import { type SelectedTexture } from "./selectedTexture";
 import { type Rotation, makeNextRotation } from "./rotation";
 import {
