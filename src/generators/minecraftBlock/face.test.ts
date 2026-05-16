@@ -14,9 +14,11 @@ function makeGenerator(faceId: string, faceJson: string): Generator {
 function makeFaceJson({
   rotation,
   flip,
+  rectangle = [16, 32, 16, 16],
 }: {
   rotation: "Rot0" | "Rot90" | "Rot180" | "Rot270";
   flip: "None" | "Horizontal" | "Vertical";
+  rectangle?: [number, number, number, number];
 }) {
   return encodeSelectedTextureWithBlendArray([
     {
@@ -25,7 +27,7 @@ function makeFaceJson({
         frame: {
           id: "frame",
           name: "frame",
-          rectangle: [16, 32, 16, 16],
+          rectangle,
           frameIndex: 0,
           frameCount: 1,
         },
@@ -150,5 +152,30 @@ describe("drawFace", () => {
         })
       );
     });
+  });
+
+  it("uses the full selected frame size when sampling the source texture", () => {
+    const generator = makeGenerator(
+      faceId,
+      makeFaceJson({
+        rotation: "Rot0",
+        flip: "None",
+        rectangle: [464, 384, 32, 32],
+      })
+    );
+
+    drawFace(generator, faceId, source, destination);
+
+    expect(generator.drawTexture).toHaveBeenCalledTimes(1);
+    expect(generator.drawTexture).toHaveBeenCalledWith(
+      "test-texture",
+      [464, 384, 32, 32],
+      destination,
+      expect.objectContaining<DrawTextureOptions>({
+        rotate: 0,
+        flip: "None",
+        blend: undefined,
+      })
+    );
   });
 });

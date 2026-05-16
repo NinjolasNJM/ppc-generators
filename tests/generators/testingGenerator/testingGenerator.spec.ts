@@ -1,0 +1,27 @@
+import { expect, test } from "@playwright/test";
+import { renderImageAtNaturalSize } from "../_shared/screenshot";
+
+test("testing generator matches the visual regression board", async ({
+  page,
+}) => {
+  await page.goto("/generator/testing");
+
+  const outputPages = page.getByTestId("generator-page-image");
+  await expect(outputPages).toHaveCount(4);
+
+  // Page 1: reference sheet.
+  // Page 2: common render cases grouped together.
+  // Page 3: full rotation/flip matrix.
+  // Page 4: same-destination density comparison.
+  for (let index = 0; index < 4; index += 1) {
+    const outputPage = outputPages.nth(index);
+
+    await expect(outputPage).toBeVisible();
+    await expect(outputPage).toHaveAttribute("src", /data:image\/png/);
+    await renderImageAtNaturalSize(outputPage);
+
+    await expect(outputPage).toHaveScreenshot(
+      "testing-board-page-" + (index + 1) + ".png"
+    );
+  }
+});

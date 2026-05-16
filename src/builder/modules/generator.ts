@@ -22,6 +22,7 @@ import {
 } from "./renderers/drawRectangle";
 import { type LineProps, drawLine } from "./renderers/drawLine";
 import { type TabOrientation, drawTab } from "./renderers/drawTab";
+import { drawText } from "./renderers/drawText";
 import { fillBackgroundColor } from "./renderers/fillBackgroundColor";
 import { type Page } from "./modelPage";
 import { fillRect } from "./renderers/fillRect";
@@ -282,6 +283,11 @@ export class Generator {
       showFoldLine,
       tabAngle
     );
+  }
+
+  drawText(text: string, position: Position, size: number): void {
+    const currentPage = this.getCurrentPage();
+    drawText(currentPage.canvasWithContext, text, position, size);
   }
 
   getImagePixelColor(id: string, [x, y]: [number, number]): Color | null {
