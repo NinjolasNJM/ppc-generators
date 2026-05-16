@@ -23,6 +23,7 @@ import {
   updateCustomTextureUrl,
 } from "../_common/textures/customTextureVersion";
 import { TexturePicker } from "../_common/plugins/texturePicker/texturePicker";
+import { blockTintChoiceGroups } from "../_common/plugins/texturePicker/tints";
 import { drawBlock } from "./shapes/block";
 import { drawSlab } from "./shapes/slab";
 import { drawStair } from "./shapes/stair";
@@ -148,6 +149,7 @@ const script: ScriptDef = (generator: Generator) => {
       <TexturePicker
         versionId={versionId}
         selectedTexture={currentTexture}
+        tintChoiceGroups={blockTintChoiceGroups}
         onChange={(selectedTexture) => {
           onChange(encodeSelectedTexture(selectedTexture));
         }}

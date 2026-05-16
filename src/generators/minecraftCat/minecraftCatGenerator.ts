@@ -9,6 +9,8 @@ import type {
   ThumbnailDef,
 } from "@genroot/builder/modules/generatorDef";
 import { type Generator } from "@genroot/builder/modules/generator";
+import { defineTintInput } from "../_common/plugins/texturePicker/tintSelector";
+import { catTintChoiceGroups } from "../_common/plugins/texturePicker/tints";
 
 import thumnbailImage from "./thumbnail/thumbnail-v2-256.jpeg";
 import whiteCatImage from "./textures/white.png";
@@ -187,69 +189,18 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Define user variables
 
-  generator.defineSelectInput("Collar Color", [
-    "Black",
-    "Red",
-    "Green",
-    "Brown",
-    "Blue",
-    "Purple",
-    "Cyan",
-    "Light Gray",
-    "Gray",
-    "Pink",
-    "Lime",
-    "Yellow",
-    "Light Blue",
-    "Magenta",
-    "Orange",
-    "White",
-  ]);
+  const collarColor =
+    defineTintInput(generator, "Collar Color", {
+      defaultValue: "#B02E26",
+      choiceGroups: catTintChoiceGroups,
+      includeNoTint: false,
+    }) ?? "#B02E26";
 
   generator.defineBooleanInput("Show Folds", true);
 
   generator.defineBooleanInput("Show Labels", true);
 
   // Get user variable values
-
-  const collarColor = (() => {
-    switch (generator.getSelectInputValue("Collar Color")) {
-      case "Black":
-        return "1D1D21";
-      case "Red":
-        return "B02E26";
-      case "Green":
-        return "5E7C16";
-      case "Brown":
-        return "835432";
-      case "Blue":
-        return "3C44AA";
-      case "Purple":
-        return "8932B8";
-      case "Cyan":
-        return "169C9C";
-      case "Light Gray":
-        return "9D9D97";
-      case "Gray":
-        return "474F52";
-      case "Pink":
-        return "F38BAA";
-      case "Lime":
-        return "80C71F";
-      case "Yellow":
-        return "FED83D";
-      case "Light Blue":
-        return "3AB3DA";
-      case "Magenta":
-        return "C74EBD";
-      case "Orange":
-        return "F9801D";
-      case "White":
-        return "F9FFFE";
-      default:
-        return "B02E26";
-    }
-  })();
 
   const showFolds = generator.getBooleanInputValue("Show Folds");
   const showLabels = generator.getBooleanInputValue("Show Labels");

@@ -63,32 +63,37 @@ export type GlintControls = {
   getPlugin: (enabled: boolean) => TexturePlugin | undefined;
 };
 
-export function defineGlintControls(generator: Generator): GlintControls {
+export function defineGlintControlInputs(generator: Generator): void {
   generator.defineTextureInput("Enchanted Glint", {
     standardWidth: GLINT_TEXTURE_STANDARD_SIZE,
     standardHeight: GLINT_TEXTURE_STANDARD_SIZE,
     choices: ["1.20+", "Pre-1.20"],
   });
 
-  const opacity = generator.defineAndGetRangeInput("Glint Opacity", {
+  generator.defineAndGetRangeInput("Glint Opacity", {
     min: 0,
     max: 255,
     value: 255,
     step: 1,
   });
-  const xOffset = generator.defineAndGetRangeInput("Glint X Offset", {
+  generator.defineAndGetRangeInput("Glint X Offset", {
     min: 0,
     max: GLINT_TEXTURE_STANDARD_SIZE,
     value: 0,
     step: 1,
   });
-  const yOffset = generator.defineAndGetRangeInput("Glint Y Offset", {
+  generator.defineAndGetRangeInput("Glint Y Offset", {
     min: 0,
     max: GLINT_TEXTURE_STANDARD_SIZE,
     value: 0,
     step: 1,
   });
+}
 
+export function getGlintControls(generator: Generator): GlintControls {
+  const opacity = generator.getNumberVariable("Glint Opacity") ?? 255;
+  const xOffset = generator.getNumberVariable("Glint X Offset") ?? 0;
+  const yOffset = generator.getNumberVariable("Glint Y Offset") ?? 0;
   const glintTexture = generator.getTexture("Enchanted Glint");
   const glintPluginOptions: GlintPluginOptions = {
     opacity: opacity / 255,
@@ -102,6 +107,11 @@ export function defineGlintControls(generator: Generator): GlintControls {
         ? makeGlintPlugin(glintTexture, glintPluginOptions)
         : undefined,
   };
+}
+
+export function defineGlintControls(generator: Generator): GlintControls {
+  defineGlintControlInputs(generator);
+  return getGlintControls(generator);
 }
 
 export const makeGlintPlugin: (

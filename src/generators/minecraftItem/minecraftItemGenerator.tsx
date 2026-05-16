@@ -33,6 +33,7 @@ import {
 } from "../_common/textures/customTextureVersion";
 import { A4 } from "@genroot/builder/modules/modelPage";
 import { TexturePicker } from "../_common/plugins/texturePicker/texturePicker";
+import { itemTintChoiceGroups } from "../_common/plugins/texturePicker/tints";
 import {
   makeNextFlip,
   type Flip,
@@ -148,7 +149,6 @@ const script: ScriptDef = (generator: Generator) => {
   const innerPageWidth = A4.px.width - pageMargin * 2;
   const innerPageHeight = A4.px.height - pageMargin * 2;
   const defaultFrameSize = 16;
-  const enableItemRegionInput = true;
 
   const getFrameSourceScale = (frame: TextureFrame) => {
     const [, , width, height] = frame.rectangle;
@@ -600,11 +600,9 @@ const script: ScriptDef = (generator: Generator) => {
             [x + leftHalfWidth - 1, y, 2, height]
           );
         }
-        if (enableItemRegionInput) {
-          generator.defineRegionInput([x, y, width, height], () => {
-            onToggleItemEnchantment(selectedTextureFrameIndex);
-          });
-        }
+        generator.defineRegionInput([x, y, width, height], () => {
+          onToggleItemEnchantment(selectedTextureFrameIndex);
+        });
       });
       generator.drawImage("Title", [0, 0]);
     });
@@ -700,12 +698,52 @@ const script: ScriptDef = (generator: Generator) => {
         versionId={versionId}
         enableErase={false}
         selectedTexture={currentTexture}
+        tintChoiceGroups={itemTintChoiceGroups}
         onChange={(selectedTexture) => {
           onChange(encodeSelectedTexture(selectedTexture));
         }}
       />
     );
   });
+
+  // Decode the selected texture
+
+  const selectedTextureJson = generator.getStringInputValue(
+    "SelectedTextureFrame"
+  );
+  const selectedTextureFrame: SelectedTexture | null = selectedTextureJson
+    ? decodeSelectedTexture(selectedTextureJson)
+    : null;
+
+  // Decode the added textures
+
+  const selectedTextureFramesJson = generator.getStringInputValue(
+    "SelectedTextureFrames"
+  );
+  const selectedTextureFrames: SelectedTexture[] = selectedTextureFramesJson
+    ? decodeSelectedTextures(selectedTextureFramesJson)
+    : [];
+
+  const addSelectedTextureFrame = (textureFrame: SelectedTexture) => [
+    ...selectedTextureFrames,
+    textureFrame,
+  ];
+
+  const toggleItemEnchantment = (itemIndex: number) => {
+    generator.setStringInputValue(
+      "SelectedTextureFrames",
+      encodeSelectedTextures(
+        selectedTextureFrames.map((textureFrame, index) =>
+          index === itemIndex
+            ? {
+                ...textureFrame,
+                enchanted: !(textureFrame.enchanted ?? false),
+              }
+            : textureFrame
+        )
+      )
+    );
+  };
 
   // Show a button which adds the selected texture to the page
 
@@ -793,7 +831,7 @@ const script: ScriptDef = (generator: Generator) => {
     "Red"
   );
 
-    // Show a button which allows the items to be cleared
+  // Show a button which allows the items to be cleared
 
   generator.defineText("");
 
@@ -824,46 +862,6 @@ const script: ScriptDef = (generator: Generator) => {
     "Show Folds",
     true
   );
-
-  // Decode the selected texture
-
-  const selectedTextureJson = generator.getStringInputValue(
-    "SelectedTextureFrame"
-  );
-  const selectedTextureFrame: SelectedTexture | null = selectedTextureJson
-    ? decodeSelectedTexture(selectedTextureJson)
-    : null;
-
-  // Decode the added textures
-
-  const selectedTextureFramesJson = generator.getStringInputValue(
-    "SelectedTextureFrames"
-  );
-  const selectedTextureFrames: SelectedTexture[] = selectedTextureFramesJson
-    ? decodeSelectedTextures(selectedTextureFramesJson)
-    : [];
-
-  const addSelectedTextureFrame = (textureFrame: SelectedTexture) => [
-    ...selectedTextureFrames,
-    textureFrame,
-  ];
-
-  const toggleItemEnchantment = (itemIndex: number) => {
-  
-    generator.setStringInputValue(
-      "SelectedTextureFrames",
-      encodeSelectedTextures(
-        selectedTextureFrames.map((textureFrame, index) =>
-          index === itemIndex
-            ? {
-                ...textureFrame,
-                enchanted: !(textureFrame.enchanted ?? false),
-              }
-            : textureFrame
-        )
-      )
-    );
-  };
 
   // Show a blank page initially
 
