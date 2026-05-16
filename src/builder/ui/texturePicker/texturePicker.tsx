@@ -12,25 +12,17 @@ import {
   type TextureFrame,
   makeFrameLabel,
 } from "@genroot/builder/modules/textureData";
-import {
-  type Rotation,
-  makeNextRotation,
-  rotationToDegrees,
-} from "@genroot/builder/ui/texturePicker/rotation";
+import { type Rotation, makeNextRotation } from "@genroot/builder/ui/texturePicker/rotation";
 import {
   type Flip,
   makeNextFlip,
   flipForRotation,
-  flipToTransform,
 } from "./flip";
 import { type SelectedTexture } from "./selectedTexture";
+import { makePreviewStyle } from "./previewStyle";
 
 function px(n: number): string {
   return n + "px";
-}
-
-function deg(n: number): string {
-  return n + "deg";
 }
 
 function makeBackgroundImage(url: string): string {
@@ -160,11 +152,13 @@ export function Preview({
   frame,
   rotation,
   flip,
+  tint,
 }: {
   textureDef: TextureDef;
   frame: TextureFrame | null;
   rotation: Rotation;
   flip: Flip;
+  tint?: string | null;
 }) {
   if (!frame) {
     return (
@@ -174,20 +168,14 @@ export function Preview({
     );
   }
 
-  const rotationDegrees = rotationToDegrees(rotation);
-  const flipTransform = flipToTransform(flip);
-
-  const tileStyle = makeTileStyle(textureDef, frame, false, false, 128);
-  const transform = `rotate(${deg(rotationDegrees)}) ${flipTransform}`.trim();
-
-  const rotationStyle = {
-    transform: transform,
-  };
-
-  const style = { ...tileStyle, ...rotationStyle };
+  const style = makePreviewStyle(textureDef, frame, rotation, flip, tint);
 
   return (
-    <div className="flex flex-col items-center" style={{ width: "148px" }}>
+    <div
+      className="flex flex-col items-center"
+      style={{ width: "148px" }}
+      data-testid="texture-picker-preview"
+    >
       <div style={style}></div>
       <div className="text-center text-gray-500 p-2 pt-0">
         {makeFrameLabel(frame)}
@@ -253,11 +241,13 @@ export function TexturePicker({
   frames,
   onSelect,
   enableRotation,
+  tint,
 }: {
   textureDef: TextureDef;
   frames: TextureFrame[];
   onSelect: (selectedTexture: SelectedTexture) => void;
   enableRotation: boolean;
+  tint?: string | null;
 }) {
   const [search, setSearch] = React.useState("");
   const [selectedFrame, setSelectedFrame] = React.useState<TextureFrame | null>(
@@ -385,6 +375,7 @@ export function TexturePicker({
             frame={selectedFrame}
             rotation={rotation}
             flip={flip}
+            tint={tint}
           />
           {enableRotation ? (
             <div>

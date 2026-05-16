@@ -126,11 +126,14 @@ export function TintSelector({
 
   return (
     <div>
-      <div className="font-bold mb-1">Tint</div>
+      <div id="minecraft-block-tint-label" className="font-bold mb-1">
+        Tint
+      </div>
       <div className="flex space-x-4">
         <Select
           choices={choices}
           value={selectedOption}
+          ariaLabelledBy="minecraft-block-tint-label"
           onChange={(selectedOption) => {
             const selectedTint = getTintFromOption(selectedOption);
             if (selectedTint) {
