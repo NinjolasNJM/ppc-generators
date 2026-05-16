@@ -12,6 +12,7 @@ export type SelectedTexture = {
   blend: string | null;
   itemScale?: number | null;
   itemLayers?: SelectedTexture[];
+  enchanted?: boolean;
 };
 
 export const encodeSelectedTexture = (

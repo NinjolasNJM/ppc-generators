@@ -9,7 +9,10 @@ import type {
   InstructionsDef,
   ThumbnailDef,
 } from "@genroot/builder/modules/generatorDef";
-import { type Generator } from "@genroot/builder/modules/generator";
+import {
+  type Generator,
+  type TexturePlugin,
+} from "@genroot/builder/modules/generator";
 import { type TextureFrame } from "@genroot/builder/modules/textureData";
 import {
   allTextureDefs,
@@ -38,6 +41,10 @@ import {
   rotationToDegrees,
   type Rotation,
 } from "@genroot/builder/ui/texturePicker/rotation";
+import {
+  defineGlintControls,
+  itemGlintTextureDefs,
+} from "../_common/plugins/glint";
 
 /** [x, y, width, height] */
 type Rectangle = [number, number, number, number];
@@ -81,6 +88,7 @@ const images: ImageDef[] = [
 
 const textures: TextureDef[] = [
   ...allTextureDefs,
+  ...itemGlintTextureDefs,
   {
     id: "CenterFold",
     url: centerFoldTexture.src,
@@ -101,7 +109,8 @@ const script: ScriptDef = (generator: Generator) => {
     y: number,
     width: number,
     height: number,
-    flip: Flip = "None"
+    flip: Flip = "None",
+    plugin?: TexturePlugin
   ) => {
     const {
       textureDefId,
@@ -129,6 +138,7 @@ const script: ScriptDef = (generator: Generator) => {
         flip: nextFlip,
         rotate: rotationToDegrees(nextRotation),
         blend: blend ? { kind: "MultiplyHex", hex: blend } : undefined,
+        plugin,
       }
     );
   };
@@ -138,7 +148,7 @@ const script: ScriptDef = (generator: Generator) => {
   const innerPageWidth = A4.px.width - pageMargin * 2;
   const innerPageHeight = A4.px.height - pageMargin * 2;
   const defaultFrameSize = 16;
-  const enableItemRegionInput = false;
+  const enableItemRegionInput = true;
 
   const getFrameSourceScale = (frame: TextureFrame) => {
     const [, , width, height] = frame.rectangle;
@@ -441,7 +451,9 @@ const script: ScriptDef = (generator: Generator) => {
 
   const drawItems = (
     selectedTextureFrames: SelectedTexture[],
-    showFolds: boolean
+    showFolds: boolean,
+    onToggleItemEnchantment: (itemIndex: number) => void,
+    getGlintPlugin: (enabled: boolean) => TexturePlugin | undefined
   ) => {
     const makeNewPageSkyline = (): SkylineNode[] => [
       { x: pageMargin, y: pageMargin, width: innerPageWidth },
@@ -451,6 +463,7 @@ const script: ScriptDef = (generator: Generator) => {
       id: string;
       placements: Array<{
         selectedTextureFrame: SelectedTexture;
+        selectedTextureFrameIndex: number;
         x: number;
         y: number;
         leftHalfWidth: number;
@@ -463,6 +476,7 @@ const script: ScriptDef = (generator: Generator) => {
       id: "Page 1",
       placements: [] as Array<{
         selectedTextureFrame: SelectedTexture;
+        selectedTextureFrameIndex: number;
         x: number;
         y: number;
         leftHalfWidth: number;
@@ -482,34 +496,37 @@ const script: ScriptDef = (generator: Generator) => {
       skyline = makeNewPageSkyline();
     };
 
-    selectedTextureFrames.forEach((selectedTextureFrame) => {
-      const { leftHalfWidth, width, height } =
-        getItemDimensions(selectedTextureFrame);
-      const requiredWidth = width + itemMargin * 2;
-      const requiredHeight = height + itemMargin * 2;
-      let placement = placeRect(skyline, requiredWidth, requiredHeight);
+    selectedTextureFrames.forEach(
+      (selectedTextureFrame, selectedTextureFrameIndex) => {
+        const { leftHalfWidth, width, height } =
+          getItemDimensions(selectedTextureFrame);
+        const requiredWidth = width + itemMargin * 2;
+        const requiredHeight = height + itemMargin * 2;
+        let placement = placeRect(skyline, requiredWidth, requiredHeight);
 
-      if (!placement) {
-        if (currentPage.placements.length > 0) {
-          pushPage();
-          placement = placeRect(skyline, requiredWidth, requiredHeight);
+        if (!placement) {
+          if (currentPage.placements.length > 0) {
+            pushPage();
+            placement = placeRect(skyline, requiredWidth, requiredHeight);
+          }
         }
-      }
 
-      if (!placement) {
-        // Layout failed if the item is larger than a single page minus margins.
-        placement = { x: pageMargin, y: pageMargin };
-      }
+        if (!placement) {
+          // Layout failed if the item is larger than a single page minus margins.
+          placement = { x: pageMargin, y: pageMargin };
+        }
 
-      currentPage.placements.push({
-        selectedTextureFrame,
-        x: placement.x + itemMargin,
-        y: placement.y + itemMargin,
-        leftHalfWidth,
-        width,
-        height,
-      });
-    });
+        currentPage.placements.push({
+          selectedTextureFrame,
+          selectedTextureFrameIndex,
+          x: placement.x + itemMargin,
+          y: placement.y + itemMargin,
+          leftHalfWidth,
+          width,
+          height,
+        });
+      }
+    );
 
     if (currentPage.placements.length > 0 || pages.length === 0) {
       pages.push(currentPage);
@@ -519,11 +536,21 @@ const script: ScriptDef = (generator: Generator) => {
       generator.usePage(page.id);
       generator.drawImage("Background", [0, 0]);
       page.placements.forEach((placement) => {
-        const { selectedTextureFrame, x, y, leftHalfWidth, width, height } =
-          placement;
+        const {
+          selectedTextureFrame,
+          selectedTextureFrameIndex,
+          x,
+          y,
+          leftHalfWidth,
+          width,
+          height,
+        } = placement;
         const layers = getItemLayers(selectedTextureFrame);
         const itemScale = selectedTextureFrame.itemScale ?? defaultItemScale;
         const itemLayout = getItemLayout(layers);
+        const glintPlugin = getGlintPlugin(
+          selectedTextureFrame.enchanted ?? false
+        );
 
         layers.forEach((layer) => {
           const leftDestination = getLayerHalfDestination(
@@ -551,7 +578,9 @@ const script: ScriptDef = (generator: Generator) => {
             leftDestination.x,
             leftDestination.y,
             leftDestination.width,
-            leftDestination.height
+            leftDestination.height,
+            "None",
+            glintPlugin
           );
           drawItemHalf(
             layer,
@@ -560,7 +589,8 @@ const script: ScriptDef = (generator: Generator) => {
             rightDestination.y,
             rightDestination.width,
             rightDestination.height,
-            "Horizontal"
+            "Horizontal",
+            glintPlugin
           );
         });
         if (showFolds) {
@@ -572,7 +602,7 @@ const script: ScriptDef = (generator: Generator) => {
         }
         if (enableItemRegionInput) {
           generator.defineRegionInput([x, y, width, height], () => {
-            // Reserved for a future per-item region action.
+            onToggleItemEnchantment(selectedTextureFrameIndex);
           });
         }
       });
@@ -677,6 +707,8 @@ const script: ScriptDef = (generator: Generator) => {
     );
   });
 
+  const glint = defineGlintControls(generator);
+
   // Define the Show Folds Variable
 
   generator.defineBooleanInput("Show Folds", true);
@@ -709,6 +741,22 @@ const script: ScriptDef = (generator: Generator) => {
     textureFrame,
   ];
 
+  const toggleItemEnchantment = (itemIndex: number) => {
+    generator.setStringInputValue(
+      "SelectedTextureFrames",
+      encodeSelectedTextures(
+        selectedTextureFrames.map((textureFrame, index) =>
+          index === itemIndex
+            ? {
+                ...textureFrame,
+                enchanted: !(textureFrame.enchanted ?? false),
+              }
+            : textureFrame
+        )
+      )
+    );
+  };
+
   // Show a button which adds the selected texture to the page
 
   generator.defineButtonInput(
@@ -719,6 +767,7 @@ const script: ScriptDef = (generator: Generator) => {
           ...selectedTextureFrame,
           itemScale: selectedItemScale,
           itemLayers: undefined,
+          enchanted: false,
         };
         generator.setStringInputValue(
           "SelectedTextureFrames",
@@ -741,6 +790,7 @@ const script: ScriptDef = (generator: Generator) => {
           ...selectedTextureFrame,
           itemScale: selectedItemScale,
           itemLayers: undefined,
+          enchanted: undefined,
         };
         const previousItem = selectedTextureFrames.at(-1);
         const newSelectedTextureFrames: SelectedTexture[] = previousItem
@@ -749,10 +799,11 @@ const script: ScriptDef = (generator: Generator) => {
               {
                 ...newLayer,
                 itemScale: selectedItemScale,
+                enchanted: previousItem.enchanted ?? false,
                 itemLayers: [...getItemLayers(previousItem), newLayer],
               },
             ]
-          : addSelectedTextureFrame(newLayer);
+          : addSelectedTextureFrame({ ...newLayer, enchanted: false });
         generator.setStringInputValue(
           "SelectedTextureFrames",
           encodeSelectedTextures(newSelectedTextureFrames)
@@ -821,7 +872,12 @@ const script: ScriptDef = (generator: Generator) => {
     generator.drawImage("Title", [0, 0]);
   }
 
-  drawItems(selectedTextureFrames, showFolds);
+  drawItems(
+    selectedTextureFrames,
+    showFolds,
+    toggleItemEnchantment,
+    glint.getPlugin
+  );
 };
 
 export const generator: GeneratorDef = {
