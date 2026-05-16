@@ -39,6 +39,7 @@ export function AtlasControl({
   const legendId = `${baseId}-legend`;
   const selectId = `${baseId}-select`;
   const fileInputId = `${baseId}-file`;
+  const displayLabel = label ?? id;
   const selectChoices: SelectOption[] =
     choices.length > 0
       ? [
@@ -271,7 +272,7 @@ export function AtlasControl({
   return (
     <fieldset className="mb-4 min-w-0">
       <legend className="font-bold mb-1" id={legendId}>
-        {label}
+        {displayLabel}
       </legend>
       <div className="flex flex-wrap">
         <div className="flex mb-4 space-x-4 items-center mr-4">

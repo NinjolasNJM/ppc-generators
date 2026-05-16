@@ -18,9 +18,6 @@ import labelsImage from "./images/Labels.png";
 import foregroundShouldersImage from "./images/Foreground-Shoulders.png";
 import foldsShouldersImage from "./images/Folds-Shoulders.png";
 
-import enchantedGlint from "./textures/enchanted_glint_entity.png";
-import enchantedGlintOld from "./textures/enchanted_item_glint.png";
-
 import steveTexture from "./textures/steve.png";
 import alexTexture from "./textures/alex.png";
 import debugTexture from "./textures/SkinSteveReference64x64.png";
@@ -106,7 +103,10 @@ import trimPaletteTexture from "./textures/trims/color_palettes/trim_palette.png
 import { Minecraft } from "../_common/minecraft";
 import { Blend } from "@genroot/builder/modules/renderers/drawTexture";
 import { Color } from "@genroot/builder/modules/canvasWithContext";
-import { GlintPluginOptions, makeGlintPlugin } from "../_common/plugins/glint";
+import {
+  defineGlintControls,
+  entityGlintTextureDefs,
+} from "../_common/plugins/glint";
 
 const id = "minecraft-armor";
 const name = "Minecraft Armor";
@@ -326,24 +326,7 @@ const textures: TextureDef[] = [
     standardHeight: 32,
   }, //
   { id: "Notch", url: notchTexture.src, standardWidth: 64, standardHeight: 32 }, //
-  {
-    id: "Enchanted Glint",
-    url: enchantedGlint.src,
-    standardWidth: 128,
-    standardHeight: 128,
-  },
-  {
-    id: "1.20+",
-    url: enchantedGlint.src,
-    standardWidth: 128,
-    standardHeight: 128,
-  },
-  {
-    id: "Pre-1.20",
-    url: enchantedGlintOld.src,
-    standardWidth: 128,
-    standardHeight: 128,
-  },
+  ...entityGlintTextureDefs,
   { id: "Bolt", url: boltTexture.src, standardWidth: 64, standardHeight: 32 },
   {
     id: "Bolt ",
@@ -664,38 +647,7 @@ const trimTemplates2 = [
 const script: ScriptDef = (generator: Generator) => {
   const minecraftGenerator = new Minecraft(generator);
 
-  generator.defineTextureInput("Enchanted Glint", {
-    standardWidth: 128,
-    standardHeight: 128,
-    choices: ["1.20+", "Pre-1.20"],
-  });
-
-  const glinta = generator.defineAndGetRangeInput("Glint Opacity", {
-    min: 0,
-    max: 255,
-    value: 255,
-    step: 1,
-  });
-  const glintx = generator.defineAndGetRangeInput("Glint X Offset", {
-    min: 0,
-    max: 128,
-    value: 0,
-    step: 1,
-  });
-  const glinty = generator.defineAndGetRangeInput("Glint Y Offset", {
-    min: 0,
-    max: 128,
-    value: 0,
-    step: 1,
-  });
-
-  const glintTexture = generator.getTexture("Enchanted Glint");
-
-  const glintPluginOptions: GlintPluginOptions = {
-    opacity: glinta / 255,
-    xOffset: glintx,
-    yOffset: glinty,
-  };
+  const glint = defineGlintControls(generator);
 
   function getTint(colorId: string): Blend {
     generator.defineSelectInput(colorId, [
@@ -787,10 +739,7 @@ const script: ScriptDef = (generator: Generator) => {
     const oy = 21;
     const dimensions: Dimensions = [80, 80, 80];
 
-    const plugin =
-      glintTexture && enchanted
-        ? makeGlintPlugin(glintTexture, glintPluginOptions)
-        : undefined;
+    const plugin = glint.getPlugin(enchanted);
 
     minecraftGenerator.drawCuboid(
       textureId,
@@ -821,10 +770,7 @@ const script: ScriptDef = (generator: Generator) => {
     const oy = 37;
     const dimensions: Dimensions = [64, 64, 64];
 
-    const plugin =
-      glintTexture && enchanted
-        ? makeGlintPlugin(glintTexture, glintPluginOptions)
-        : undefined;
+    const plugin = glint.getPlugin(enchanted);
 
     minecraftGenerator.drawCuboid(
       textureId,
@@ -893,10 +839,7 @@ const script: ScriptDef = (generator: Generator) => {
     const oy = 309;
     const dimensions: Dimensions = [64, 96, 48];
 
-    const plugin =
-      glintTexture && enchanted
-        ? makeGlintPlugin(glintTexture, glintPluginOptions)
-        : undefined;
+    const plugin = glint.getPlugin(enchanted);
 
     minecraftGenerator.drawCuboid(
       textureId,
@@ -958,10 +901,7 @@ const script: ScriptDef = (generator: Generator) => {
     const oy = 233;
     const dimensions: Dimensions = [40, 96, 48];
 
-    const plugin =
-      glintTexture && enchanted
-        ? makeGlintPlugin(glintTexture, glintPluginOptions)
-        : undefined;
+    const plugin = glint.getPlugin(enchanted);
 
     if (shoulderAlpha(textureId) === 0 && shoulderOverlay) {
       generator.drawTexture(
@@ -1018,10 +958,7 @@ const script: ScriptDef = (generator: Generator) => {
     const oy = 233;
     const dimensions: Dimensions = [40, 96, 48];
 
-    const plugin =
-      glintTexture && enchanted
-        ? makeGlintPlugin(glintTexture, glintPluginOptions)
-        : undefined;
+    const plugin = glint.getPlugin(enchanted);
 
     if (shoulderAlpha(textureId) === 0 && shoulderOverlay) {
       generator.drawTexture(
@@ -1081,10 +1018,7 @@ const script: ScriptDef = (generator: Generator) => {
     const oy = 385;
     const dimensions: Dimensions = [64, 104, 40];
 
-    const plugin =
-      glintTexture && enchanted
-        ? makeGlintPlugin(glintTexture, glintPluginOptions)
-        : undefined;
+    const plugin = glint.getPlugin(enchanted);
 
     generator.drawTexture(textureId, [0, 20, 4, 12], [ox, oy + 135, 40, 104], {
       blend,
@@ -1118,10 +1052,7 @@ const script: ScriptDef = (generator: Generator) => {
     const oy = 541;
     const dimensions: Dimensions = [32, 104, 40];
 
-    const plugin =
-      glintTexture && enchanted
-        ? makeGlintPlugin(glintTexture, glintPluginOptions)
-        : undefined;
+    const plugin = glint.getPlugin(enchanted);
 
     minecraftGenerator.drawCuboid(
       textureId,
@@ -1157,10 +1088,7 @@ const script: ScriptDef = (generator: Generator) => {
     const oy = 541;
     const dimensions: Dimensions = [32, 104, 40];
 
-    const plugin =
-      glintTexture && enchanted
-        ? makeGlintPlugin(glintTexture, glintPluginOptions)
-        : undefined;
+    const plugin = glint.getPlugin(enchanted);
 
     minecraftGenerator.drawCuboid(
       textureId,
@@ -1206,10 +1134,7 @@ const script: ScriptDef = (generator: Generator) => {
     const oy = 597;
     const dimensions: Dimensions = [40, 96, 48];
 
-    const plugin =
-      glintTexture && enchanted
-        ? makeGlintPlugin(glintTexture, glintPluginOptions)
-        : undefined;
+    const plugin = glint.getPlugin(enchanted);
 
     minecraftGenerator.drawCuboid(
       textureId,
@@ -1237,10 +1162,7 @@ const script: ScriptDef = (generator: Generator) => {
     const oy = 597;
     const dimensions: Dimensions = [40, 96, 48];
 
-    const plugin =
-      glintTexture && enchanted
-        ? makeGlintPlugin(glintTexture, glintPluginOptions)
-        : undefined;
+    const plugin = glint.getPlugin(enchanted);
 
     minecraftGenerator.drawCuboid(
       textureId,

@@ -1,12 +1,108 @@
 import { makeCanvasWithContext } from "@genroot/builder/modules/canvasWithContext";
-import { TexturePlugin } from "@genroot/builder/modules/generator";
-import { Texture } from "@genroot/builder/modules/texture";
+import {
+  type Generator,
+  type TexturePlugin,
+} from "@genroot/builder/modules/generator";
+import { type Texture } from "@genroot/builder/modules/texture";
+import { type TextureDef } from "@genroot/builder/modules/generatorDef";
+import enchantedGlintEntity from "../textures/enchanted_glint_entity.png";
+import enchantedGlintItem from "../textures/enchanted_glint_item.png";
+import enchantedGlintOld from "../textures/enchanted_item_glint.png";
 
 export type GlintPluginOptions = {
   opacity: number;
   xOffset: number;
   yOffset: number;
 };
+
+const GLINT_TEXTURE_STANDARD_SIZE = 128;
+
+export const entityGlintTextureDefs: TextureDef[] = [
+  {
+    id: "Enchanted Glint",
+    url: enchantedGlintEntity.src,
+    standardWidth: GLINT_TEXTURE_STANDARD_SIZE,
+    standardHeight: GLINT_TEXTURE_STANDARD_SIZE,
+  },
+  {
+    id: "1.20+",
+    url: enchantedGlintEntity.src,
+    standardWidth: GLINT_TEXTURE_STANDARD_SIZE,
+    standardHeight: GLINT_TEXTURE_STANDARD_SIZE,
+  },
+  {
+    id: "Pre-1.20",
+    url: enchantedGlintOld.src,
+    standardWidth: GLINT_TEXTURE_STANDARD_SIZE,
+    standardHeight: GLINT_TEXTURE_STANDARD_SIZE,
+  },
+];
+
+export const itemGlintTextureDefs: TextureDef[] = [
+  {
+    id: "Enchanted Glint",
+    url: enchantedGlintItem.src,
+    standardWidth: GLINT_TEXTURE_STANDARD_SIZE,
+    standardHeight: GLINT_TEXTURE_STANDARD_SIZE,
+  },
+  {
+    id: "1.20+",
+    url: enchantedGlintItem.src,
+    standardWidth: GLINT_TEXTURE_STANDARD_SIZE,
+    standardHeight: GLINT_TEXTURE_STANDARD_SIZE,
+  },
+  {
+    id: "Pre-1.20",
+    url: enchantedGlintOld.src,
+    standardWidth: GLINT_TEXTURE_STANDARD_SIZE,
+    standardHeight: GLINT_TEXTURE_STANDARD_SIZE,
+  },
+];
+
+export type GlintControls = {
+  getPlugin: (enabled: boolean) => TexturePlugin | undefined;
+};
+
+export function defineGlintControls(generator: Generator): GlintControls {
+  generator.defineTextureInput("Enchanted Glint", {
+    standardWidth: GLINT_TEXTURE_STANDARD_SIZE,
+    standardHeight: GLINT_TEXTURE_STANDARD_SIZE,
+    choices: ["1.20+", "Pre-1.20"],
+  });
+
+  const opacity = generator.defineAndGetRangeInput("Glint Opacity", {
+    min: 0,
+    max: 255,
+    value: 255,
+    step: 1,
+  });
+  const xOffset = generator.defineAndGetRangeInput("Glint X Offset", {
+    min: 0,
+    max: GLINT_TEXTURE_STANDARD_SIZE,
+    value: 0,
+    step: 1,
+  });
+  const yOffset = generator.defineAndGetRangeInput("Glint Y Offset", {
+    min: 0,
+    max: GLINT_TEXTURE_STANDARD_SIZE,
+    value: 0,
+    step: 1,
+  });
+
+  const glintTexture = generator.getTexture("Enchanted Glint");
+  const glintPluginOptions: GlintPluginOptions = {
+    opacity: opacity / 255,
+    xOffset,
+    yOffset,
+  };
+
+  return {
+    getPlugin: (enabled) =>
+      glintTexture && enabled
+        ? makeGlintPlugin(glintTexture, glintPluginOptions)
+        : undefined,
+  };
+}
 
 export const makeGlintPlugin: (
   texture: Texture,
