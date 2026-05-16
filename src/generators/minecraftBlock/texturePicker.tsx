@@ -1,6 +1,6 @@
 import { TexturePicker as CommonTexturePicker } from "@genroot/generators/_common/texturePicker/texturePicker";
 import { type SelectedTexture } from "@genroot/generators/_common/texturePicker/selectedTexture";
-import { TintSelector } from "./tintSelector";
+import { TintSelector } from "@genroot/generators/_common/tintSelector/tintSelector";
 import { findVersion } from "./textureVersions";
 
 export function TexturePicker({
