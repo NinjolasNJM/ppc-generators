@@ -47,6 +47,7 @@ const name = "Minecraft Item";
 const history: HistoryDef = [
   "26 Jan 2022 lostminer - First release.",
   "05 Feb 2022 NinjolasNJM - Added fold lines and gap removal feature.",
+  "16 May 2026 NinjolasNJM - Automated gap removal, reworked custom sizes, and various other improvements.",
 ];
 
 const thumbnail: ThumbnailDef = {
@@ -56,21 +57,14 @@ const thumbnail: ThumbnailDef = {
 const instructions: InstructionsDef = `
 ## Item Sizes
 
-The Scope of this PR will be to add various crucial features that were left out
-This includes a rework of the sizing system, and with it, the positions of the
-items on the page. The dynamic inclusion of sizing on items allows for the proper 
-usage of items like spears along with the quality of life of being able to more
-flexiblty use different item sizes, and will come in handy if support for 3D items 
-is ever added. Layering items on top of each other also allows for items 
-like potions to be generated for the first time.
-List of features to add:
-Rework sizing mechanic:
-multiple sizes allowed on page as it is based on per item.
-change the default item sizes and add new ones and subrtract old ones.
-Fix spears
-(auto) gap placement
-Overlaying Textures
+The generator supports four standard sizes:
 
+- **Medium (400% scale)** - Most items in the hand, in item frames, or dropped on the ground
+- **Large (700% scale)** - Most tools and weapons in the hand
+- **Small (200% scale)** - Items in a shelf
+- **Extra Large (1400% scale)** - Spears in the hand
+
+The generator also supports custom sizes from 50% to 1600%.
 `;
 
 const images: ImageDef[] = [
@@ -504,7 +498,7 @@ const script: ScriptDef = (generator: Generator) => {
     });
   };
 
-  const sizeMedium = "Standard (400%)";
+  const sizeMedium = "Medium (400%)";
   const sizeLarge = "Large (700%)";
   const sizeExtraLarge = "Extra Large (1400%)";
   const sizeSmall = "Small (200%)";
