@@ -17,6 +17,9 @@ import * as Texture_1_18_2_Blocks from "@genroot/textures/texture_minecraft_1_18
 import * as Texture_1_20_4_Items from "@genroot/textures/texture_minecraft_1_20_4_items";
 import * as Texture_1_20_4_Blocks from "@genroot/textures/texture_minecraft_1_20_4_blocks";
 
+import * as Texture_26_1_2_Items from "@genroot/textures/texture_minecraft_26_1_2_items";
+import * as Texture_26_1_2_Blocks from "@genroot/textures/texture_minecraft_26_1_2_blocks";
+
 const definitions: [TextureData, number][] = [
   [Texture_1_7_10_Items.data, 16],
   [Texture_1_7_10_Blocks.data, 16],
@@ -26,6 +29,8 @@ const definitions: [TextureData, number][] = [
   [Texture_1_18_2_Blocks.data, 16],
   [Texture_1_20_4_Items.data, 16],
   [Texture_1_20_4_Blocks.data, 16],
+  [Texture_26_1_2_Items.data, 16],
+  [Texture_26_1_2_Blocks.data, 16],
 ];
 
 export type TextureVersion = {
