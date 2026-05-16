@@ -63,6 +63,7 @@ const history: HistoryDef = [
   "26 Jan 2022 lostminer - First release.",
   "05 Feb 2022 NinjolasNJM - Added fold lines and gap removal feature.",
   "16 May 2026 NinjolasNJM - Automated gap removal, reworked custom sizes, and various other improvements.",
+  "16 May 2026 NinjolasNJM - Added enchantment glint and changed to use new tint input."
 ];
 
 const thumbnail: ThumbnailDef = {

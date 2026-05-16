@@ -114,7 +114,9 @@ import { armorTintChoiceGroups } from "../_common/plugins/texturePicker/tints";
 const id = "minecraft-armor";
 const name = "Minecraft Armor";
 
-const history: HistoryDef = ["Jan 2026 NinjolasNJM - Initial script."];
+const history: HistoryDef = ["Jan 2026 NinjolasNJM - Initial script.",
+  "May 2026 NinjolasNJM - Changed to use new glint and tint input."
+];
 
 const instructions = `
 ## How to use the Minecraft Armor Generator?
