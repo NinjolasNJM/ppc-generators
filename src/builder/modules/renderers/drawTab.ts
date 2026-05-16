@@ -43,26 +43,28 @@ function drawTabNorth(
   //
 
   const [x, y, w, h] = rectangle;
+  const w2 = w - 1;
+  const h2 = h - 1;
 
   const tabAngleRad = toRadians(tabAngle);
 
-  const maxInset = w / 2;
+  const maxInset = w2 / 2;
 
-  let inset = h / Math.tan(tabAngleRad);
+  let inset = h2 / Math.tan(tabAngleRad);
   let tabHeight = 0;
 
   [inset, tabHeight] =
     inset > maxInset
       ? [maxInset, Math.tan(tabAngleRad) * maxInset]
-      : [inset, h];
+      : [inset, h2];
 
-  const outerY = h - tabHeight;
-  const baseLeft = translatePoint([0, h], x, y);
-  const baseRight = translatePoint([w, h], x, y);
+  const outerY = h2 - tabHeight;
+  const baseLeft = translatePoint([0, h2], x, y);
+  const baseRight = translatePoint([w2, h2], x, y);
   const outerLeft = translatePoint([inset, outerY], x, y);
-  const outerRight = translatePoint([w - inset, outerY], x, y);
+  const outerRight = translatePoint([w2 - inset, outerY], x, y);
   const fullOuterLeft = translatePoint([0, outerY], x, y);
-  const fullOuterRight = translatePoint([w, outerY], x, y);
+  const fullOuterRight = translatePoint([w2, outerY], x, y);
 
   switch (tabType) {
     case "Regular":
@@ -105,24 +107,26 @@ function drawTabEast(
   //
 
   const [x, y, w, h] = rectangle;
+  const w2 = w - 1;
+  const h2 = h - 1;
 
   const tabAngleRad = toRadians(tabAngle);
 
-  const maxInset = h / 2;
-  let inset = w / Math.tan(tabAngleRad);
+  const maxInset = h2 / 2;
+  let inset = w2 / Math.tan(tabAngleRad);
   let tabHeight = 0;
 
   [inset, tabHeight] =
     inset > maxInset
       ? [maxInset, Math.tan(tabAngleRad) * maxInset]
-      : [inset, w];
+      : [inset, w2];
 
   const baseTop = translatePoint([0, 0], x, y);
-  const baseBottom = translatePoint([0, h], x, y);
+  const baseBottom = translatePoint([0, h2], x, y);
   const outerTop = translatePoint([tabHeight, inset], x, y);
-  const outerBottom = translatePoint([tabHeight, h - inset], x, y);
+  const outerBottom = translatePoint([tabHeight, h2 - inset], x, y);
   const fullOuterTop = translatePoint([tabHeight, 0], x, y);
-  const fullOuterBottom = translatePoint([tabHeight, h], x, y);
+  const fullOuterBottom = translatePoint([tabHeight, h2], x, y);
 
   switch (tabType) {
     case "Regular":
@@ -158,24 +162,26 @@ function drawTabSouth(
   //
 
   const [x, y, w, h] = rectangle;
+  const w2 = w - 1;
+  const h2 = h - 1;
 
   const tabAngleRad = toRadians(tabAngle);
 
-  const maxInset = w / 2;
-  let inset = h / Math.tan(tabAngleRad);
+  const maxInset = w2 / 2;
+  let inset = h2 / Math.tan(tabAngleRad);
   let tabHeight = 0;
 
   [inset, tabHeight] =
     inset > maxInset
       ? [maxInset, Math.tan(tabAngleRad) * maxInset]
-      : [inset, h];
+      : [inset, h2];
 
   const baseLeft = translatePoint([0, 0], x, y);
-  const baseRight = translatePoint([w, 0], x, y);
+  const baseRight = translatePoint([w2, 0], x, y);
   const outerLeft = translatePoint([inset, tabHeight], x, y);
-  const outerRight = translatePoint([w - inset, tabHeight], x, y);
+  const outerRight = translatePoint([w2 - inset, tabHeight], x, y);
   const fullOuterLeft = translatePoint([0, tabHeight], x, y);
-  const fullOuterRight = translatePoint([w, tabHeight], x, y);
+  const fullOuterRight = translatePoint([w2, tabHeight], x, y);
 
   switch (tabType) {
     case "Regular":
@@ -216,24 +222,26 @@ function drawTabWest(
   //
 
   const [x, y, w, h] = rectangle;
+  const w2 = w - 1;
+  const h2 = h - 1;
 
   const tabAngleRad = toRadians(tabAngle);
 
-  const maxInset = h / 2;
-  let inset = w / Math.tan(tabAngleRad);
+  const maxInset = h2 / 2;
+  let inset = w2 / Math.tan(tabAngleRad);
   let tabHeight = 0;
 
   [inset, tabHeight] =
     inset > maxInset
       ? [maxInset, Math.tan(tabAngleRad) * maxInset]
-      : [inset, w];
+      : [inset, w2];
 
-  const baseTop = translatePoint([w, 0], x, y);
-  const baseBottom = translatePoint([w, h], x, y);
-  const outerTop = translatePoint([w - tabHeight, inset], x, y);
-  const outerBottom = translatePoint([w - tabHeight, h - inset], x, y);
-  const fullOuterTop = translatePoint([w - tabHeight, 0], x, y);
-  const fullOuterBottom = translatePoint([w - tabHeight, h], x, y);
+  const baseTop = translatePoint([w2, 0], x, y);
+  const baseBottom = translatePoint([w2, h2], x, y);
+  const outerTop = translatePoint([w2 - tabHeight, inset], x, y);
+  const outerBottom = translatePoint([w2 - tabHeight, h2 - inset], x, y);
+  const fullOuterTop = translatePoint([w2 - tabHeight, 0], x, y);
+  const fullOuterBottom = translatePoint([w2 - tabHeight, h2], x, y);
 
   switch (tabType) {
     case "Regular":
