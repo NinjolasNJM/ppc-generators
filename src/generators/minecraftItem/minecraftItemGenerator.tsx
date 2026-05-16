@@ -101,7 +101,6 @@ const script: ScriptDef = (generator: Generator) => {
     y: number,
     width: number,
     height: number,
-    showFolds: boolean,
     flippedSide: "Left" | "Right",
     blend?: Blend
   ) => {
@@ -135,13 +134,6 @@ const script: ScriptDef = (generator: Generator) => {
         blend,
       }
     );
-    if (showFolds) {
-      generator.drawTexture(
-        "CenterFold",
-        [0, 0, 2, height],
-        [x + halfWidth - 1, y, 2, height]
-      );
-    }
   };
 
   const pageMargin = 30;
@@ -161,6 +153,17 @@ const script: ScriptDef = (generator: Generator) => {
 
   const getItemLayers = (selectedTextureFrame: SelectedTexture) =>
     selectedTextureFrame.itemLayers ?? [selectedTextureFrame];
+
+  const doFrameSizesMatch = (a: TextureFrame, b: TextureFrame) =>
+    a.rectangle[2] === b.rectangle[2] && a.rectangle[3] === b.rectangle[3];
+
+  const canOverlayItem = (
+    previousItem: SelectedTexture,
+    newLayer: SelectedTexture
+  ) =>
+    getItemLayers(previousItem).every((layer) =>
+      doFrameSizesMatch(layer.frame, newLayer.frame)
+    );
 
   const getItemCropBounds = (layers: SelectedTexture[]): Rectangle => {
     const crops = layers.map((layer) => getFrameCrop(layer.frame));
@@ -454,7 +457,6 @@ const script: ScriptDef = (generator: Generator) => {
             layerDestination.y,
             layerDestination.width,
             layerDestination.height,
-            false,
             flippedSide,
             layerBlend
           );
@@ -613,6 +615,11 @@ const script: ScriptDef = (generator: Generator) => {
     ? decodeSelectedTextures(selectedTextureFramesJson)
     : [];
 
+  const addSelectedTextureFrame = (textureFrame: SelectedTexture) => [
+    ...selectedTextureFrames,
+    textureFrame,
+  ];
+
   // Show a button which adds the selected texture to the page
 
   generator.defineButtonInput(
@@ -624,13 +631,11 @@ const script: ScriptDef = (generator: Generator) => {
           itemScale: selectedItemScale,
           itemLayers: undefined,
         };
-        const newSelectedTextureFrames: SelectedTexture[] = [
-          ...selectedTextureFrames,
-          newSelectedTextureFrame,
-        ];
         generator.setStringInputValue(
           "SelectedTextureFrames",
-          encodeSelectedTextures(newSelectedTextureFrames)
+          encodeSelectedTextures(
+            addSelectedTextureFrame(newSelectedTextureFrame)
+          )
         );
       }
     },
@@ -649,17 +654,18 @@ const script: ScriptDef = (generator: Generator) => {
           itemLayers: undefined,
         };
         const previousItem = selectedTextureFrames.at(-1);
-        const newSelectedTextureFrames: SelectedTexture[] = previousItem
-          ? [
-              ...selectedTextureFrames.slice(0, -1),
-              {
-                ...newLayer,
-                itemFlippedSide: newLayer.itemFlippedSide,
-                itemScale: selectedItemScale,
-                itemLayers: [...getItemLayers(previousItem), newLayer],
-              },
-            ]
-          : [newLayer];
+        const newSelectedTextureFrames: SelectedTexture[] =
+          previousItem && canOverlayItem(previousItem, newLayer)
+            ? [
+                ...selectedTextureFrames.slice(0, -1),
+                {
+                  ...newLayer,
+                  itemFlippedSide: newLayer.itemFlippedSide,
+                  itemScale: selectedItemScale,
+                  itemLayers: [...getItemLayers(previousItem), newLayer],
+                },
+              ]
+            : addSelectedTextureFrame(newLayer);
         generator.setStringInputValue(
           "SelectedTextureFrames",
           encodeSelectedTextures(newSelectedTextureFrames)
