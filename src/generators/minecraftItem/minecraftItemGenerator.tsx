@@ -638,10 +638,10 @@ const script: ScriptDef = (generator: Generator) => {
 
   if (selectedItemSize === sizeCustom) {
     generator.defineRangeInput("Custom Scale (%)", {
-      min: 50,
+      min: 100,
       max: 1600,
       value: selectedCustomScalePercent,
-      step: 50,
+      step: 100,
       showValue: true,
     });
   }
