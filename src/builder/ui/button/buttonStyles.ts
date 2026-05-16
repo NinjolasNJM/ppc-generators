@@ -1,8 +1,15 @@
-export type ButtonSize = "Medium" | "Small";
+export type ButtonSize = "Medium" | "Small" | "Icon";
 export type ButtonColor = "Gray" | "Blue" | "Red" | "Green";
 
 function makeButtonSizeClassNames(size: ButtonSize): string {
-  return size === "Medium" ? "px-10 py-3 " : "px-8 py-2 ";
+  switch (size) {
+    case "Medium":
+      return "px-10 py-3 ";
+    case "Small":
+      return "px-8 py-2 ";
+    case "Icon":
+      return "px-4 py-2 ";
+  }
 }
 
 function makeButtonColorClassNames(color: ButtonColor): string {

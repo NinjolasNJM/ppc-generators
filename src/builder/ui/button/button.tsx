@@ -10,26 +10,28 @@ type BaseButtonProps = {
   size: ButtonSize;
   color: ButtonColor;
   children: React.ReactNode;
-  buttonAttributes?: React.ButtonHTMLAttributes<HTMLButtonElement>;
+  title: string;
+  disabled: boolean;
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
 };
 
 function BaseButton({
   size,
   color,
   children,
-  buttonAttributes,
+  title,
+  disabled,
+  onClick,
 }: BaseButtonProps) {
   const classNameWithStyles = makeButtonClassNames({ size, color });
-
-  const disabled = buttonAttributes && buttonAttributes.disabled ? true : false;
-  const ariaDisabled = disabled ? true : undefined;
 
   return (
     <button
       className={classNameWithStyles}
+      title={title}
+      aria-label={title}
       disabled={disabled}
-      aria-disabled={ariaDisabled}
-      {...buttonAttributes}
+      onClick={onClick}
     >
       {children}
     </button>
@@ -55,6 +57,7 @@ function makeButtonProps(state: ButtonState): {
 
 export type ButtonProps = {
   children: React.ReactNode;
+  title: string;
   state?: ButtonState;
   size?: ButtonSize;
   color?: ButtonColor;
@@ -63,6 +66,7 @@ export type ButtonProps = {
 
 export function Button({
   children,
+  title,
   state = "Ready",
   size = "Medium",
   color = "Blue",
@@ -73,10 +77,9 @@ export function Button({
     <BaseButton
       size={size}
       color={color}
-      buttonAttributes={{
-        disabled,
-        onClick,
-      }}
+      title={title}
+      disabled={disabled}
+      onClick={onClick}
     >
       {children}
     </BaseButton>

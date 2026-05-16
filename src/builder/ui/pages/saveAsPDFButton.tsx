@@ -28,7 +28,13 @@ export function SaveAsPDFButton({
   };
 
   return (
-    <Button state="Ready" color="Blue" size="Small" onClick={onSavePDF}>
+    <Button
+      title="Save all pages as PDF"
+      state="Ready"
+      color="Blue"
+      size="Small"
+      onClick={onSavePDF}
+    >
       Save all pages as PDF
     </Button>
   );

@@ -18,6 +18,7 @@ export type RegionControl = {
   pageId: string;
   region: Region;
   onClick: () => void;
+  id?: string;
 };
 
 export type TextureInputControlProps = {

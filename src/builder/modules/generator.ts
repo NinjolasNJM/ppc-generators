@@ -87,9 +87,13 @@ export class Generator {
     return this.getSelectInputValue(id);
   }
 
-  defineRegionInput(region: Region, onClick: () => void): void {
+  defineRegionInput(
+    region: Region,
+    onClick: () => void,
+    id?: string
+  ): void {
     const currentPage = this.getCurrentPage();
-    this.model.addRegionControl(currentPage.id, region, onClick);
+    this.model.addRegionControl(currentPage.id, region, onClick, id);
   }
 
   defineRangeInput(

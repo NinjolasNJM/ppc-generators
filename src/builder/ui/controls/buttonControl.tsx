@@ -9,7 +9,7 @@ export function ButtonControl({
 }) {
   return (
     <div className="mb-4">
-      <Button size="Small" onClick={onClick}>
+      <Button title={id} size="Small" onClick={onClick}>
         {id}
       </Button>
     </div>
