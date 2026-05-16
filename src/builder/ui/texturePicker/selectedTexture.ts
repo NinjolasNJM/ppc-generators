@@ -12,6 +12,7 @@ export type SelectedTexture = {
   blend: string | null;
   itemScale?: number | null;
   itemFlippedSide?: "Left" | "Right";
+  itemLayers?: SelectedTexture[];
 };
 
 export const encodeSelectedTexture = (

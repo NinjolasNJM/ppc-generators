@@ -96,6 +96,7 @@ const script: ScriptDef = (generator: Generator) => {
   const drawItem = (
     textureId: string,
     frame: TextureFrame,
+    crop: Rectangle,
     x: number,
     y: number,
     width: number,
@@ -105,7 +106,7 @@ const script: ScriptDef = (generator: Generator) => {
     blend?: Blend
   ) => {
     const [sourceX, sourceY] = frame.rectangle;
-    const [cropX, cropY, cropWidth, cropHeight] = getFrameCrop(frame);
+    const [cropX, cropY, cropWidth, cropHeight] = crop;
     const sourceRectangle: Rectangle = [
       sourceX + cropX,
       sourceY + cropY,
@@ -150,15 +151,61 @@ const script: ScriptDef = (generator: Generator) => {
 
   const getItemDimensions = (selectedTextureFrame: SelectedTexture) => {
     const scale = selectedTextureFrame.itemScale ?? defaultItemScale;
-    const frame = selectedTextureFrame.frame;
-    if (!frame) {
-      return { width: 16 * scale * 2, height: 16 * scale };
-    }
-
-    const [, , cropWidth, cropHeight] = getFrameCrop(frame);
+    const layers = getItemLayers(selectedTextureFrame);
+    const [, , cropWidth, cropHeight] = getItemCropBounds(layers);
     return {
       width: cropWidth * scale * 2,
       height: cropHeight * scale,
+    };
+  };
+
+  const getItemLayers = (selectedTextureFrame: SelectedTexture) =>
+    selectedTextureFrame.itemLayers ?? [selectedTextureFrame];
+
+  const getItemCropBounds = (layers: SelectedTexture[]): Rectangle => {
+    const crops = layers.map((layer) => getFrameCrop(layer.frame));
+    const minX = Math.min(...crops.map(([x]) => x));
+    const minY = Math.min(...crops.map(([, y]) => y));
+    const maxX = Math.max(...crops.map(([x, , width]) => x + width));
+    const maxY = Math.max(...crops.map(([, y, , height]) => y + height));
+    return [minX, minY, maxX - minX, maxY - minY];
+  };
+
+  const clipCropToFrame = (
+    frame: TextureFrame,
+    crop: Rectangle
+  ): Rectangle | null => {
+    const [, , frameWidth, frameHeight] = frame.rectangle;
+    const [cropX, cropY, cropWidth, cropHeight] = crop;
+    const x = Math.max(0, cropX);
+    const y = Math.max(0, cropY);
+    const right = Math.min(frameWidth, cropX + cropWidth);
+    const bottom = Math.min(frameHeight, cropY + cropHeight);
+    if (right <= x || bottom <= y) {
+      return null;
+    }
+    return [x, y, right - x, bottom - y];
+  };
+
+  const getLayerDestination = (
+    itemCropBounds: Rectangle,
+    layerFrame: TextureFrame,
+    x: number,
+    y: number,
+    scale: number
+  ) => {
+    const [itemCropX, itemCropY] = itemCropBounds;
+    const layerCrop = clipCropToFrame(layerFrame, itemCropBounds);
+    if (!layerCrop) {
+      return null;
+    }
+    const [layerCropX, layerCropY, layerCropWidth, layerCropHeight] = layerCrop;
+    return {
+      crop: layerCrop,
+      x: x + (layerCropX - itemCropX) * scale * 2,
+      y: y + (layerCropY - itemCropY) * scale,
+      width: layerCropWidth * scale * 2,
+      height: layerCropHeight * scale,
     };
   };
 
@@ -379,27 +426,46 @@ const script: ScriptDef = (generator: Generator) => {
       generator.drawImage("Background", [0, 0]);
       page.placements.forEach((placement) => {
         const { index, selectedTextureFrame, x, y, width, height } = placement;
-        const {
-          textureDefId,
-          frame,
-          blend: selectedBlend,
-        } = selectedTextureFrame;
-        const blend: Blend | undefined = selectedBlend
-          ? { kind: "MultiplyHex", hex: selectedBlend }
-          : undefined;
         const flippedSide = selectedTextureFrame.itemFlippedSide ?? "Right";
+        const itemScale = selectedTextureFrame.itemScale ?? defaultItemScale;
+        const layers = getItemLayers(selectedTextureFrame);
+        const itemCropBounds = getItemCropBounds(layers);
 
-        drawItem(
-          textureDefId,
-          frame,
-          x,
-          y,
-          width,
-          height,
-          showFolds,
-          flippedSide,
-          blend
-        );
+        layers.forEach((layer) => {
+          const layerDestination = getLayerDestination(
+            itemCropBounds,
+            layer.frame,
+            x,
+            y,
+            itemScale
+          );
+          if (!layerDestination) {
+            return;
+          }
+          const layerBlend: Blend | undefined = layer.blend
+            ? { kind: "MultiplyHex", hex: layer.blend }
+            : undefined;
+
+          drawItem(
+            layer.textureDefId,
+            layer.frame,
+            layerDestination.crop,
+            layerDestination.x,
+            layerDestination.y,
+            layerDestination.width,
+            layerDestination.height,
+            false,
+            flippedSide,
+            layerBlend
+          );
+        });
+        if (showFolds) {
+          generator.drawTexture(
+            "CenterFold",
+            [0, 0, 2, height],
+            [x + width / 2 - 1, y, 2, height]
+          );
+        }
         generator.defineRegionInput([x, y, width, height], () => {
           const nextSelectedTextureFrames = selectedTextureFrames.map(
             (frame, frameIndex): SelectedTexture => {
@@ -554,11 +620,40 @@ const script: ScriptDef = (generator: Generator) => {
       const newSelectedTextureFrame: SelectedTexture = {
         ...selectedTextureFrame,
         itemScale: selectedItemScale,
+        itemLayers: undefined,
       };
       const newSelectedTextureFrames: SelectedTexture[] = [
         ...selectedTextureFrames,
         newSelectedTextureFrame,
       ];
+      generator.setStringInputValue(
+        "SelectedTextureFrames",
+        encodeSelectedTextures(newSelectedTextureFrames)
+      );
+    }
+  });
+
+  // Show a button which overlays the selected texture onto the last added texture
+
+  generator.defineButtonInput("Overlay Item", () => {
+    if (selectedTextureFrame) {
+      const newLayer: SelectedTexture = {
+        ...selectedTextureFrame,
+        itemScale: selectedItemScale,
+        itemLayers: undefined,
+      };
+      const previousItem = selectedTextureFrames.at(-1);
+      const newSelectedTextureFrames: SelectedTexture[] = previousItem
+        ? [
+            ...selectedTextureFrames.slice(0, -1),
+            {
+              ...newLayer,
+              itemFlippedSide: newLayer.itemFlippedSide,
+              itemScale: selectedItemScale,
+              itemLayers: [...getItemLayers(previousItem), newLayer],
+            },
+          ]
+        : [newLayer];
       generator.setStringInputValue(
         "SelectedTextureFrames",
         encodeSelectedTextures(newSelectedTextureFrames)
