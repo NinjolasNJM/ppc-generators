@@ -2,7 +2,7 @@ export type ButtonSize = "Medium" | "Small";
 export type ButtonColor = "Gray" | "Blue" | "Red" | "Green";
 
 function makeButtonSizeClassNames(size: ButtonSize): string {
-  return size === "Medium" ? "px-10 py-3 " : "px-4 py-2 ";
+  return size === "Medium" ? "px-6 py-3 " : "px-4 py-2 ";
 }
 
 function makeButtonColorClassNames(color: ButtonColor): string {

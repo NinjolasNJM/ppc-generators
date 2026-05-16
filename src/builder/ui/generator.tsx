@@ -72,14 +72,14 @@ export function Generator({ generatorDef }: { generatorDef: GeneratorDef }) {
         </div>
       ) : null}
 
-      {generatorDef.instructions ? (
-        <div className="mb-8">
-          <Instructions markdown={generatorDef.instructions} />
-        </div>
-      ) : null}
-
       <div className="lg:flex gap-8">
         <div className="flex-1 min-w-0">
+          {generatorDef.instructions ? (
+            <div className="mb-6">
+              <Instructions markdown={generatorDef.instructions} />
+            </div>
+          ) : null}
+
           <Controls model={model} onChange={onControlsChange} />
         </div>
 
