@@ -1,5 +1,5 @@
-import { TexturePicker as BuilderTexturePicker } from "@genroot/builder/ui/texturePicker/texturePicker";
-import { type SelectedTexture } from "@genroot/builder/ui/texturePicker/selectedTexture";
+import { TexturePicker as CommonTexturePicker } from "@genroot/generators/_common/texturePicker/texturePicker";
+import { type SelectedTexture } from "@genroot/generators/_common/texturePicker/selectedTexture";
 import { TintSelector } from "./tintSelector";
 import { findVersion } from "./textureVersions";
 
@@ -22,7 +22,7 @@ export function TexturePicker({
   return (
     <div>
       <div className="mb-8">
-        <BuilderTexturePicker
+        <CommonTexturePicker
           textureDef={textureDef}
           frames={frames}
           onSelect={onTextureSelected}

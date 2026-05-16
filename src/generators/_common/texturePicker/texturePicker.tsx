@@ -12,14 +12,14 @@ import {
   type TextureFrame,
   makeFrameLabel,
 } from "@genroot/builder/modules/textureData";
-import { type Rotation, makeNextRotation } from "@genroot/builder/ui/texturePicker/rotation";
+import { type SelectedTexture } from "./selectedTexture";
+import { type Rotation, makeNextRotation } from "./rotation";
 import {
   type Flip,
   makeNextFlip,
   flipForRotation,
 } from "./flip";
 import { matchesTextureSearch } from "./textureSearch";
-import { type SelectedTexture } from "./selectedTexture";
 import { makePreviewStyle } from "./previewStyle";
 
 function px(n: number): string {

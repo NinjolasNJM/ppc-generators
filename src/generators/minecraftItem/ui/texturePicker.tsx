@@ -1,5 +1,5 @@
-import { TexturePicker as BuilderTexturePicker } from "@genroot/builder/ui/texturePicker/texturePicker";
-import { type SelectedTexture } from "@genroot/builder/ui/texturePicker/selectedTexture";
+import { TexturePicker as CommonTexturePicker } from "@genroot/generators/_common/texturePicker/texturePicker";
+import { type SelectedTexture } from "@genroot/generators/_common/texturePicker/selectedTexture";
 import { type TextureVersion } from "./textureVersions";
 
 export function TexturePicker(props: {
@@ -9,7 +9,7 @@ export function TexturePicker(props: {
   const { textureDef, frames } = props.textureVersion;
   return (
     <div className="mb-4">
-      <BuilderTexturePicker
+      <CommonTexturePicker
         textureDef={textureDef}
         frames={frames}
         onSelect={props.onSelect}

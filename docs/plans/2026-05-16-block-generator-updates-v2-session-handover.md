@@ -11,6 +11,7 @@
   - shared picker flip support
   - `SelectedTexture.flip`
   - the shared `Icon` button size
+  - the shared generator texture picker primitives now live in `src/generators/_common/texturePicker`
   - `SelectedTextureWithBlend` plumbing for the block flow
   - block face rendering that combines rotation, flip, and blend
   - renderer-level and Playwright visual regression coverage for the block generator
@@ -21,6 +22,7 @@
 ## What Is Already Done
 
 - Picker controls now support rotation, horizontal flip, vertical flip, and erase/reset.
+- The shared texture picker implementation has moved out of `src/builder/ui` and into `src/generators/_common/texturePicker`.
 - The block generator stores the selected texture plus blend/tint state.
 - Block face rendering forwards the full orientation state to the renderer.
 - The block texture picker preview now shows the selected tint color.
@@ -55,9 +57,8 @@
    - Prefer a small unit test, and only add more Playwright coverage if the visual output actually changes.
 
 3. Review the remaining migration items from the sibling project one at a time.
-   - textureDef frame counting for multi-frame textures and single-frame large textures
-   - block and item textures plus the texture picker living in the same files and under plugins
-   - block generator flip and erase support
+   - tint selector and the rest of the shared picker composition
+   - shared texture version assembly
    - item generator tint support through the shared texture picker
 
 ## Verification Notes
@@ -65,8 +66,8 @@
 - `npm run types:check`
 - `npm run lint`
 - `npx vitest run src/builder/modules/textureData.test.ts`
-- `npx vitest run src/builder/ui/texturePicker/textureSearch.test.ts src/builder/ui/texturePicker/flip.test.ts src/builder/ui/texturePicker/texturePicker.test.ts`
-- `npx vitest run src/builder/modules/renderers/drawTexture.test.ts src/generators/minecraftBlock/face.test.ts src/builder/ui/texturePicker/flip.test.ts src/builder/ui/button/buttonStyles.test.ts`
+- `npx vitest run src/generators/_common/texturePicker/textureSearch.test.ts src/generators/_common/texturePicker/flip.test.ts src/generators/_common/texturePicker/texturePicker.test.ts`
+- `npx vitest run src/builder/modules/renderers/drawTexture.test.ts src/generators/minecraftBlock/face.test.ts src/generators/_common/texturePicker/flip.test.ts src/builder/ui/button/buttonStyles.test.ts`
 - `npx playwright test tests/generators/minecraftBlockGenerator/minecraftBlockGenerator.spec.ts`
 - `npx playwright test tests/generators/minecraftBlockGenerator/minecraftBlockGenerator.spec.ts -g "shows the before and after tinting on the page"`
 
@@ -76,4 +77,4 @@
 - Inspect the existing changes before adding new ones.
 - Use the existing screenshot harness rather than introducing a new visual testing system.
 - Use the `testing` generator as the first home for shared visual regressions.
-- The next small task is the next remaining migration item from the sibling project, one at a time.
+- The next small task is moving the tint selector and shared picker composition into `_common`.

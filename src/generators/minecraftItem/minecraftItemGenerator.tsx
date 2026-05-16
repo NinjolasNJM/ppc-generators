@@ -17,7 +17,7 @@ import {
   decodeSelectedTexture,
   encodeSelectedTextures,
   decodeSelectedTextures,
-} from "@genroot/builder/ui/texturePicker/selectedTexture";
+} from "@genroot/generators/_common/texturePicker/selectedTexture";
 import { TexturePicker } from "./ui/texturePicker";
 
 /** [x, y, width, height] */

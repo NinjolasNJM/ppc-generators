@@ -1,4 +1,4 @@
-import { type SelectedTexture } from "@genroot/builder/ui/texturePicker/selectedTexture";
+import { type SelectedTexture } from "@genroot/generators/_common/texturePicker/selectedTexture";
 
 export type SelectedTextureWithBlend = {
   selectedTexture: SelectedTexture | null;
