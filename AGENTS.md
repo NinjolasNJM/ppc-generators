@@ -33,6 +33,7 @@ It includes many generators that turn characters, creatures, items, and other ga
 - Keep encoding and decoding logic encapsulated in the module or component that owns the data.
 - Treat encoded values as opaque to unrelated components; they should use the owning module's API instead of reimplementing serialization details.
 - Apply that pattern to selected texture state and similar generator payloads when they are persisted or restored.
+- Verify the smallest relevant surface first, then widen coverage only as far as the behavior actually propagates.
 - Push back on multiple independent features in a single change.
   - Split unrelated generator work into separate PRs.
   - Split builder changes and new-generator work into separate PRs unless the builder change is fully proven by tests first and the follow-on generator change is clearly dependent.
