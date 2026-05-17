@@ -69,6 +69,49 @@ test("minecraft item generator renders custom atlas textures", async ({
   );
 });
 
+test("minecraft item generator supports custom item scales", async ({
+  page,
+}) => {
+  await page.goto("/generator/minecraft-item");
+
+  const tiles = page.locator("button[title]");
+  await tiles.nth(1).click();
+
+  const sizeOptions = [
+    "Small (200%)",
+    "Medium (400%)",
+    "Large (700%)",
+    "Extra Large (1400%)",
+    "Custom",
+  ] as const;
+
+  for (const sizeOption of sizeOptions) {
+    await page.getByLabel("Item Size").selectOption(sizeOption);
+
+    if (sizeOption === "Custom") {
+      const customScale = page.getByLabel("Custom Scale (%)");
+      await expect(customScale).toHaveAttribute("min", "100");
+      await expect(customScale).toHaveAttribute("max", "1600");
+      await expect(customScale).toHaveAttribute("step", "100");
+      await customScale.press("ArrowRight");
+    }
+
+    await page.getByLabel("Add Item").click();
+  }
+
+  const outputPages = page.getByTestId("generator-page-image");
+  await expect(outputPages).toHaveCount(1);
+
+  const outputPage = outputPages.nth(0);
+  await expect(outputPage).toBeVisible();
+  await expect(outputPage).toHaveAttribute("src", /data:image\/png/);
+  await renderImageAtNaturalSize(outputPage);
+
+  await expect(outputPage).toHaveScreenshot(
+    "minecraft-item-custom-scale-page-1.png"
+  );
+});
+
 test("minecraft item generator clears the selected texture when switching to custom", async ({
   page,
 }) => {

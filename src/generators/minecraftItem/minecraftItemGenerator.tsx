@@ -10,6 +10,7 @@ import type {
   ThumbnailDef,
 } from "@genroot/builder/modules/generatorDef";
 import { type Generator } from "@genroot/builder/modules/generator";
+import { A4 } from "@genroot/builder/modules/modelPage";
 import { type Blend } from "@genroot/builder/modules/renderers/drawTexture";
 import { allTextureDefs, versionIds, findVersion } from "./ui/textureVersions";
 import {
@@ -54,8 +55,10 @@ The generator supports four standard sizes:
 
 * **Medium** - Good for general items (400% scale)
 * **Large** - Good for weapons and tools (700% scale)
+* **Extra Large** - Good for spears and oversized items (1400% scale)
 * **Small** - Good for blocks as items (200% scale)
-* **Full Page** - For fun large size items
+
+You can also choose a custom scale from 100% to 1600%.
 `;
 
 const images: ImageDef[] = [
@@ -126,141 +129,255 @@ const script: ScriptDef = (generator: Generator) => {
     }
   };
 
-  const drawItems = ({
-    selectedTextureFrames,
-    size,
-    border,
-    maxCols,
-    maxRows,
-    showFolds,
-  }: {
-    selectedTextureFrames: SelectedTextureWithBlend[];
-    size: number;
-    border: number;
-    maxCols: number;
-    maxRows: number;
-    showFolds: boolean;
-  }) => {
-    const maxItemsPerPage = maxCols * maxRows;
-    const itemCount = selectedTextureFrames.length;
-    const pageCount =
-      itemCount > 0 ? Math.floor((itemCount - 1) / maxItemsPerPage) + 1 : 0;
+  const pageMargin = 30;
+  const itemMargin = 5;
+  const innerPageWidth = A4.px.width - pageMargin * 2;
+  const innerPageHeight = A4.px.height - pageMargin * 2;
+  const defaultItemScale = 4;
 
-    for (let page = 1; page <= pageCount; page++) {
-      generator.usePage(`Page ${page}`);
+  type SkylineNode = { x: number; y: number; width: number };
+
+  const getItemScale = (selectedTextureFrame: SelectedTextureWithBlend) =>
+    selectedTextureFrame.itemScale ?? defaultItemScale;
+
+  const getItemSize = (selectedTextureFrame: SelectedTextureWithBlend) =>
+    16 * getItemScale(selectedTextureFrame);
+
+  const getSkylineY = (
+    skyline: SkylineNode[],
+    startIndex: number,
+    requiredWidth: number
+  ) => {
+    let coveredWidth = 0;
+    let y = skyline[startIndex]!.y;
+    let index = startIndex;
+
+    while (coveredWidth < requiredWidth) {
+      if (index >= skyline.length) {
+        return Infinity;
+      }
+      const node = skyline[index]!;
+      y = Math.max(y, node.y);
+      coveredWidth += node.width;
+      index += 1;
+    }
+
+    return y;
+  };
+
+  const mergeSkyline = (skyline: SkylineNode[]) => {
+    for (let index = 0; index < skyline.length - 1; index += 1) {
+      const current = skyline[index]!;
+      const next = skyline[index + 1]!;
+
+      if (current.y === next.y) {
+        current.width += next.width;
+        skyline.splice(index + 1, 1);
+        index -= 1;
+      }
+    }
+  };
+
+  const addSkylineNode = (
+    skyline: SkylineNode[],
+    x: number,
+    y: number,
+    width: number
+  ) => {
+    const right = x + width;
+    let index = 0;
+
+    while (index < skyline.length) {
+      const node = skyline[index]!;
+      const nodeRight = node.x + node.width;
+
+      if (nodeRight <= x) {
+        index += 1;
+        continue;
+      }
+
+      if (node.x >= right) {
+        break;
+      }
+
+      if (node.x < x) {
+        const leftWidth = x - node.x;
+        const rightWidth = nodeRight - right;
+        node.width = leftWidth;
+
+        if (rightWidth > 0) {
+          skyline.splice(index + 1, 0, {
+            x: right,
+            y: node.y,
+            width: rightWidth,
+          });
+        }
+        index += 1;
+        continue;
+      }
+
+      if (nodeRight > right) {
+        const remainingWidth = nodeRight - right;
+        skyline.splice(index, 1, {
+          x: right,
+          y: node.y,
+          width: remainingWidth,
+        });
+        break;
+      }
+
+      skyline.splice(index, 1);
+    }
+
+    const insertIndex = skyline.findIndex((node) => node.x > x);
+    const newNode: SkylineNode = { x, y, width };
+
+    if (insertIndex === -1) {
+      skyline.push(newNode);
+    } else {
+      skyline.splice(insertIndex, 0, newNode);
+    }
+
+    mergeSkyline(skyline);
+  };
+
+  const placeRect = (
+    skyline: SkylineNode[],
+    requiredWidth: number,
+    requiredHeight: number
+  ) => {
+    let bestX = -1;
+    let bestY = Infinity;
+    let bestIndex = -1;
+
+    for (let index = 0; index < skyline.length; index += 1) {
+      const node = skyline[index]!;
+      const rectRight = node.x + requiredWidth;
+
+      if (rectRight > pageMargin + innerPageWidth) {
+        continue;
+      }
+
+      const y = getSkylineY(skyline, index, requiredWidth);
+      if (y + requiredHeight > pageMargin + innerPageHeight) {
+        continue;
+      }
+
+      if (y < bestY || (y === bestY && node.x < bestX)) {
+        bestX = node.x;
+        bestY = y;
+        bestIndex = index;
+      }
+    }
+
+    if (bestIndex === -1) {
+      return null;
+    }
+
+    addSkylineNode(skyline, bestX, bestY + requiredHeight, requiredWidth);
+    return { x: bestX, y: bestY };
+  };
+
+  const drawItems = (
+    selectedTextureFrames: SelectedTextureWithBlend[],
+    showFolds: boolean
+  ) => {
+    const makeNewPageSkyline = (): SkylineNode[] => [
+      { x: pageMargin, y: pageMargin, width: innerPageWidth },
+    ];
+
+    const pages: Array<{
+      id: string;
+      placements: Array<{
+        selectedTextureFrame: SelectedTextureWithBlend;
+        x: number;
+        y: number;
+        size: number;
+      }>;
+    }> = [];
+
+    let currentPage = {
+      id: "Page 1",
+      placements: [] as Array<{
+        selectedTextureFrame: SelectedTextureWithBlend;
+        x: number;
+        y: number;
+        size: number;
+      }>,
+    };
+    let skyline = makeNewPageSkyline();
+
+    const pushPage = () => {
+      pages.push(currentPage);
+      const nextPageIndex = pages.length + 1;
+      currentPage = {
+        id: `Page ${nextPageIndex}`,
+        placements: [],
+      };
+      skyline = makeNewPageSkyline();
+    };
+
+    selectedTextureFrames.forEach((selectedTextureFrame) => {
+      if (!selectedTextureFrame.selectedTexture) {
+        return;
+      }
+
+      const size = getItemSize(selectedTextureFrame);
+      const requiredWidth = size * 2 + itemMargin * 2;
+      const requiredHeight = size + itemMargin * 2;
+      let placement = placeRect(skyline, requiredWidth, requiredHeight);
+
+      if (!placement && currentPage.placements.length > 0) {
+        pushPage();
+        placement = placeRect(skyline, requiredWidth, requiredHeight);
+      }
+
+      if (!placement) {
+        placement = { x: pageMargin, y: pageMargin };
+      }
+
+      currentPage.placements.push({
+        selectedTextureFrame,
+        x: placement.x + itemMargin,
+        y: placement.y + itemMargin,
+        size,
+      });
+    });
+
+    if (currentPage.placements.length > 0 || pages.length === 0) {
+      pages.push(currentPage);
+    }
+
+    pages.forEach((page) => {
+      generator.usePage(page.id);
       generator.drawImage("Background", [0, 0]);
-      selectedTextureFrames.forEach((selectedTextureFrame, index) => {
-        if (!selectedTextureFrame.selectedTexture) return;
+      page.placements.forEach((placement) => {
+        const { selectedTextureFrame, x, y, size } = placement;
+        if (!selectedTextureFrame.selectedTexture) {
+          return;
+        }
         const { textureDefId, frame } = selectedTextureFrame.selectedTexture;
-        const page = Math.floor(index / maxItemsPerPage) + 1;
-        const pageId = `Page ${page}`;
-        const col = index % maxCols;
-        const row = Math.floor(index / maxCols) % maxRows;
-        let x: number;
-        let y: number;
-        x = col * size * 2;
-        x = col > 0 ? x + border * col : x;
-        x = border + x;
-        y = row * size;
-        y = row > 0 ? y + border * row : y;
-        y = border + y;
         const blend: Blend | undefined = selectedTextureFrame.blend
           ? { kind: "MultiplyHex", hex: selectedTextureFrame.blend }
           : undefined;
-        generator.usePage(pageId);
         drawItem(textureDefId, frame.rectangle, x, y, size, showFolds, blend);
-        generator.drawImage("Title", [0, 0]);
-      });
-    }
-  };
-
-  const drawSmall = (
-    selectedTextureFrames: SelectedTextureWithBlend[],
-    showFolds: boolean
-  ) => {
-    drawItems({
-      selectedTextureFrames,
-      size: 16 * 2,
-      border: 25,
-      maxCols: 6,
-      maxRows: 13,
-      showFolds,
-    });
-  };
-
-  const drawMedium = (
-    selectedTextureFrames: SelectedTextureWithBlend[],
-    showFolds: boolean
-  ) => {
-    drawItems({
-      selectedTextureFrames,
-      size: 16 * 4,
-      border: 15,
-      maxCols: 4,
-      maxRows: 10,
-      showFolds,
-    });
-  };
-
-  const drawLarge = (
-    selectedTextureFrames: SelectedTextureWithBlend[],
-    showFolds: boolean
-  ) => {
-    drawItems({
-      selectedTextureFrames,
-      size: 16 * 7,
-      border: 20,
-      maxCols: 2,
-      maxRows: 6,
-      showFolds,
-    });
-  };
-
-  const drawFullPage = (selectedTextureFrames: SelectedTextureWithBlend[]) => {
-    const size = 16 * 8 * 4;
-    const border = 30;
-    const addedCount = selectedTextureFrames.length;
-    const pageCount = addedCount * 2;
-    for (let page = 1; page <= pageCount; page++) {
-      generator.usePage(`Page ${page}`);
-      generator.drawImage("Background", [0, 0]);
-    }
-    selectedTextureFrames.forEach((selectedTextureFrame, index) => {
-      if (!selectedTextureFrame.selectedTexture) return;
-      const { textureDefId, frame } = selectedTextureFrame.selectedTexture;
-      const x = border;
-      const y = border;
-      const page1 = index * 2 + 1;
-      const page1Id = `Page ${page1}`;
-      const page2 = index * 2 + 2;
-      const page2Id = `Page ${page2}`;
-      const blend: Blend | undefined = selectedTextureFrame.blend
-        ? { kind: "MultiplyHex", hex: selectedTextureFrame.blend }
-        : undefined;
-      generator.usePage(page1Id);
-      generator.drawTexture(textureDefId, frame.rectangle, [x, y, size, size], {
-        blend,
       });
       generator.drawImage("Title", [0, 0]);
-      generator.usePage(page2Id);
-      generator.drawTexture(
-        textureDefId,
-        frame.rectangle,
-        [x, y, size, size],
-        {
-          flip: "Horizontal",
-          blend,
-        }
-      );
-      generator.drawImage("Title", [0, 0]);
     });
   };
 
-  const sizeSmall = "Small (200%)";
   const sizeMedium = "Medium (400%)";
   const sizeLarge = "Large (700%)";
-  const sizeFullPage = "Full Page";
-  const sizes = [sizeMedium, sizeLarge, sizeSmall, sizeFullPage];
+  const sizeExtraLarge = "Extra Large (1400%)";
+  const sizeSmall = "Small (200%)";
+  const sizeCustom = "Custom";
+  const sizes = [sizeMedium, sizeLarge, sizeExtraLarge, sizeSmall, sizeCustom];
+  const scaleBySize = new Map([
+    [sizeMedium, 4],
+    [sizeLarge, 7],
+    [sizeExtraLarge, 14],
+    [sizeSmall, 2],
+  ]);
 
   // Show a drop down of different texture versions
 
@@ -294,9 +411,26 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Show a drop down of sizes
 
-  generator.defineSelectInput("Size", sizes);
+  generator.defineSelectInput("Item Size", sizes);
 
-  const size = generator.getSelectInputValue("Size");
+  const selectedItemSize =
+    generator.getSelectInputValue("Item Size") ?? sizeMedium;
+  const selectedCustomScalePercent =
+    generator.getNumberVariable("Custom Scale (%)") ?? 400;
+
+  if (selectedItemSize === sizeCustom) {
+    generator.defineRangeInput("Custom Scale (%)", {
+      min: 100,
+      max: 1600,
+      value: selectedCustomScalePercent,
+      step: 100,
+    });
+  }
+
+  const selectedItemScale =
+    selectedItemSize === sizeCustom
+      ? selectedCustomScalePercent / 100
+      : scaleBySize.get(selectedItemSize) ?? defaultItemScale;
 
   // Decode the current selected texture
 
@@ -383,7 +517,10 @@ const script: ScriptDef = (generator: Generator) => {
     if (selectedTextureFrame) {
       const newSelectedTextureFrames: SelectedTextureWithBlend[] = [
         ...selectedTextureFrames,
-        selectedTextureFrame,
+        {
+          ...selectedTextureFrame,
+          itemScale: selectedItemScale,
+        },
       ];
       generator.setStringInputValue(
         "SelectedTextureFrames",
@@ -409,17 +546,7 @@ const script: ScriptDef = (generator: Generator) => {
     generator.drawImage("Title", [0, 0]);
   }
 
-  if (size === sizeSmall) {
-    drawSmall(selectedTextureFrames, showFolds);
-  } else if (size === sizeMedium) {
-    drawMedium(selectedTextureFrames, showFolds);
-  } else if (size === sizeLarge) {
-    drawLarge(selectedTextureFrames, showFolds);
-  } else if (size === sizeFullPage) {
-    drawFullPage(selectedTextureFrames);
-  } else {
-    drawMedium(selectedTextureFrames, showFolds);
-  }
+  drawItems(selectedTextureFrames, showFolds);
 };
 
 export const generator: GeneratorDef = {
