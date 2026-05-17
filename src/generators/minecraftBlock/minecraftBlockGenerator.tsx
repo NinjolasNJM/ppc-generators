@@ -147,6 +147,7 @@ const script: ScriptDef = (generator: Generator) => {
   if (
     currentTexture !== null &&
     currentTexture.selectedTexture !== null &&
+    currentTexture.selectedTexture.textureDefId !== "" &&
     currentTexture.selectedTexture.textureDefId !== versionId
   ) {
     // Clear stale selections when the active texture version changes.
@@ -276,7 +277,7 @@ const script: ScriptDef = (generator: Generator) => {
         currentTextureChoice
       );
     }
-  });
+  }, "Red");
 
   generator.drawImage("Title", [0, 0]);
 };
