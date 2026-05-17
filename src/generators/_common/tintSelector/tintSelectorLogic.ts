@@ -1,17 +1,14 @@
-import { type SelectOption } from "@genroot/builder/ui/form/select";
-import { type Tint, tintGroups, tints } from "./tints";
+import { type SelectOption, type SelectOptionGroup, type SelectOptionOrGroup } from "@genroot/builder/ui/form/select";
+import {
+  defaultTintChoiceGroups,
+  type TintChoice,
+  type TintChoiceGroup,
+} from "./tints";
 
 export type SelectedTint =
   | { kind: "NoTint" }
   | { kind: "CustomTint"; hex: string | null }
   | { kind: "SelectedTint"; hex: string };
-
-function makeOptions(tints: Tint[]): SelectOption[] {
-  return tints.map((tint) => {
-    const choice: SelectOption = { id: tint.id, label: tint.biome };
-    return choice;
-  });
-}
 
 function isValidTint(tint: string): boolean {
   return /^#[0-9a-fA-F]{6}$/.test(tint);
@@ -38,40 +35,47 @@ export const customChoice: SelectOption = {
   label: "Custom tint",
 };
 
-export const grassChoices = {
-  id: "Grass",
-  label: "Grass",
-  options: makeOptions(tintGroups.grass),
-};
+export function flattenTintChoiceGroups(
+  choiceGroups: TintChoiceGroup[]
+): TintChoice[] {
+  return choiceGroups.flatMap((group) => group.options);
+}
 
-export const foliageChoices = {
-  id: "Foliage",
-  label: "Foliage",
-  options: makeOptions(tintGroups.foliage),
-};
+export function makeTintChoiceGroups(
+  choiceGroups: TintChoiceGroup[]
+): SelectOptionGroup[] {
+  return choiceGroups.map((group) => ({
+    id: group.id,
+    label: group.label,
+    options: group.options.map((tint) => ({
+      id: tint.id,
+      label: tint.label,
+    })),
+  }));
+}
 
-export const waterChoices = {
-  id: "Water",
-  label: "Water",
-  options: makeOptions(tintGroups.water),
-};
+export function makeTintChoices(
+  choiceGroups: TintChoiceGroup[] = defaultTintChoiceGroups,
+  includeNoTint = true
+): SelectOptionOrGroup[] {
+  return [
+    ...(includeNoTint ? [noneChoice] : []),
+    customChoice,
+    ...makeTintChoiceGroups(choiceGroups),
+  ];
+}
 
-export const choices = [
-  noneChoice,
-  customChoice,
-  grassChoices,
-  foliageChoices,
-  waterChoices,
-];
-
-export function getTintFromOption(option: SelectOption): SelectedTint {
+export function getTintFromOption(
+  option: SelectOption,
+  tintChoices: TintChoice[]
+): SelectedTint {
   switch (option.id) {
     case "None":
       return { kind: "NoTint" };
     case "Custom":
       return { kind: "CustomTint", hex: null };
     default: {
-      const tint = tints.find((tint) => tint.id === option.id);
+      const tint = tintChoices.find((tint) => tint.id === option.id);
       if (!tint) {
         return { kind: "NoTint" };
       }
@@ -92,4 +96,86 @@ export function getColorFromSelectedTint(
     case "SelectedTint":
       return selectedTint.hex;
   }
+}
+
+function normalizeHexForComparison(value: string): string {
+  return (normalizeTint(value) ?? value).toUpperCase();
+}
+
+export function getTintChoiceValue(
+  value: string,
+  tintChoices: TintChoice[]
+): string | null {
+  const normalizedValue = value.trim().toLowerCase();
+  const tint = tintChoices.find(
+    (tint) =>
+      tint.id.toLowerCase() === normalizedValue ||
+      tint.label.toLowerCase() === normalizedValue
+  );
+  return tint?.color ?? null;
+}
+
+function getCustomTintInput(value: string | null): string {
+  return value?.replace(/^#/, "") ?? "";
+}
+
+export function getTintInputValue(
+  storedValue: string | null,
+  defaultValue: string | null,
+  tintChoices: TintChoice[] = flattenTintChoiceGroups(defaultTintChoiceGroups)
+): string | null {
+  if (storedValue === null) {
+    return defaultValue;
+  }
+
+  if (storedValue.trim().length === 0) {
+    return null;
+  }
+
+  return (
+    getTintChoiceValue(storedValue, tintChoices) ??
+    normalizeTint(storedValue) ??
+    storedValue
+  );
+}
+
+type TintSelectorState = {
+  selectedOption: SelectOption;
+  selectedTint: SelectedTint;
+  customTintInput: string;
+  color: string | null;
+};
+
+export function getTintSelectorStateFromValue(
+  value: string | null,
+  tintChoices: TintChoice[]
+): TintSelectorState {
+  if (value === null) {
+    return {
+      selectedOption: noneChoice,
+      selectedTint: { kind: "NoTint" },
+      customTintInput: "",
+      color: null,
+    };
+  }
+
+  const normalizedValue = normalizeHexForComparison(value);
+  const tint = tintChoices.find(
+    (tint) => normalizeHexForComparison(tint.color) === normalizedValue
+  );
+  if (tint) {
+    return {
+      selectedOption: { id: tint.id, label: tint.label },
+      selectedTint: { kind: "SelectedTint", hex: tint.color },
+      customTintInput: "",
+      color: tint.color,
+    };
+  }
+
+  return {
+    selectedOption: customChoice,
+    selectedTint: { kind: "CustomTint", hex: value },
+    customTintInput: getCustomTintInput(value),
+    color: value,
+  };
 }

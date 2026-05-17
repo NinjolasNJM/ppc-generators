@@ -71,6 +71,7 @@ const history: HistoryDef = [
   "Dec 2021 NinjolasNJM - Add Stairs, Fence, Door, Trapdoor and Snow.",
   "Jan 2022 NinjolasNJM - Add Cake Block type.",
   "May 2026 NinjolasNJM - Add Shelf Block type.",
+  "May 2026 NinjolasNJM - Changed to use new glint and tint input.",
 ];
 
 const thumbnail: ThumbnailDef = {

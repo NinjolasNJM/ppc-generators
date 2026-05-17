@@ -9,6 +9,8 @@ import type {
   ThumbnailDef,
 } from "@genroot/builder/modules/generatorDef";
 import { type Generator } from "@genroot/builder/modules/generator";
+import { defineTintInput } from "@genroot/generators/_common/tintSelector/tintSelector";
+import { catTintChoiceGroups } from "@genroot/generators/_common/tintSelector/tints";
 
 import thumnbailImage from "./thumbnail/thumbnail-v2-256.jpeg";
 import whiteCatImage from "./textures/white.png";
@@ -38,6 +40,7 @@ const history: HistoryDef = [
   "15 Mar 2021 Micaias32 - All cats of 1.14.",
   "03 Feb 2022 NinjolasNJM - Converted to new generator builder, with updated backgrounds, folds and labels, as well as improved texture mappping and collar handling.",
   "06 Aug 2022 M16 - Update thumbnail photo.",
+  "16 May 2026 NinjolasNJM - Changed to use new tint input.",
 ];
 
 const thumbnail: ThumbnailDef = {
@@ -186,70 +189,18 @@ const script: ScriptDef = (generator: Generator) => {
   });
 
   // Define user variables
-
-  generator.defineSelectInput("Collar Color", [
-    "Black",
-    "Red",
-    "Green",
-    "Brown",
-    "Blue",
-    "Purple",
-    "Cyan",
-    "Light Gray",
-    "Gray",
-    "Pink",
-    "Lime",
-    "Yellow",
-    "Light Blue",
-    "Magenta",
-    "Orange",
-    "White",
-  ]);
+  const collarColor =
+    defineTintInput(generator, "Collar Color", {
+      defaultValue: "#B02E26",
+      choiceGroups: catTintChoiceGroups,
+      includeNoTint: false,
+    }) ?? "#B02E26";
 
   generator.defineBooleanInput("Show Folds", true);
 
   generator.defineBooleanInput("Show Labels", true);
 
   // Get user variable values
-
-  const collarColor = (() => {
-    switch (generator.getSelectInputValue("Collar Color")) {
-      case "Black":
-        return "1D1D21";
-      case "Red":
-        return "B02E26";
-      case "Green":
-        return "5E7C16";
-      case "Brown":
-        return "835432";
-      case "Blue":
-        return "3C44AA";
-      case "Purple":
-        return "8932B8";
-      case "Cyan":
-        return "169C9C";
-      case "Light Gray":
-        return "9D9D97";
-      case "Gray":
-        return "474F52";
-      case "Pink":
-        return "F38BAA";
-      case "Lime":
-        return "80C71F";
-      case "Yellow":
-        return "FED83D";
-      case "Light Blue":
-        return "3AB3DA";
-      case "Magenta":
-        return "C74EBD";
-      case "Orange":
-        return "F9801D";
-      case "White":
-        return "F9FFFE";
-      default:
-        return "B02E26";
-    }
-  })();
 
   const showFolds = generator.getBooleanInputValue("Show Folds");
   const showLabels = generator.getBooleanInputValue("Show Labels");

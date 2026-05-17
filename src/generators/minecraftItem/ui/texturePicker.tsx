@@ -1,6 +1,7 @@
 import { TexturePicker as CommonTexturePicker } from "@genroot/generators/_common/texturePicker/texturePicker";
 import { type SelectedTexture } from "@genroot/generators/_common/texturePicker/selectedTexture";
 import { TintSelector } from "@genroot/generators/_common/tintSelector/tintSelector";
+import { itemTintChoiceGroups } from "@genroot/generators/_common/tintSelector/tints";
 import { type TextureVersion } from "./textureVersions";
 
 export function TexturePicker(props: {
@@ -24,7 +25,11 @@ export function TexturePicker(props: {
         />
       </div>
       <div className="mb-4">
-        <TintSelector onChange={props.onBlendSelected} />
+        <TintSelector
+          value={props.blend ?? null}
+          choiceGroups={itemTintChoiceGroups}
+          onChange={props.onBlendSelected}
+        />
       </div>
     </div>
   );

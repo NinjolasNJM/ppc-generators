@@ -19,3 +19,24 @@ test("minecraft cat generator matches the default screenshot", async ({ page }) 
     );
   }
 });
+
+test("minecraft cat generator renders a tinted collar", async ({ page }) => {
+  await page.goto("/generator/minecraft-cat");
+
+  await page.getByLabel("Collar", { exact: true }).selectOption({
+    label: "Cat Collar",
+  });
+  await page.getByLabel("Collar Color").selectOption({ label: "Blue" });
+
+  const outputPages = page.getByTestId("generator-page-image");
+  await expect(outputPages).toHaveCount(1);
+
+  const outputPage = outputPages.nth(0);
+  await expect(outputPage).toBeVisible();
+  await expect(outputPage).toHaveAttribute("src", /data:image\/png/);
+  await renderImageAtNaturalSize(outputPage);
+
+  await expect(outputPage).toHaveScreenshot(
+    "minecraft-cat-blue-collar-page-1.png"
+  );
+});

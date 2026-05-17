@@ -107,11 +107,16 @@ import { Minecraft } from "../_common/minecraft";
 import { Blend } from "@genroot/builder/modules/renderers/drawTexture";
 import { Color } from "@genroot/builder/modules/canvasWithContext";
 import { GlintPluginOptions, makeGlintPlugin } from "../_common/plugins/glint";
+import { defineTintInput } from "../_common/tintSelector/tintSelector";
+import { armorTintChoiceGroups } from "../_common/tintSelector/tints";
 
 const id = "minecraft-armor";
 const name = "Minecraft Armor";
 
-const history: HistoryDef = ["Jan 2026 NinjolasNJM - Initial script."];
+const history: HistoryDef = [
+  "Jan 2026 NinjolasNJM - Initial script.",
+  "May 2026 NinjolasNJM - Changed to use new glint and tint input.",
+];
 
 const instructions = `
 ## How to use the Minecraft Armor Generator?
@@ -698,66 +703,12 @@ const script: ScriptDef = (generator: Generator) => {
   };
 
   function getTint(colorId: string): Blend {
-    generator.defineSelectInput(colorId, [
-      "Leather",
-      "Black",
-      "Red",
-      "Green",
-      "Brown",
-      "Blue",
-      "Purple",
-      "Cyan",
-      "Light Gray",
-      "Gray",
-      "Pink",
-      "Lime",
-      "Yellow",
-      "Light Blue",
-      "Magenta",
-      "Orange",
-      "White",
-    ]);
-
-    const hex = (() => {
-      switch (generator.getSelectInputValue(colorId)) {
-        case "Leather":
-          return "A06540";
-        case "Black":
-          return "1D1D21";
-        case "Red":
-          return "B02E26";
-        case "Green":
-          return "5E7C16";
-        case "Brown":
-          return "835432";
-        case "Blue":
-          return "3C44AA";
-        case "Purple":
-          return "8932B8";
-        case "Cyan":
-          return "169C9C";
-        case "Light Gray":
-          return "9D9D97";
-        case "Gray":
-          return "474F52";
-        case "Pink":
-          return "F38BAA";
-        case "Lime":
-          return "80C71F";
-        case "Yellow":
-          return "FED83D";
-        case "Light Blue":
-          return "3AB3DA";
-        case "Magenta":
-          return "C74EBD";
-        case "Orange":
-          return "F9801D";
-        case "White":
-          return "F9FFFE";
-        default:
-          return "A06540";
-      }
-    })();
+    const hex =
+      defineTintInput(generator, colorId, {
+        defaultValue: "#A06540",
+        choiceGroups: armorTintChoiceGroups,
+        includeNoTint: false,
+      }) ?? "#A06540";
 
     return { kind: "MultiplyHex", hex: hex };
   }
