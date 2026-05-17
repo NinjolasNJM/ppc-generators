@@ -54,6 +54,7 @@ export function TintSelector({
     [choiceGroups, includeNoTint]
   );
   const isControlled = value !== undefined;
+  const labelId = React.useId();
 
   const [state, setState] = React.useState<TintSelectorState>(() =>
     getStateFromValue(value ?? null, tintChoices)
@@ -82,17 +83,20 @@ export function TintSelector({
     if (color) {
       onChange(color);
     } else if (customTintInput.trim().length === 0) {
-      onChange(null);
+      onChange("#");
     }
   };
 
   return (
     <div>
-      <div className="font-bold mb-1">{label}</div>
+      <div id={labelId} className="font-bold mb-1">
+        {label}
+      </div>
       <div className="flex space-x-4">
         <Select
           choices={choices}
           value={selectedOption}
+          ariaLabelledBy={labelId}
           onChange={(selectedOption) => {
             const selectedTint = getTintFromOption(selectedOption, tintChoices);
             const color = getColorFromSelectedTint(selectedTint);
@@ -103,7 +107,7 @@ export function TintSelector({
               color,
             };
             setState(nextState);
-            onChange(color);
+            onChange(selectedTint.kind === "CustomTint" ? "#" : color);
           }}
         />
 

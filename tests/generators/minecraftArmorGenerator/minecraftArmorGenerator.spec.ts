@@ -1,6 +1,22 @@
 import { expect, test } from "@playwright/test";
 import { renderImageAtNaturalSize } from "../_shared/screenshot";
 
+test("minecraft armor generator exposes a typeable helmet tint input", async ({
+  page,
+}) => {
+  await page.goto("/generator/minecraft-armor");
+
+  await page
+    .getByLabel("Tint Helmet")
+    .evaluate((element) => (element as HTMLInputElement).click());
+  await page.getByLabel("Helmet Color").selectOption({ label: "Custom tint" });
+
+  const tintInput = page.getByPlaceholder("Enter hex color");
+  await expect(tintInput).toBeVisible();
+  await tintInput.fill("123abc");
+  await expect(tintInput).toHaveValue("123abc");
+});
+
 test("minecraft armor generator matches the default screenshot", async ({ page }) => {
   await page.goto("/generator/minecraft-armor");
 
