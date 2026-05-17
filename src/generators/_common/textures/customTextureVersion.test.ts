@@ -11,10 +11,9 @@ describe("parseAtlas", () => {
           frames: [
             {
               id: "first",
-              name: "first",
+              label: "First",
               rectangle: [0, 0, 16, 16],
-              frameIndex: 0,
-              frameCount: 1,
+              crop: [2, 3, 12, 10],
             },
           ],
         })
@@ -25,10 +24,9 @@ describe("parseAtlas", () => {
       frames: [
         {
           id: "first",
-          name: "first",
+          label: "First",
           rectangle: [0, 0, 16, 16],
-          frameIndex: 0,
-          frameCount: 1,
+          crop: [2, 3, 12, 10],
         },
       ],
     });

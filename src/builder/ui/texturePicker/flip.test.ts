@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { makeNextFlip, flipForRotation } from "./flip";
+import { makeNextFlip } from "./flip";
 
 describe("makeNextFlip", () => {
   it("transitions through horizontal and vertical flips correctly", () => {
@@ -12,11 +12,15 @@ describe("makeNextFlip", () => {
       "Rot0",
     ]);
   });
-});
 
-describe("flipForRotation", () => {
-  it("swaps flips for rotated textures", () => {
-    expect(flipForRotation("Horizontal", "Rot90")).toBe("Vertical");
-    expect(flipForRotation("Vertical", "Rot90")).toBe("Horizontal");
+  it("orients flips around quarter-turned textures", () => {
+    expect(makeNextFlip("None", "Horizontal", "Rot90")).toEqual([
+      "Vertical",
+      "Rot90",
+    ]);
+    expect(makeNextFlip("None", "Vertical", "Rot270")).toEqual([
+      "Horizontal",
+      "Rot270",
+    ]);
   });
 });
