@@ -25,8 +25,13 @@ import {
 import { TexturePicker } from "../_common/plugins/texturePicker/texturePicker";
 import { blockTintChoiceGroups } from "../_common/plugins/texturePicker/tints";
 import { drawBlocks } from "./editModes/blocks";
+import {
+  drawDestinationRegions,
+  getCurrentDestination,
+} from "./editModes/destination";
 import { drawFolds } from "./editModes/folds";
 import {
+  defaultDestination,
   defaultSource,
   getDioramaDocument,
   type DioramaOptions,
@@ -210,6 +215,7 @@ function drawDiorama(generator: Generator, options: DioramaOptions) {
   drawTabs(generator, options);
   drawFolds(generator, options);
   drawSourceRegions(generator, options);
+  drawDestinationRegions(generator, options);
 }
 
 function getDioramaDimensions(generator: Generator) {
@@ -267,10 +273,15 @@ const script: ScriptDef = (generator: Generator) => {
     "Tabs",
     "Folds",
     "Source",
+    "Destination",
   ]);
   const document = getDioramaDocument(generator);
   const currentSource =
     editMode === "Source" ? getCurrentSource(generator) : defaultSource;
+  const currentDestination =
+    editMode === "Destination"
+      ? getCurrentDestination(generator)
+      : defaultDestination;
   const { dioramaSize, dioramaWidth, dioramaHeight } =
     getDioramaDimensions(generator);
   const isLandscape = generator.defineAndGetBooleanInput(
@@ -306,6 +317,7 @@ const script: ScriptDef = (generator: Generator) => {
     showEditRegions,
     document,
     currentSource,
+    currentDestination,
   });
 
   generator.defineButtonInput("Clear", () => {
@@ -321,6 +333,10 @@ const script: ScriptDef = (generator: Generator) => {
     const currentSourceY = generator.getNumberVariable("Source Y");
     const currentSourceWidth = generator.getNumberVariable("Source Width");
     const currentSourceHeight = generator.getNumberVariable("Source Height");
+    const currentDestinationWidth =
+      generator.getNumberVariable("Destination Width");
+    const currentDestinationHeight =
+      generator.getNumberVariable("Destination Height");
 
     generator.clearAllVariables();
 
@@ -352,6 +368,15 @@ const script: ScriptDef = (generator: Generator) => {
     }
     if (currentSourceHeight !== null) {
       generator.setNumberVariable("Source Height", currentSourceHeight);
+    }
+    if (currentDestinationWidth !== null) {
+      generator.setNumberVariable("Destination Width", currentDestinationWidth);
+    }
+    if (currentDestinationHeight !== null) {
+      generator.setNumberVariable(
+        "Destination Height",
+        currentDestinationHeight
+      );
     }
   });
 
