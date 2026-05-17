@@ -25,6 +25,34 @@ test("minecraft horse generator exposes a typeable armor tint input", async ({
   await expect(tintInput).toHaveValue("123abc");
 });
 
+test("minecraft horse generator renders tinted enchanted armor", async ({
+  page,
+}) => {
+  await page.goto("/generator/minecraft-horse");
+
+  await page
+    .getByLabel("Tint Armor")
+    .evaluate((element) => (element as HTMLInputElement).click());
+  await page.getByLabel("Armor Color").selectOption({ label: "Blue" });
+
+  const outputPages = page.getByTestId("generator-page-image");
+  await expect(outputPages).toHaveCount(1);
+
+  const outputPage = outputPages.nth(0);
+  await expect(outputPage).toBeVisible();
+  await expect(outputPage).toHaveAttribute("src", /data:image\/png/);
+  await renderImageAtNaturalSize(outputPage);
+  const box = await outputPage.boundingBox();
+  if (!box) {
+    throw new Error("Horse output page was not measurable");
+  }
+  await page.mouse.click(box.x + 100, box.y + 500);
+
+  await expect(outputPage).toHaveScreenshot(
+    "minecraft-horse-tinted-enchanted-armor-page-1.png"
+  );
+});
+
 test("minecraft horse generator matches the default screenshot", async ({ page }) => {
   await page.goto("/generator/minecraft-horse");
 
