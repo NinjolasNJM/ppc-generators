@@ -53,6 +53,7 @@ const name = "Minecraft Horse";
 
 const history: HistoryDef = [
   "11 Jul 2021 NinjolasNJM - Initial script finished.",
+  "16 May 2026 NinjolasNJM - Changed to use new glint and tint input.",
 ];
 
 const thumbnail: ThumbnailDef = {
