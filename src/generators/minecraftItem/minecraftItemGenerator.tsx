@@ -20,6 +20,11 @@ import {
   decodeSelectedTextureWithBlendArray,
 } from "./selectedTextureWithBlend";
 import { TexturePicker } from "./ui/texturePicker";
+import {
+  parseAtlas,
+  updateCustomTextureAtlas,
+  updateCustomTextureUrl,
+} from "../_common/customTextureVersion";
 
 /** [x, y, width, height] */
 type Rectangle = [number, number, number, number];
@@ -263,6 +268,26 @@ const script: ScriptDef = (generator: Generator) => {
 
   const versionId = generator.getSelectInputValue("Version") ?? "";
 
+  if (versionId === "custom") {
+    generator.defineAtlasInput("custom", {
+      label: "Custom",
+      standardWidth: 32,
+      standardHeight: 32,
+      choices: [],
+    });
+
+    const customAtlas = parseAtlas(generator.getStringInputValue("custom Frames"));
+    const customTexture = generator.getTexture("custom");
+    if (customTexture) {
+      const textureUrl = customTexture.imageWithCanvas.image.src;
+      if (customAtlas && customAtlas.frames.length > 0) {
+        updateCustomTextureAtlas(textureUrl, customAtlas);
+      } else {
+        updateCustomTextureUrl(textureUrl);
+      }
+    }
+  }
+
   // Get the current selected version
 
   const textureVersion = findVersion(versionId);
@@ -281,6 +306,21 @@ const script: ScriptDef = (generator: Generator) => {
   const currentTexture: SelectedTextureWithBlend | null = currentTextureJson
     ? decodeSelectedTextureWithBlend(currentTextureJson)
     : null;
+  if (
+    currentTexture !== null &&
+    currentTexture.selectedTexture !== null &&
+    currentTexture.selectedTexture.textureDefId !== versionId
+  ) {
+    // Clear stale selections when the active texture version changes.
+    generator.setStringInputValue("SelectedTextureFrame", "");
+  }
+  const resolvedCurrentTextureJson = generator.getStringInputValue(
+    "SelectedTextureFrame"
+  );
+  const resolvedCurrentTexture: SelectedTextureWithBlend | null =
+    resolvedCurrentTextureJson
+      ? decodeSelectedTextureWithBlend(resolvedCurrentTextureJson)
+      : null;
 
   // Show the Texture Picker
   // When a texture is selected, we need to encode it into a string variable
@@ -292,18 +332,18 @@ const script: ScriptDef = (generator: Generator) => {
     return (
       <TexturePicker
         textureVersion={textureVersion}
-        blend={currentTexture ? currentTexture.blend : null}
+        blend={resolvedCurrentTexture ? resolvedCurrentTexture.blend : null}
         onSelect={(selectedTexture) => {
           const newTexture: SelectedTextureWithBlend = {
             selectedTexture,
-            blend: currentTexture ? currentTexture.blend : null,
+            blend: resolvedCurrentTexture ? resolvedCurrentTexture.blend : null,
           };
           onChange(encodeSelectedTextureWithBlend(newTexture));
         }}
         onBlendSelected={(blend) => {
           const newTexture: SelectedTextureWithBlend = {
-            selectedTexture: currentTexture
-              ? currentTexture.selectedTexture
+            selectedTexture: resolvedCurrentTexture
+              ? resolvedCurrentTexture.selectedTexture
               : null,
             blend,
           };
@@ -324,7 +364,8 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Decode the selected texture
 
-  const selectedTextureFrame: SelectedTextureWithBlend | null = currentTexture;
+  const selectedTextureFrame: SelectedTextureWithBlend | null =
+    resolvedCurrentTexture;
 
   // Decode the added textures
 

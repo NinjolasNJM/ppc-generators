@@ -25,12 +25,21 @@ export type TextureInputControlProps = {
   standardWidth: number;
   standardHeight: number;
   choices: string[];
+  label?: string;
 };
 
 export type TextureInputControl = {
   kind: "TextureInput";
   id: string;
   props: TextureInputControlProps;
+};
+
+export type AtlasInputControlProps = TextureInputControlProps;
+
+export type AtlasInputControl = {
+  kind: "AtlasInput";
+  id: string;
+  props: AtlasInputControlProps;
 };
 
 export type MinecraftSkinInputControlProps = {
@@ -99,6 +108,7 @@ export type Control =
   | CustomInputControl
   | RegionControl
   | TextureInputControl
+  | AtlasInputControl
   | MinecraftSkinInputControl
   | BooleanInputControl
   | SelectInputControl

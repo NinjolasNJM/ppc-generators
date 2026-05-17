@@ -3,8 +3,12 @@ import {
   type TextureVersion as CommonTextureVersion,
 } from "../_common/textureVersions";
 import { minecraftTextureVersionDefinitions as definitions } from "../_common/minecraftTextureVersions";
+import { customTextureVersion } from "../_common/customTextureVersion";
 
-export const textureVersions: TextureVersion[] = makeTextureVersions(definitions);
+export const textureVersions: TextureVersion[] = [
+  customTextureVersion,
+  ...makeTextureVersions(definitions),
+];
 export type TextureVersion = CommonTextureVersion;
 
 export const textureDefs = textureVersions.map(({ textureDef }) => textureDef);

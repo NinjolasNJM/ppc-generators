@@ -4,6 +4,7 @@ import { type Page, makePage } from "./modelPage";
 import { makeUUID } from "./uuid";
 import {
   type Control,
+  type AtlasInputControlProps,
   type MinecraftSkinInputControl,
   type MinecraftSkinInputControlProps,
   type TextureInputControlProps,
@@ -66,6 +67,14 @@ export class Model {
   addTextureControl(id: string, props: TextureInputControlProps) {
     this.addControl({
       kind: "TextureInput",
+      id,
+      props,
+    });
+  }
+
+  addAtlasControl(id: string, props: AtlasInputControlProps) {
+    this.addControl({
+      kind: "AtlasInput",
       id,
       props,
     });

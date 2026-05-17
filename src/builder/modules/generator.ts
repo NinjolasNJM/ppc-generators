@@ -1,4 +1,5 @@
 import {
+  type AtlasInputControlProps,
   type MinecraftSkinInputControlProps,
   type TextureInputControlProps,
 } from "./modelControls";
@@ -45,6 +46,10 @@ export class Generator {
 
   defineTextureInput(id: string, props: TextureInputControlProps): void {
     this.model.addTextureControl(id, props);
+  }
+
+  defineAtlasInput(id: string, props: AtlasInputControlProps): void {
+    this.model.addAtlasControl(id, props);
   }
 
   defineMinecraftSkinInput(
