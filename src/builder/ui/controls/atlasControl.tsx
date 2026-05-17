@@ -4,11 +4,12 @@ import {
   type Texture,
   makeTextureFromUrl,
 } from "@genroot/builder/modules/texture";
-import { type SelectOption, Select } from "../form/select";
 import {
-  packAtlasImages,
-  type AtlasImage,
-} from "./atlasControlLogic";
+  type Rectangle,
+  imageToTextureFrames,
+} from "@genroot/builder/modules/textureData";
+import { packImages } from "@genroot/builder/modules/texturePacking";
+import { type SelectOption, Select } from "../form/select";
 
 export function AtlasControl({
   id,
@@ -31,6 +32,7 @@ export function AtlasControl({
   const legendId = `${baseId}-legend`;
   const selectId = `${baseId}-select`;
   const fileInputId = `${baseId}-file`;
+  const displayLabel = label ?? id;
   const selectChoices: SelectOption[] =
     choices.length > 0
       ? [
@@ -70,19 +72,113 @@ export function AtlasControl({
     });
   };
 
+  const getFrameCrop = (
+    image: HTMLImageElement,
+    [frameX, frameY, frameWidth, frameHeight]: Rectangle
+  ): Rectangle => {
+    const canvas = document.createElement("canvas");
+    canvas.width = image.width;
+    canvas.height = image.height;
+    const context = canvas.getContext("2d");
+    if (!context) {
+      return [0, 0, frameWidth, frameHeight];
+    }
+
+    context.drawImage(image, 0, 0);
+    const pixels = context.getImageData(
+      frameX,
+      frameY,
+      frameWidth,
+      frameHeight
+    ).data;
+
+    let minX = frameWidth;
+    let minY = frameHeight;
+    let maxX = -1;
+    let maxY = -1;
+
+    for (let y = 0; y < frameHeight; y += 1) {
+      for (let x = 0; x < frameWidth; x += 1) {
+        const alpha = pixels[(y * frameWidth + x) * 4 + 3] ?? 0;
+        if (alpha === 0) {
+          continue;
+        }
+
+        minX = Math.min(minX, x);
+        minY = Math.min(minY, y);
+        maxX = Math.max(maxX, x);
+        maxY = Math.max(maxY, y);
+      }
+    }
+
+    return maxX === -1
+      ? [0, 0, frameWidth, frameHeight]
+      : [minX, minY, maxX - minX + 1, maxY - minY + 1];
+  };
+
   const createAtlas = (
     images: HTMLImageElement[]
-  ): { url: string; framesJson: string; atlasWidth: number; atlasHeight: number } => {
-    const atlasImages: AtlasImage[] = images.map((image, index) => ({
-      name:
-        (image as HTMLImageElement & { fileName?: string }).fileName ??
-        `image_${index}`,
-      width: image.width,
-      height: image.height,
-    }));
+  ): {
+    url: string;
+    framesJson: string;
+    atlasWidth: number;
+    atlasHeight: number;
+  } => {
+    if (images.length === 0) {
+      throw new Error("No images to pack into atlas");
+    }
 
-    const atlas = packAtlasImages(atlasImages, standardWidth, standardHeight);
-    const { atlasWidth, atlasHeight, frames } = atlas;
+    const estimateWidth = Math.max(
+      standardWidth,
+      standardHeight,
+      Math.min(2048, Math.ceil(Math.sqrt(images.length)) * standardWidth)
+    );
+
+    const sourceFrameMap = new Map<
+      string,
+      {
+        sourceIndex: number;
+        sourceRectangle: Rectangle;
+        legacyName: string;
+        frameIndex: number;
+        frameCount: number;
+      }
+    >();
+
+    const packableImages = images.flatMap((image, index) => {
+      const imageName =
+        (image as HTMLImageElement & { fileName?: string }).fileName ??
+        `image_${index}`;
+      const frames = imageToTextureFrames(imageName, image.width, image.height);
+
+      return frames.map((frame, frameIndex) => {
+        const crop = getFrameCrop(image, frame.rectangle);
+
+        sourceFrameMap.set(frame.id, {
+          sourceIndex: index,
+          sourceRectangle: frame.rectangle,
+          legacyName: frame.label,
+          frameIndex,
+          frameCount: frames.length,
+        });
+
+        return {
+          id: frame.id,
+          label: frame.label,
+          rectangle: [
+            0,
+            0,
+            frame.rectangle[2],
+            frame.rectangle[3],
+          ] satisfies Rectangle,
+          crop,
+          sourceIndex: index,
+        };
+      });
+    });
+
+    const packedAtlas = packImages(packableImages, estimateWidth);
+    const { atlasWidth, atlasHeight } = packedAtlas;
 
     const canvas = document.createElement("canvas");
     canvas.width = atlasWidth;
@@ -92,13 +188,46 @@ export function AtlasControl({
       throw new Error("Failed to get canvas context");
     }
 
-    images.forEach((image, index) => {
-      const [x, y] = frames[index]!.rectangle;
-      context.drawImage(image, x, y);
+    packedAtlas.frames.forEach((frame) => {
+      const sourceInfo = sourceFrameMap.get(frame.id);
+      if (!sourceInfo) {
+        return;
+      }
+
+      const image = images[sourceInfo.sourceIndex];
+      if (!image) {
+        return;
+      }
+
+      const [sx, sy, sw, sh] = sourceInfo.sourceRectangle;
+      context.drawImage(
+        image,
+        sx,
+        sy,
+        sw,
+        sh,
+        frame.rectangle[0],
+        frame.rectangle[1],
+        sw,
+        sh
+      );
     });
 
     const url = canvas.toDataURL("image/png");
-    const framesJson = JSON.stringify(atlas);
+    const framesJson = JSON.stringify({
+      atlasWidth,
+      atlasHeight,
+      frames: packedAtlas.frames.map((frame) => {
+        const sourceInfo = sourceFrameMap.get(frame.id);
+        return {
+          ...frame,
+          // Compatibility for the current pre-migration texture picker.
+          name: sourceInfo?.legacyName ?? frame.label,
+          frameIndex: sourceInfo?.frameIndex ?? 0,
+          frameCount: sourceInfo?.frameCount ?? 1,
+        };
+      }),
+    });
 
     return { url, framesJson, atlasWidth, atlasHeight };
   };
@@ -145,7 +274,7 @@ export function AtlasControl({
   return (
     <fieldset className="mb-4 min-w-0">
       <legend className="font-bold mb-1" id={legendId}>
-        {label ?? id}
+        {displayLabel}
       </legend>
       <div className="flex flex-wrap">
         <div className="flex mb-4 space-x-4 items-center mr-4">

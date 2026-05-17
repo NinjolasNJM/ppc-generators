@@ -1,12 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
 import { type Generator } from "@genroot/builder/modules/generator";
 import { type DrawTextureOptions } from "@genroot/builder/modules/renderers/drawTexture";
+import { makeNextFlip } from "@genroot/builder/ui/texturePicker/flip";
 import { currentBlockTextureId } from "./constants";
 import {
-  decodeSelectedTextureWithBlendArray,
-  encodeSelectedTextureWithBlend,
-  encodeSelectedTextureWithBlendArray,
-} from "./selectedTextureWithBlend";
+  decodeSelectedTextures,
+  encodeSelectedTexture,
+  encodeSelectedTextures,
+} from "@genroot/builder/ui/texturePicker/selectedTexture";
 import { defineInputRegion, drawFace } from "./face";
 
 function makeGenerator(faceId: string, faceJson: string): Generator {
@@ -25,20 +26,17 @@ function makeFaceJson({
   flip: "None" | "Horizontal" | "Vertical";
   rectangle?: [number, number, number, number];
 }) {
-  return encodeSelectedTextureWithBlendArray([
+  return encodeSelectedTextures([
     {
-      selectedTexture: {
-        textureDefId: "test-texture",
-        frame: {
-          id: "frame",
-          name: "frame",
-          rectangle,
-          frameIndex: 0,
-          frameCount: 1,
-        },
-        rotation,
-        flip,
+      textureDefId: "test-texture",
+      frame: {
+        id: "frame",
+        label: "frame",
+        rectangle,
+        crop: [0, 0, rectangle[2], rectangle[3]],
       },
+      rotation,
+      flip,
       blend: null,
     },
   ]);
@@ -142,6 +140,7 @@ describe("drawFace", () => {
   cases.forEach(({ name, rotation, flip, expectedRotate }) => {
     it(`forwards orientation correctly for ${name}`, () => {
       const generator = makeGenerator(faceId, makeFaceJson({ rotation, flip }));
+      const [expectedFlip] = makeNextFlip("None", flip, rotation);
 
       drawFace(generator, faceId, source, destination);
 
@@ -152,7 +151,7 @@ describe("drawFace", () => {
         makeExpectedDestination(rotation, destination),
         expect.objectContaining<DrawTextureOptions>({
           rotate: expectedRotate,
-          flip,
+          flip: expectedFlip,
           blend: undefined,
         })
       );
@@ -190,19 +189,16 @@ describe("defineInputRegion", () => {
   const region: [number, number, number, number] = [0, 0, 16, 16];
 
   function makeSelectedTextureJson(textureDefId: string): string {
-    return encodeSelectedTextureWithBlend({
-      selectedTexture: {
-        textureDefId,
-        frame: {
-          id: "frame",
-          name: "frame",
-          rectangle: [0, 0, 16, 16],
-          frameIndex: 0,
-          frameCount: 1,
-        },
-        rotation: "Rot0",
-        flip: "None",
+    return encodeSelectedTexture({
+      textureDefId,
+      frame: {
+        id: "frame",
+        label: "frame",
+        rectangle: [0, 0, 16, 16],
+        crop: [0, 0, 16, 16],
       },
+      rotation: "Rot0",
+      flip: "None",
       blend: null,
     });
   }
@@ -246,7 +242,7 @@ describe("defineInputRegion", () => {
     return {
       click,
       getNextFaceTextures: () =>
-        nextFaceJson ? decodeSelectedTextureWithBlendArray(nextFaceJson) : [],
+        nextFaceJson ? decodeSelectedTextures(nextFaceJson) : [],
     };
   }
 
@@ -260,14 +256,12 @@ describe("defineInputRegion", () => {
     click();
 
     expect(getNextFaceTextures()).toHaveLength(1);
-    expect(getNextFaceTextures()[0]?.selectedTexture?.textureDefId).toBe(
-      "stone"
-    );
+    expect(getNextFaceTextures()[0]?.textureDefId).toBe("stone");
   });
 
   it("erases the last face texture when the picker selection is empty", () => {
     const currentTextureJson = makeSelectedTextureJson("");
-    const faceJson = encodeSelectedTextureWithBlendArray([
+    const faceJson = encodeSelectedTextures([
       JSON.parse(makeSelectedTextureJson("stone")),
       JSON.parse(makeSelectedTextureJson("dirt")),
     ]);
@@ -279,8 +273,6 @@ describe("defineInputRegion", () => {
     click();
 
     expect(getNextFaceTextures()).toHaveLength(1);
-    expect(getNextFaceTextures()[0]?.selectedTexture?.textureDefId).toBe(
-      "stone"
-    );
+    expect(getNextFaceTextures()[0]?.textureDefId).toBe("stone");
   });
 });

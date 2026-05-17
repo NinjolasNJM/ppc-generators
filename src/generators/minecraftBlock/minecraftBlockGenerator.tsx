@@ -10,18 +10,21 @@ import type {
 } from "@genroot/builder/modules/generatorDef";
 import { type Generator } from "@genroot/builder/modules/generator";
 import {
-  type SelectedTextureWithBlend,
-  encodeSelectedTextureWithBlend,
-  decodeSelectedTextureWithBlend,
-} from "./selectedTextureWithBlend";
-import { textureDefs, textureVersionIds } from "./textureVersions";
-import { TexturePicker } from "./texturePicker";
+  encodeSelectedTexture,
+  decodeSelectedTexture,
+} from "@genroot/builder/ui/texturePicker/selectedTexture";
+import {
+  allTextureDefs,
+  versionIdsBlocksFirst,
+} from "../_common/textures/textureVersions";
+import { TexturePicker } from "../_common/plugins/texturePicker/texturePicker";
+import { blockTintChoiceGroups } from "../_common/tintSelector/tints";
 import { currentBlockTextureId } from "./constants";
 import {
   parseAtlas,
   updateCustomTextureAtlas,
   updateCustomTextureUrl,
-} from "../_common/customTextureVersion";
+} from "../_common/textures/customTextureVersion";
 import { drawBlock } from "./shapes/block";
 import { drawSlab } from "./shapes/slab";
 import { drawStair } from "./shapes/stair";
@@ -109,10 +112,10 @@ const images: ImageDef[] = [
   { id: "Tabs-Shelf", url: tabsShelfImage.src },
 ];
 
-const textures: TextureDef[] = textureDefs;
+const textures: TextureDef[] = allTextureDefs;
 
 const script: ScriptDef = (generator: Generator) => {
-  generator.defineSelectInput("Version", textureVersionIds);
+  generator.defineSelectInput("Version", versionIdsBlocksFirst);
 
   const versionId = generator.getSelectInputValue("Version");
 
@@ -142,13 +145,12 @@ const script: ScriptDef = (generator: Generator) => {
     currentBlockTextureId
   );
   const currentTexture = currentTextureJson
-    ? decodeSelectedTextureWithBlend(currentTextureJson)
+    ? decodeSelectedTexture(currentTextureJson)
     : null;
   if (
     currentTexture !== null &&
-    currentTexture.selectedTexture !== null &&
-    currentTexture.selectedTexture.textureDefId !== "" &&
-    currentTexture.selectedTexture.textureDefId !== versionId
+    currentTexture.textureDefId !== "" &&
+    currentTexture.textureDefId !== versionId
   ) {
     // Clear stale selections when the active texture version changes.
     generator.setStringInputValue(currentBlockTextureId, "");
@@ -157,7 +159,7 @@ const script: ScriptDef = (generator: Generator) => {
     currentBlockTextureId
   );
   const resolvedCurrentTexture = resolvedCurrentTextureJson
-    ? decodeSelectedTextureWithBlend(resolvedCurrentTextureJson)
+    ? decodeSelectedTexture(resolvedCurrentTextureJson)
     : null;
 
   generator.defineCustomStringInput(currentBlockTextureId, (onChange) => {
@@ -167,22 +169,10 @@ const script: ScriptDef = (generator: Generator) => {
     return (
       <TexturePicker
         versionId={versionId}
-        blend={resolvedCurrentTexture ? resolvedCurrentTexture.blend : null}
-        onTextureSelected={(selectedTexture) => {
-          const newTexture: SelectedTextureWithBlend = {
-            selectedTexture,
-            blend: resolvedCurrentTexture ? resolvedCurrentTexture.blend : null,
-          };
-          onChange(encodeSelectedTextureWithBlend(newTexture));
-        }}
-        onBlendSelected={(blend) => {
-          const newTexture: SelectedTextureWithBlend = {
-            selectedTexture: resolvedCurrentTexture
-              ? resolvedCurrentTexture.selectedTexture
-              : null,
-            blend,
-          };
-          onChange(encodeSelectedTextureWithBlend(newTexture));
+        selectedTexture={resolvedCurrentTexture}
+        tintChoiceGroups={blockTintChoiceGroups}
+        onChange={(selectedTexture) => {
+          onChange(encodeSelectedTexture(selectedTexture));
         }}
       />
     );
@@ -264,20 +254,24 @@ const script: ScriptDef = (generator: Generator) => {
     }
   }
 
-  generator.defineButtonInput("Clear", () => {
-    const currentTextureChoice = generator.getStringInputValue(
-      currentBlockTextureId
-    );
-
-    generator.clearAllVariables();
-
-    if (currentTextureChoice) {
-      generator.setStringInputValue(
-        currentBlockTextureId,
-        currentTextureChoice
+  generator.defineButtonInput(
+    "Clear",
+    () => {
+      const currentTextureChoice = generator.getStringInputValue(
+        currentBlockTextureId
       );
-    }
-  }, "Red");
+
+      generator.clearAllVariables();
+
+      if (currentTextureChoice) {
+        generator.setStringInputValue(
+          currentBlockTextureId,
+          currentTextureChoice
+        );
+      }
+    },
+    "Red"
+  );
 
   generator.drawImage("Title", [0, 0]);
 };
