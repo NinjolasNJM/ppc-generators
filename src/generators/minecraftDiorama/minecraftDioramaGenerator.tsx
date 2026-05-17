@@ -8,10 +8,7 @@ import type {
   TextureDef,
   ThumbnailDef,
 } from "@genroot/builder/modules/generatorDef";
-import {
-  type Generator,
-  type Region,
-} from "@genroot/builder/modules/generator";
+import { type Generator } from "@genroot/builder/modules/generator";
 import {
   decodeSelectedTexture,
   encodeSelectedTexture,
@@ -26,8 +23,16 @@ import {
   versionIdsBlocksFirst as versionIds,
 } from "../_common/textures/textureVersions";
 import { TexturePicker } from "../_common/plugins/texturePicker/texturePicker";
-import { blockTintChoiceGroups } from "../_common/tintSelector/tints";
-import * as Face from "../minecraftBlock/face";
+import { blockTintChoiceGroups } from "../_common/plugins/texturePicker/tints";
+import { drawBlocks } from "./editModes/blocks";
+import { drawFolds } from "./editModes/folds";
+import {
+  defaultSource,
+  getDioramaDocument,
+  type DioramaOptions,
+} from "./editModes/shared";
+import { drawSourceRegions, getCurrentSource } from "./editModes/source";
+import { drawTabs } from "./editModes/tabs";
 
 import thumbnailImage from "./thumbnail/v2-thumbnail-256.jpeg";
 import backgroundImage from "./images/Background.png";
@@ -142,25 +147,6 @@ const dioramaTextureDefs: TextureDef[] = [
 
 const textures: TextureDef[] = allTextureDefs.concat(dioramaTextureDefs);
 
-type EditMode = "Blocks" | "Tabs" | "Folds";
-
-type DioramaOptions = {
-  ox: number;
-  oy: number;
-  width: number;
-  height: number;
-  columns: number;
-  rows: number;
-  editMode: EditMode | string | null;
-  showEditRegions: boolean;
-};
-
-type RegionDef = {
-  id: string;
-  region: Region;
-  rotation: 0 | 1 | 2 | 3;
-};
-
 function drawTexturePicker(generator: Generator, versionId: string | null) {
   const currentTextureJson = generator.getStringInputValue(
     "CurrentBlockTexture"
@@ -219,222 +205,11 @@ function defineCustomTextureInput(
   }
 }
 
-function makeBlockRegions({
-  ox,
-  oy,
-  width,
-  height,
-  columns,
-  rows,
-}: DioramaOptions): RegionDef[] {
-  const regions: RegionDef[] = [];
-  for (let column = 0; column < columns; column += 1) {
-    for (let row = 0; row < rows; row += 1) {
-      regions.push({
-        id: `BlockFace${column} ${row}`,
-        region: [ox + width * column, oy + height * row, width, height],
-        rotation: 0,
-      });
-    }
-  }
-  return regions;
-}
-
-function makeEdgeRegions({
-  ox,
-  oy,
-  width,
-  height,
-  columns,
-  rows,
-}: DioramaOptions): RegionDef[] {
-  const regions: RegionDef[] = [];
-
-  const makeNorth = (column: number, row: number): RegionDef => ({
-    id: `North${column} ${row}`,
-    region: [ox + width * column, oy + height * row, width, height / 4],
-    rotation: 2,
-  });
-  const makeSouth = (column: number, row: number): RegionDef => ({
-    id: `South${column} ${row}`,
-    region: [
-      ox + width * column,
-      oy + (height * 3) / 4 + height * row,
-      width,
-      height / 4,
-    ],
-    rotation: 0,
-  });
-  const makeEast = (column: number, row: number): RegionDef => ({
-    id: `East${column} ${row}`,
-    region: [ox + width * column, oy + height * row, width / 4, height],
-    rotation: 1,
-  });
-  const makeWest = (column: number, row: number): RegionDef => ({
-    id: `West${column} ${row}`,
-    region: [
-      ox + (width * 3) / 4 + width * column,
-      oy + height * row,
-      width / 4,
-      height,
-    ],
-    rotation: 3,
-  });
-
-  for (let column = 0; column < columns; column += 1) {
-    for (let row = 0; row < rows; row += 1) {
-      regions.push(
-        makeNorth(column, row),
-        makeSouth(column, row),
-        makeEast(column, row),
-        makeWest(column, row)
-      );
-    }
-  }
-
-  for (let column = 0; column < columns; column += 1) {
-    regions.push(makeNorth(column, rows), makeSouth(column, -1));
-  }
-  for (let row = 0; row < rows; row += 1) {
-    regions.push(makeEast(columns, row), makeWest(-1, row));
-  }
-
-  return regions;
-}
-
-function drawBlocks(generator: Generator, options: DioramaOptions) {
-  const regions = makeBlockRegions(options);
-
-  regions.forEach(({ id: faceId, region }) => {
-    if (options.editMode === "Blocks") {
-      if (options.showEditRegions) {
-        drawRectangleButton(generator, region);
-      }
-      Face.defineInputRegion(generator, faceId, region);
-    }
-
-    Face.drawFace(generator, faceId, [0, 0, 16, 16], region);
-  });
-}
-
-function getNextTabValue(value: number): number {
-  return value === 4 ? 0 : value + 1;
-}
-
-function drawTabs(generator: Generator, options: DioramaOptions) {
-  const regions = makeEdgeRegions(options);
-
-  regions.forEach(({ id, region, rotation }) => {
-    const tabId = `Tabs${id}`;
-    const tabValue = parseInt(generator.getSelectInputValue(tabId) ?? "0", 10);
-
-    if (options.editMode === "Tabs") {
-      if (options.showEditRegions) {
-        drawRectangleButton(generator, region);
-      }
-      generator.defineRegionInput(region, () => {
-        generator.setSelectInputValue(
-          tabId,
-          getNextTabValue(tabValue).toString()
-        );
-      });
-    }
-
-    if (tabValue > 0) {
-      generator.drawTab(
-        region,
-        getTabOrientation(rotation),
-        false,
-        45,
-        getTabType(tabValue)
-      );
-    }
-  });
-}
-
-function getTabType(value: number) {
-  switch (value) {
-    case 1:
-      return "Regular";
-    case 2:
-      return "Left";
-    case 3:
-      return "Middle";
-    case 4:
-      return "Right";
-    default:
-      return "Regular";
-  }
-}
-
-function getTabOrientation(rotation: RegionDef["rotation"]) {
-  switch (rotation) {
-    case 0:
-      return "North";
-    case 1:
-      return "East";
-    case 2:
-      return "South";
-    case 3:
-      return "West";
-  }
-}
-
-function drawFolds(generator: Generator, options: DioramaOptions) {
-  const regions = makeEdgeRegions(options);
-
-  regions.forEach(({ id, region, rotation }) => {
-    const foldId = `Folds${id}`;
-    const isFoldEnabled = generator.getBooleanInputValue(foldId) ?? false;
-
-    if (options.editMode === "Folds") {
-      if (options.showEditRegions) {
-        drawRectangleButton(generator, region);
-      }
-      generator.defineRegionInput(region, () => {
-        generator.setBooleanInputValue(foldId, !isFoldEnabled);
-      });
-    }
-
-    if (isFoldEnabled) {
-      drawFoldLine(generator, region, rotation);
-    }
-  });
-}
-
-function drawFoldLine(
-  generator: Generator,
-  [x, y, width, height]: Region,
-  rotation: RegionDef["rotation"]
-) {
-  switch (rotation) {
-    case 0:
-      generator.drawFoldLine([x, y + height - 1], [x + width, y + height - 1]);
-      break;
-    case 1:
-      generator.drawFoldLine([x, y], [x, y + height]);
-      break;
-    case 2:
-      generator.drawFoldLine([x, y], [x + width, y]);
-      break;
-    case 3:
-      generator.drawFoldLine([x + width - 1, y], [x + width - 1, y + height]);
-      break;
-  }
-}
-
-function drawRectangleButton(generator: Generator, region: Region) {
-  generator.drawRectangle(region, {
-    color: "#2d9cdb",
-    lineDash: [3, 3],
-    width: 1,
-  });
-}
-
 function drawDiorama(generator: Generator, options: DioramaOptions) {
   drawBlocks(generator, options);
   drawTabs(generator, options);
   drawFolds(generator, options);
+  drawSourceRegions(generator, options);
 }
 
 function getDioramaDimensions(generator: Generator) {
@@ -491,7 +266,11 @@ const script: ScriptDef = (generator: Generator) => {
     "Blocks",
     "Tabs",
     "Folds",
+    "Source",
   ]);
+  const document = getDioramaDocument(generator);
+  const currentSource =
+    editMode === "Source" ? getCurrentSource(generator) : defaultSource;
   const { dioramaSize, dioramaWidth, dioramaHeight } =
     getDioramaDimensions(generator);
   const isLandscape = generator.defineAndGetBooleanInput(
@@ -509,7 +288,7 @@ const script: ScriptDef = (generator: Generator) => {
   generator.fillBackgroundColorWithWhite();
   generator.drawImage("Background", [0, 0]);
 
-  const ox = isLandscape ? 37 : 42;
+  const ox = 42; //isLandscape ? 37 : 42; ( why was it like that before? did it rotate the other way or something?)
   const oy = 41;
   const baseWidth = isLandscape ? 768 : 512;
   const baseHeight = isLandscape ? 512 : 768;
@@ -525,6 +304,8 @@ const script: ScriptDef = (generator: Generator) => {
     rows: Math.max(1, Math.floor(baseHeight / height)),
     editMode,
     showEditRegions,
+    document,
+    currentSource,
   });
 
   generator.defineButtonInput("Clear", () => {
@@ -536,6 +317,10 @@ const script: ScriptDef = (generator: Generator) => {
     const currentDioramaSize = dioramaSize;
     const currentPageFormat = isLandscape;
     const currentShowEditRegions = showEditRegions;
+    const currentSourceX = generator.getNumberVariable("Source X");
+    const currentSourceY = generator.getNumberVariable("Source Y");
+    const currentSourceWidth = generator.getNumberVariable("Source Width");
+    const currentSourceHeight = generator.getNumberVariable("Source Height");
 
     generator.clearAllVariables();
 
@@ -556,6 +341,18 @@ const script: ScriptDef = (generator: Generator) => {
     }
     generator.setBooleanInputValue("Landscape Mode", currentPageFormat);
     generator.setBooleanInputValue("Show Edit Regions", currentShowEditRegions);
+    if (currentSourceX !== null) {
+      generator.setNumberVariable("Source X", currentSourceX);
+    }
+    if (currentSourceY !== null) {
+      generator.setNumberVariable("Source Y", currentSourceY);
+    }
+    if (currentSourceWidth !== null) {
+      generator.setNumberVariable("Source Width", currentSourceWidth);
+    }
+    if (currentSourceHeight !== null) {
+      generator.setNumberVariable("Source Height", currentSourceHeight);
+    }
   });
 
   generator.drawImage(
