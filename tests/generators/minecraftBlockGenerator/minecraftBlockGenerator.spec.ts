@@ -4,7 +4,9 @@ import path from "node:path";
 import { expect, test } from "@playwright/test";
 import { renderImageAtNaturalSize } from "../_shared/screenshot";
 
-test("minecraft block generator matches the default screenshot", async ({ page }) => {
+test("minecraft block generator matches the default screenshot", async ({
+  page,
+}) => {
   await page.goto("/generator/minecraft-block");
 
   const outputPages = page.getByTestId("generator-page-image");
@@ -68,6 +70,27 @@ test("minecraft block generator matches the rotated and horizontally flipped scr
 
   await expect(outputPage).toHaveScreenshot(
     "minecraft-block-rotated-and-horizontal-flipped-page-1.png"
+  );
+});
+
+test("minecraft block generator renders the shelf block", async ({ page }) => {
+  await page.goto("/generator/minecraft-block");
+
+  await page.getByPlaceholder("Search...").fill("bee nest top");
+  await page.getByRole("button", { name: "bee nest top", exact: true }).click();
+  await page.getByLabel("Block 1 Type").selectOption({ label: "Shelf" });
+  await page.getByTestId("region-ShelfFace1").click();
+
+  const outputPages = page.getByTestId("generator-page-image");
+  await expect(outputPages).toHaveCount(1);
+
+  const outputPage = outputPages.nth(0);
+  await expect(outputPage).toBeVisible();
+  await expect(outputPage).toHaveAttribute("src", /data:image\/png/);
+  await renderImageAtNaturalSize(outputPage);
+
+  await expect(outputPage).toHaveScreenshot(
+    "minecraft-block-shelf-bee-nest-top-page-1.png"
   );
 });
 
