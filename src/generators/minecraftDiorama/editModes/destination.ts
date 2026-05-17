@@ -21,14 +21,14 @@ type DestinationRegionDef = {
 export function getCurrentDestination(generator: Generator): DestinationSize {
   const width = generator.defineAndGetRangeInput("Destination Width", {
     min: 1,
-    max: 16,
+    max: 32,
     value: defaultDestination.width,
     step: 1,
     showValue: true,
   });
   const height = generator.defineAndGetRangeInput("Destination Height", {
     min: 1,
-    max: 16,
+    max: 32,
     value: defaultDestination.height,
     step: 1,
     showValue: true,
@@ -76,6 +76,8 @@ function makeColumnDestinationRegions(
   const blockRegions = new Map(
     makeBlockRegions(options).map(({ id, region }) => [id, region])
   );
+  const regionHeight = options.height / 4;
+  const y = options.oy >= regionHeight ? options.oy - regionHeight : options.oy;
   const regions: DestinationRegionDef[] = [];
 
   for (let column = 0; column < options.columns; column += 1) {
@@ -83,15 +85,9 @@ function makeColumnDestinationRegions(
     if (!region) {
       continue;
     }
-    const [x, y, width, height] = region;
-    const regionHeight = height / 4;
+    const [x, , width] = region;
     regions.push({
-      region: [
-        x,
-        y >= regionHeight ? y - regionHeight : y,
-        width,
-        regionHeight,
-      ],
+      region: [x, y, width, regionHeight],
       column,
       row: null,
     });
@@ -106,6 +102,8 @@ function makeRowDestinationRegions(
   const blockRegions = new Map(
     makeBlockRegions(options).map(({ id, region }) => [id, region])
   );
+  const regionWidth = options.width / 4;
+  const x = options.ox >= regionWidth ? options.ox - regionWidth : options.ox;
   const regions: DestinationRegionDef[] = [];
 
   for (let row = 0; row < options.rows; row += 1) {
@@ -113,10 +111,9 @@ function makeRowDestinationRegions(
     if (!region) {
       continue;
     }
-    const [x, y, width, height] = region;
-    const regionWidth = width / 4;
+    const [, y, , height] = region;
     regions.push({
-      region: [x >= regionWidth ? x - regionWidth : x, y, regionWidth, height],
+      region: [x, y, regionWidth, height],
       column: null,
       row,
     });
@@ -134,10 +131,18 @@ function setDestination(
   const destinationRows = { ...options.document.destinationRows };
 
   if (target.column !== null) {
-    destinationColumns[target.column] = options.currentDestination.width;
+    setDestinationValue(
+      destinationColumns,
+      target.column,
+      options.currentDestination.width
+    );
   }
   if (target.row !== null) {
-    destinationRows[target.row] = options.currentDestination.height;
+    setDestinationValue(
+      destinationRows,
+      target.row,
+      options.currentDestination.height
+    );
   }
 
   setDioramaDocument(generator, {
@@ -145,6 +150,18 @@ function setDestination(
     destinationColumns,
     destinationRows,
   });
+}
+
+function setDestinationValue(
+  destinations: Record<string, number>,
+  index: number,
+  value: number
+) {
+  if (value === defaultDestination.width) {
+    delete destinations[index];
+  } else {
+    destinations[index] = value;
+  }
 }
 
 function getFacePosition(
