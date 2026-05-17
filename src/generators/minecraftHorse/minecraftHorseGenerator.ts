@@ -230,11 +230,11 @@ const textures: TextureDef[] = [
     standardHeight: 64,
   },
   ...entityGlintTextureDefs,
+  ...entityGlintTextureDefs,
 ];
 
 const script: ScriptDef = (generator: Generator) => {
   const minecraftGenerator = new Minecraft(generator);
-  const glint = defineGlintControls(generator);
   function getTint(colorId: string): Blend {
     const hex =
       defineTintInput(generator, colorId, {
@@ -277,6 +277,8 @@ const script: ScriptDef = (generator: Generator) => {
     standardHeight: 64,
     choices: ["Leather", "Gold", "Copper", "Iron", "Diamond", "Netherite"],
   });
+
+  const glint = defineGlintControls(generator);
 
   // Define user variables
 

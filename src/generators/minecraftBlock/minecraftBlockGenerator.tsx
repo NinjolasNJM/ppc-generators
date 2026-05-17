@@ -286,7 +286,7 @@ const script: ScriptDef = (generator: Generator) => {
         currentTextureChoice
       );
     }
-  });
+  }, "Red");
 
   generator.drawImage("Title", [0, 0]);
 };

@@ -20,10 +20,12 @@ export function defineInputRegion(
   faceId: string,
   region: Region
 ) {
-  generator.defineRegionInput(region, () => {
-    const selectedTextureJson = generator.getStringInputValue(
-      currentBlockTextureId
-    );
+  generator.defineRegionInput(
+    region,
+    () => {
+      const selectedTextureJson = generator.getStringInputValue(
+        currentBlockTextureId
+      );
 
     const selectedTexture = selectedTextureJson
       ? decodeSelectedTexture(selectedTextureJson)
@@ -69,7 +71,12 @@ function drawTexture(
 
   const scale =
     fw === fh && fw > 0 && fw % 16 === 0 && fh % 16 === 0 ? fw / 16 : 1;
-  const scaledSource = [sx * scale, sy * scale, sw * scale, sh * scale] as const;
+  const scaledSource = [
+    sx * scale,
+    sy * scale,
+    sw * scale,
+    sh * scale,
+  ] as const;
   const [ssx, ssy, ssw, ssh] = scaledSource;
 
   const sourceRegion: Region = (() => {
