@@ -12,6 +12,9 @@ import type {
 import { type Generator } from "@genroot/builder/modules/generator";
 import { A4 } from "@genroot/builder/modules/modelPage";
 import { type Blend } from "@genroot/builder/modules/renderers/drawTexture";
+import { type Flip } from "../_common/texturePicker/flip";
+import { rotationToDegrees } from "../_common/texturePicker/rotation";
+import { type Rotation } from "../_common/texturePicker/rotation";
 import { allTextureDefs, versionIds, findVersion } from "./ui/textureVersions";
 import {
   type SelectedTextureWithBlend,
@@ -29,6 +32,79 @@ import {
 
 /** [x, y, width, height] */
 type Rectangle = [number, number, number, number];
+
+function rotationToQuarterTurns(rotation: Rotation): number {
+  switch (rotation) {
+    case "Rot0":
+      return 0;
+    case "Rot90":
+      return 1;
+    case "Rot180":
+      return 2;
+    case "Rot270":
+      return 3;
+  }
+}
+
+function quarterTurnsToRotation(quarterTurns: number): Rotation {
+  const normalized = ((quarterTurns % 4) + 4) % 4;
+  switch (normalized) {
+    case 0:
+      return "Rot0";
+    case 1:
+      return "Rot90";
+    case 2:
+      return "Rot180";
+    case 3:
+      return "Rot270";
+  }
+  return "Rot0";
+}
+
+function rotateBy(rotation: Rotation, quarterTurns: number, flip: Flip) {
+  const current = rotationToQuarterTurns(rotation);
+  const next = flip === "None" ? current + quarterTurns : current - quarterTurns;
+  return quarterTurnsToRotation(next);
+}
+
+function getItemRotationOrientedFlip(
+  flip: Flip,
+  rotation: Rotation
+): Flip {
+  if (rotation === "Rot90" || rotation === "Rot270") {
+    switch (flip) {
+      case "Horizontal":
+        return "Vertical";
+      case "Vertical":
+        return "Horizontal";
+      case "None":
+        return "None";
+    }
+  }
+  return flip;
+}
+
+function makeItemNextFlip(
+  current: Flip,
+  flip: Flip,
+  rotation: Rotation
+): [Flip, Rotation] {
+  let nextFlip: Flip = "None";
+  let extraQuarterTurns = 0;
+  const orientedFlip = getItemRotationOrientedFlip(flip, rotation);
+
+  if (orientedFlip !== current) {
+    if (orientedFlip === "None") {
+      nextFlip = current;
+    } else if (current === "None") {
+      nextFlip = orientedFlip;
+    } else {
+      extraQuarterTurns = 2;
+    }
+  }
+
+  return [nextFlip, rotateBy(rotation, extraQuarterTurns, nextFlip)];
+}
 
 import thumnbailImage from "./thumbnail/v2-thumbnail-256.jpeg";
 import backgroundImage from "./images/Background.png";
@@ -76,57 +152,33 @@ const textures: TextureDef[] = [
   },
 ];
 
-function makeRegionId(textureId: string, rectangle: Rectangle): string {
-  const [tileX, tileY] = rectangle;
-  return `${textureId}-${tileX}-${tileY}`;
-}
-
-function getTileWidth(rectangle: Rectangle): number {
-  const [, , tileWidth] = rectangle;
-  return tileWidth;
-}
-
 const script: ScriptDef = (generator: Generator) => {
-  const getSelectInputAsNumberWithDefault = (
-    id: string,
-    defaultValue: number
-  ) => {
-    const value = generator.getSelectInputValue(id);
-    return value ? parseInt(value, 10) : defaultValue;
-  };
-
-  const drawItem = (
-    textureId: string,
+  const drawItemHalf = (
+    selectedTexture: NonNullable<SelectedTextureWithBlend["selectedTexture"]>,
     rectangle: Rectangle,
-    x: number,
+    destX: number,
     y: number,
-    size: number,
-    showFolds: boolean,
+    width: number,
+    height: number,
+    appliedFlip: Flip = "None",
     blend?: Blend
   ) => {
-    const tileWidth = getTileWidth(rectangle);
-    const regionId = makeRegionId(textureId, rectangle);
-    const textureOffset = getSelectInputAsNumberWithDefault(regionId, 0);
-    const offset = (textureOffset * size) / tileWidth;
-    generator.drawTexture(textureId, rectangle, [x + offset, y, size, size], {
-      blend,
-    });
+    const { textureDefId, rotation, flip } = selectedTexture;
+    const [nextFlip, nextRotation] = makeItemNextFlip(
+      flip,
+      appliedFlip,
+      rotation
+    );
     generator.drawTexture(
-      textureId,
+      textureDefId,
       rectangle,
-      [x + size - offset, y, size, size],
+      [destX, y, width, height],
       {
-        flip: "Horizontal",
+        flip: nextFlip,
+        rotate: rotationToDegrees(nextRotation),
         blend,
       }
     );
-    if (showFolds) {
-      generator.drawTexture(
-        "CenterFold",
-        [0, 0, 2, size],
-        [x + size - 1, y, 2, size]
-      );
-    }
   };
 
   const pageMargin = 30;
@@ -134,14 +186,197 @@ const script: ScriptDef = (generator: Generator) => {
   const innerPageWidth = A4.px.width - pageMargin * 2;
   const innerPageHeight = A4.px.height - pageMargin * 2;
   const defaultItemScale = 4;
+  const defaultFrameSize = 16;
+
+  const getFrameSourceScale = (
+    frame: NonNullable<SelectedTextureWithBlend["selectedTexture"]>["frame"]
+  ) => {
+    const [, , width, height] = frame.rectangle;
+    return width === height &&
+      width > 0 &&
+      width % defaultFrameSize === 0 &&
+      height % defaultFrameSize === 0
+      ? width / defaultFrameSize
+      : 1;
+  };
+
+  const getFrameCrop = (frame: NonNullable<SelectedTextureWithBlend["selectedTexture"]>["frame"]): Rectangle =>
+    frame.rectangle;
+
+  const getFrameLogicalCrop = (
+    frame: NonNullable<SelectedTextureWithBlend["selectedTexture"]>["frame"]
+  ): Rectangle => {
+    const scale = getFrameSourceScale(frame);
+    const [x, y, width, height] = getFrameCrop(frame);
+    return [x / scale, y / scale, width / scale, height / scale];
+  };
+
+  const getFrameLogicalBounds = (
+    frame: NonNullable<SelectedTextureWithBlend["selectedTexture"]>["frame"]
+  ): Rectangle => {
+    const scale = getFrameSourceScale(frame);
+    const [, , width, height] = frame.rectangle;
+    return [0, 0, width / scale, height / scale];
+  };
+
+  const rotateCrop = (
+    crop: Rectangle,
+    bounds: Rectangle,
+    rotation: "Rot0" | "Rot90" | "Rot180" | "Rot270"
+  ): Rectangle => {
+    const [x, y, width, height] = crop;
+    const [, , boundsWidth, boundsHeight] = bounds;
+
+    switch (rotation) {
+      case "Rot0":
+        return crop;
+      case "Rot90":
+        return [y, boundsWidth - (x + width), height, width];
+      case "Rot180":
+        return [
+          boundsWidth - (x + width),
+          boundsHeight - (y + height),
+          width,
+          height,
+        ];
+      case "Rot270":
+        return [boundsHeight - (y + height), x, height, width];
+    }
+  };
+
+  const flipCrop = (
+    crop: Rectangle,
+    bounds: Rectangle,
+    flip: Flip
+  ): Rectangle => {
+    const [x, y, width, height] = crop;
+    const [, , boundsWidth, boundsHeight] = bounds;
+
+    switch (flip) {
+      case "None":
+        return crop;
+      case "Horizontal":
+        return [boundsWidth - (x + width), y, width, height];
+      case "Vertical":
+        return [x, boundsHeight - (y + height), width, height];
+    }
+  };
+
+  const getTransformedCrop = (
+    layer: SelectedTextureWithBlend,
+    appliedFlip: Flip
+  ): Rectangle => {
+    if (!layer.selectedTexture) {
+      return [0, 0, 0, 0];
+    }
+    const { flip, rotation, frame } = layer.selectedTexture;
+    const [nextFlip, nextRotation] = makeItemNextFlip(
+      flip,
+      appliedFlip,
+      rotation
+    );
+    const crop = getFrameLogicalCrop(frame);
+    const bounds = getFrameLogicalBounds(frame);
+    const flippedCrop = flipCrop(crop, bounds, nextFlip);
+    return rotateCrop(flippedCrop, bounds, nextRotation);
+  };
+
+  const getCropBounds = (crops: Rectangle[]): Rectangle => {
+    const minX = Math.min(...crops.map(([x]) => x));
+    const minY = Math.min(...crops.map(([, y]) => y));
+    const maxX = Math.max(...crops.map(([x, , width]) => x + width));
+    const maxY = Math.max(...crops.map(([, y, , height]) => y + height));
+    return [minX, minY, maxX - minX, maxY - minY];
+  };
+
+  const getItemLayers = (selectedTextureFrame: SelectedTextureWithBlend) =>
+    selectedTextureFrame.itemLayers ?? [selectedTextureFrame];
+
+  const getItemHalfCropBounds = (
+    layers: SelectedTextureWithBlend[],
+    appliedFlip: Flip
+  ): Rectangle =>
+    getCropBounds(layers.map((layer) => getTransformedCrop(layer, appliedFlip)));
+
+  const getItemLayout = (layers: SelectedTextureWithBlend[]) => {
+    const anchorLayers = layers.length > 0 ? [layers[0]!] : layers;
+    const leftBounds = getItemHalfCropBounds(anchorLayers, "None");
+    const rightBounds = getItemHalfCropBounds(anchorLayers, "Horizontal");
+    const minY = Math.min(leftBounds[1], rightBounds[1]);
+    const maxY = Math.max(
+      leftBounds[1] + leftBounds[3],
+      rightBounds[1] + rightBounds[3]
+    );
+
+    return {
+      leftBounds,
+      rightBounds,
+      height: maxY - minY,
+      minY,
+    };
+  };
+
+  const getItemDimensions = (selectedTextureFrame: SelectedTextureWithBlend) => {
+    const layers = getItemLayers(selectedTextureFrame);
+    const scale = selectedTextureFrame.itemScale ?? defaultItemScale;
+    const { leftBounds, rightBounds, height } = getItemLayout(layers);
+    const leftHalfWidth = leftBounds[2] * scale;
+    const rightHalfWidth = rightBounds[2] * scale;
+    return {
+      leftHalfWidth,
+      rightHalfWidth,
+      width: leftHalfWidth + rightHalfWidth,
+      height: height * scale,
+    };
+  };
+
+  const getLayerHalfDestination = (
+    halfCropBounds: Rectangle,
+    itemMinY: number,
+    layer: SelectedTextureWithBlend,
+    x: number,
+    y: number,
+    scale: number,
+    appliedFlip: Flip
+  ) => {
+    const [halfCropX] = halfCropBounds;
+    if (!layer.selectedTexture) {
+      return {
+        crop: [0, 0, 0, 0] as Rectangle,
+        x,
+        y,
+        width: 0,
+        height: 0,
+      };
+    }
+    const { rotation } = layer.selectedTexture;
+    const [, transformedRotation] = makeItemNextFlip(
+      layer.selectedTexture.flip,
+      appliedFlip,
+      rotation
+    );
+    const [layerCropX, layerCropY] = getTransformedCrop(layer, appliedFlip);
+    const layerCrop = getFrameLogicalCrop(layer.selectedTexture.frame);
+    const [, , cropWidth, cropHeight] = layerCrop;
+    const drawWidth = cropWidth * scale;
+    const drawHeight = cropHeight * scale;
+    const orientedX = x + (layerCropX - halfCropX) * scale;
+    const orientedY = y + (layerCropY - itemMinY) * scale;
+    const rotateOffset =
+      transformedRotation === "Rot90" || transformedRotation === "Rot270"
+        ? (drawWidth - drawHeight) / 2
+        : 0;
+
+    return {
+      crop: layerCrop,
+      x: orientedX - rotateOffset,
+      y: orientedY + rotateOffset,
+      width: drawWidth,
+      height: drawHeight,
+    };
+  };
 
   type SkylineNode = { x: number; y: number; width: number };
-
-  const getItemScale = (selectedTextureFrame: SelectedTextureWithBlend) =>
-    selectedTextureFrame.itemScale ?? defaultItemScale;
-
-  const getItemSize = (selectedTextureFrame: SelectedTextureWithBlend) =>
-    16 * getItemScale(selectedTextureFrame);
 
   const getSkylineY = (
     skyline: SkylineNode[],
@@ -292,7 +527,9 @@ const script: ScriptDef = (generator: Generator) => {
         selectedTextureFrame: SelectedTextureWithBlend;
         x: number;
         y: number;
-        size: number;
+        leftHalfWidth: number;
+        width: number;
+        height: number;
       }>;
     }> = [];
 
@@ -302,7 +539,9 @@ const script: ScriptDef = (generator: Generator) => {
         selectedTextureFrame: SelectedTextureWithBlend;
         x: number;
         y: number;
-        size: number;
+        leftHalfWidth: number;
+        width: number;
+        height: number;
       }>,
     };
     let skyline = makeNewPageSkyline();
@@ -318,13 +557,10 @@ const script: ScriptDef = (generator: Generator) => {
     };
 
     selectedTextureFrames.forEach((selectedTextureFrame) => {
-      if (!selectedTextureFrame.selectedTexture) {
-        return;
-      }
-
-      const size = getItemSize(selectedTextureFrame);
-      const requiredWidth = size * 2 + itemMargin * 2;
-      const requiredHeight = size + itemMargin * 2;
+      const { leftHalfWidth, width, height } =
+        getItemDimensions(selectedTextureFrame);
+      const requiredWidth = width + itemMargin * 2;
+      const requiredHeight = height + itemMargin * 2;
       let placement = placeRect(skyline, requiredWidth, requiredHeight);
 
       if (!placement && currentPage.placements.length > 0) {
@@ -340,7 +576,9 @@ const script: ScriptDef = (generator: Generator) => {
         selectedTextureFrame,
         x: placement.x + itemMargin,
         y: placement.y + itemMargin,
-        size,
+        leftHalfWidth,
+        width,
+        height,
       });
     });
 
@@ -352,15 +590,68 @@ const script: ScriptDef = (generator: Generator) => {
       generator.usePage(page.id);
       generator.drawImage("Background", [0, 0]);
       page.placements.forEach((placement) => {
-        const { selectedTextureFrame, x, y, size } = placement;
-        if (!selectedTextureFrame.selectedTexture) {
-          return;
+        const { selectedTextureFrame, x, y, leftHalfWidth, height } =
+          placement;
+        const layers = getItemLayers(selectedTextureFrame);
+        const itemScale = selectedTextureFrame.itemScale ?? defaultItemScale;
+
+        layers.forEach((layer) => {
+          if (!layer.selectedTexture) {
+            return;
+          }
+
+          const itemLayout = getItemLayout([layer]);
+          const leftDestination = getLayerHalfDestination(
+            itemLayout.leftBounds,
+            itemLayout.minY,
+            layer,
+            x,
+            y,
+            itemScale,
+            "None"
+          );
+          const rightDestination = getLayerHalfDestination(
+            itemLayout.rightBounds,
+            itemLayout.minY,
+            layer,
+            x + leftHalfWidth,
+            y,
+            itemScale,
+            "Horizontal"
+          );
+
+          const blend: Blend | undefined = layer.blend
+            ? { kind: "MultiplyHex", hex: layer.blend }
+            : undefined;
+
+          drawItemHalf(
+            layer.selectedTexture,
+            leftDestination.crop,
+            leftDestination.x,
+            leftDestination.y,
+            leftDestination.width,
+            leftDestination.height,
+            "None",
+            blend
+          );
+          drawItemHalf(
+            layer.selectedTexture,
+            rightDestination.crop,
+            rightDestination.x,
+            rightDestination.y,
+            rightDestination.width,
+            rightDestination.height,
+            "Horizontal",
+            blend
+          );
+        });
+        if (showFolds) {
+          generator.drawTexture(
+            "CenterFold",
+            [0, 0, 2, height],
+            [x + leftHalfWidth - 1, y, 2, height]
+          );
         }
-        const { textureDefId, frame } = selectedTextureFrame.selectedTexture;
-        const blend: Blend | undefined = selectedTextureFrame.blend
-          ? { kind: "MultiplyHex", hex: selectedTextureFrame.blend }
-          : undefined;
-        drawItem(textureDefId, frame.rectangle, x, y, size, showFolds, blend);
       });
       generator.drawImage("Title", [0, 0]);
     });
@@ -424,6 +715,7 @@ const script: ScriptDef = (generator: Generator) => {
       max: 1600,
       value: selectedCustomScalePercent,
       step: 100,
+      showValue: true,
     });
   }
 
@@ -511,32 +803,119 @@ const script: ScriptDef = (generator: Generator) => {
       ? decodeSelectedTextureWithBlendArray(selectedTextureFramesJson)
     : [];
 
+  const getItemLayersForItem = (item: SelectedTextureWithBlend) =>
+    item.itemLayers ?? [item];
+
+  const addSelectedTextureFrame = (textureFrame: SelectedTextureWithBlend) => [
+    ...selectedTextureFrames,
+    textureFrame,
+  ];
+
   // Show a button which adds the selected texture to the page
 
-  generator.defineButtonInput("Add Item", () => {
-    if (selectedTextureFrame) {
-      const newSelectedTextureFrames: SelectedTextureWithBlend[] = [
-        ...selectedTextureFrames,
-        {
+  generator.defineButtonInput(
+    "Add Item",
+    () => {
+      if (selectedTextureFrame) {
+        const newSelectedTextureFrame: SelectedTextureWithBlend = {
           ...selectedTextureFrame,
           itemScale: selectedItemScale,
-        },
-      ];
+          itemLayers: undefined,
+        };
+        generator.setStringInputValue(
+          "SelectedTextureFrames",
+          encodeSelectedTextureWithBlendArray(
+            addSelectedTextureFrame(newSelectedTextureFrame)
+          )
+        );
+      }
+    },
+    "Blue"
+  );
+
+  // Show a button which overlays the selected texture onto the last added texture
+
+  generator.defineButtonInput(
+    "Overlay Item",
+    () => {
+      if (selectedTextureFrame) {
+        const previousItem = selectedTextureFrames.at(-1);
+        const overlayItemScale =
+          previousItem?.itemScale ?? selectedItemScale;
+        const newLayer: SelectedTextureWithBlend = {
+          ...selectedTextureFrame,
+          itemScale: overlayItemScale,
+          itemLayers: undefined,
+        };
+        const newSelectedTextureFrames: SelectedTextureWithBlend[] = previousItem
+          ? [
+              ...selectedTextureFrames.slice(0, -1),
+              {
+                ...newLayer,
+                itemScale: overlayItemScale,
+                itemLayers: [...getItemLayersForItem(previousItem), newLayer],
+              },
+            ]
+          : addSelectedTextureFrame(newLayer);
+        generator.setStringInputValue(
+          "SelectedTextureFrames",
+          encodeSelectedTextureWithBlendArray(newSelectedTextureFrames)
+        );
+      }
+    },
+    "Green"
+  );
+
+  // Show a button which removes the last placed item or top overlay layer
+
+  generator.defineButtonInput(
+    "Remove Item",
+    () => {
+      const previousItem = selectedTextureFrames.at(-1);
+      if (!previousItem) {
+        return;
+      }
+
+      const previousLayers = getItemLayersForItem(previousItem);
+      const newSelectedTextureFrames: SelectedTextureWithBlend[] =
+        previousLayers.length > 1
+          ? [
+              ...selectedTextureFrames.slice(0, -1),
+              {
+                ...previousItem,
+                itemLayers: previousLayers.slice(0, -1),
+              },
+            ]
+          : selectedTextureFrames.slice(0, -1);
+
       generator.setStringInputValue(
         "SelectedTextureFrames",
         encodeSelectedTextureWithBlendArray(newSelectedTextureFrames)
       );
-    }
-  });
+    },
+    "Red"
+  );
 
   // Show a button which allows the items to be cleared
 
-  generator.defineButtonInput("Clear", () => {
-    generator.setStringInputValue(
-      "SelectedTextureFrames",
-      encodeSelectedTextureWithBlendArray([])
-    );
-  });
+  generator.defineText("");
+
+  generator.defineButtonInput(
+    "Clear",
+    () => {
+      generator.setStringInputValue(
+        "SelectedTextureFrames",
+        encodeSelectedTextureWithBlendArray([])
+      );
+      if (selectedTextureFrame) {
+        generator.setStringInputValue(
+          "SelectedTextureFrame",
+          encodeSelectedTextureWithBlend({ ...selectedTextureFrame, blend: null })
+        );
+      }
+    },
+    "Red"
+  );
 
   // Show a blank page initially
 

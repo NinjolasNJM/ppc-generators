@@ -6,6 +6,7 @@ export function RangeControl({
   max,
   step,
   value,
+  showValue,
   onChange,
 }: {
   id: string;
@@ -13,12 +14,20 @@ export function RangeControl({
   max: number;
   step: number;
   value: number;
+  showValue?: boolean;
   onChange: (value: number) => void;
 }) {
   const inputId = React.useId();
+  const [currentValue, setCurrentValue] = React.useState(value);
+
+  React.useEffect(() => {
+    setCurrentValue(value);
+  }, [value]);
 
   const onRangeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange(parseInt(e.target.value));
+    const nextValue = parseInt(e.target.value);
+    setCurrentValue(nextValue);
+    onChange(nextValue);
   };
 
   return (
@@ -31,10 +40,11 @@ export function RangeControl({
         type="range"
         min={min}
         max={max}
-        defaultValue={value}
+        value={currentValue}
         step={step}
         onChange={onRangeChange}
       />
+      {showValue ? <span className="ml-2">{currentValue}</span> : null}
     </div>
   );
 }

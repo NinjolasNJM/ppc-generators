@@ -95,11 +95,13 @@ export type RangeControl = {
   max: number;
   value: number;
   step: number;
+  showValue?: boolean;
 };
 
 export type ButtonControl = {
   kind: "Button";
   id: string;
+  color?: "Gray" | "Blue" | "Red" | "Green";
   onClick: () => void;
 };
 

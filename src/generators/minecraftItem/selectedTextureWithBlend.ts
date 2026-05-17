@@ -4,6 +4,7 @@ export type SelectedTextureWithBlend = {
   selectedTexture: SelectedTexture | null;
   blend: string | null;
   itemScale?: number;
+  itemLayers?: SelectedTextureWithBlend[];
 };
 
 export function decodeSelectedTextureWithBlend(

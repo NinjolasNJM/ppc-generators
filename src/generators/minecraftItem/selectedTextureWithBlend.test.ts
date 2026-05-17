@@ -18,8 +18,8 @@ describe("selectedTextureWithBlend", () => {
           frameIndex: 0,
           frameCount: 1,
         },
-        rotation: "Rot0" as const,
-        flip: "None" as const,
+        rotation: "Rot90" as const,
+        flip: "Horizontal" as const,
       },
       blend: "#ff00aa",
       itemScale: 5,
@@ -42,5 +42,33 @@ describe("selectedTextureWithBlend", () => {
     expect(decodeSelectedTextureWithBlendArray(encoded)).toEqual(
       selectedTextures
     );
+  });
+
+  it("round-trips layered selected textures", () => {
+    const layeredTexture = {
+      selectedTexture: {
+        textureDefId: "minecraft-1.7.10-items",
+        frame: {
+          id: "frame",
+          name: "frame",
+          rectangle: [0, 0, 16, 16] as [number, number, number, number],
+          frameIndex: 0,
+          frameCount: 1,
+        },
+        rotation: "Rot0" as const,
+        flip: "None" as const,
+      },
+      blend: null,
+      itemScale: 4,
+      itemLayers: [
+        {
+          selectedTexture: null,
+          blend: null,
+        },
+      ],
+    };
+
+    const encoded = encodeSelectedTextureWithBlend(layeredTexture);
+    expect(decodeSelectedTextureWithBlend(encoded)).toEqual(layeredTexture);
   });
 });
