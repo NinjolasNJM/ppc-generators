@@ -10,7 +10,10 @@ export type DestinationSize = {
   height: number;
 };
 
+export type BlockPreset = "Full Blocks" | "Quarter Blocks";
+
 export type DioramaDocument = {
+  preset: BlockPreset;
   sources: Record<string, Region>;
   destinationColumns: Record<string, number>;
   destinationRows: Record<string, number>;
@@ -40,6 +43,8 @@ const dioramaDocumentInputId = "DioramaDocument";
 
 export const defaultSource: Region = [0, 0, 16, 16];
 export const defaultDestination: DestinationSize = { width: 16, height: 16 };
+export const defaultPreset: BlockPreset = "Full Blocks";
+export const blockPresets: BlockPreset[] = ["Full Blocks", "Quarter Blocks"];
 
 export function getFaceId(column: number, row: number): string {
   return `BlockFace${column} ${row}`;
@@ -51,19 +56,42 @@ function encodeDioramaDocument(document: DioramaDocument): string {
 
 function decodeDioramaDocument(json: string | null): DioramaDocument {
   if (!json) {
-    return { sources: {}, destinationColumns: {}, destinationRows: {} };
+    return makeEmptyDioramaDocument();
   }
 
   try {
     const parsed = JSON.parse(json) as Partial<DioramaDocument>;
+    const preset = sanitizePreset(parsed.preset);
     return {
+      preset,
       sources: sanitizeSources(parsed.sources),
-      destinationColumns: sanitizeDestinations(parsed.destinationColumns),
-      destinationRows: sanitizeDestinations(parsed.destinationRows),
+      destinationColumns: sanitizeDestinations(
+        parsed.destinationColumns,
+        getDefaultDestinationForPreset(preset).width
+      ),
+      destinationRows: sanitizeDestinations(
+        parsed.destinationRows,
+        getDefaultDestinationForPreset(preset).height
+      ),
     };
   } catch {
-    return { sources: {}, destinationColumns: {}, destinationRows: {} };
+    return makeEmptyDioramaDocument();
   }
+}
+
+export function makeEmptyDioramaDocument(
+  preset: BlockPreset = defaultPreset
+): DioramaDocument {
+  return {
+    preset,
+    sources: {},
+    destinationColumns: {},
+    destinationRows: {},
+  };
+}
+
+export function sanitizePreset(preset: unknown): BlockPreset {
+  return preset === "Quarter Blocks" ? "Quarter Blocks" : defaultPreset;
 }
 
 function sanitizeSources(
@@ -104,7 +132,8 @@ function roundToHalf(value: number): number {
 function sanitizeDestinations(
   destinations:
     | Partial<DioramaDocument>["destinationColumns"]
-    | Partial<DioramaDocument>["destinationRows"]
+    | Partial<DioramaDocument>["destinationRows"],
+  defaultValue: number
 ): Record<string, number> {
   return Object.fromEntries(
     Object.entries(destinations ?? {})
@@ -112,7 +141,7 @@ function sanitizeDestinations(
         id,
         Math.max(1, Math.round(sanitizeNumber(destination, 16))),
       ])
-      .filter(([, destination]) => destination !== defaultDestination.width)
+      .filter(([, destination]) => destination !== defaultValue)
   );
 }
 
@@ -269,6 +298,114 @@ export function makeEdgeRegions({
   return regions;
 }
 
+export function makeEdgeControlRegions({
+  ox,
+  oy,
+  width,
+  height,
+  columns,
+  rows,
+  document,
+}: DioramaOptions): RegionDef[] {
+  const regions: RegionDef[] = [];
+  const columnWidths = makeColumnWidths({ width, columns, document });
+  const rowHeights = makeRowHeights({ height, rows, document });
+  const columnOffsets = makeOffsets(columnWidths);
+  const rowOffsets = makeOffsets(rowHeights);
+  const getColumnSize = (column: number) =>
+    columnWidths[Math.max(0, Math.min(columns - 1, column))] ?? width;
+  const getRowSize = (row: number) =>
+    rowHeights[Math.max(0, Math.min(rows - 1, row))] ?? height;
+  const getTabWidth = (column: number) => getColumnSize(column) / 4;
+  const getTabHeight = (row: number) => getRowSize(row) / 4;
+  const getColumnOffset = (column: number) => {
+    if (column < 0) {
+      return -getTabWidth(column);
+    }
+    if (column >= columns) {
+      return getTotalSize(columnWidths);
+    }
+    return columnOffsets[column] ?? 0;
+  };
+  const getRowOffset = (row: number) => {
+    if (row < 0) {
+      return -getTabHeight(row);
+    }
+    if (row >= rows) {
+      return getTotalSize(rowHeights);
+    }
+    return rowOffsets[row] ?? 0;
+  };
+
+  const makeNorth = (column: number, row: number): RegionDef => ({
+    id: `North${column} ${row}`,
+    region: [
+      ox + getColumnOffset(column),
+      oy + getRowOffset(row),
+      getColumnSize(column),
+      getTabHeight(row),
+    ],
+    rotation: 2,
+  });
+  const makeSouth = (column: number, row: number): RegionDef => ({
+    id: `South${column} ${row}`,
+    region: [
+      ox + getColumnOffset(column),
+      row < 0
+        ? oy - getTabHeight(row)
+        : oy + getRowOffset(row) + getRowSize(row) - getTabHeight(row),
+      getColumnSize(column),
+      getTabHeight(row),
+    ],
+    rotation: 0,
+  });
+  const makeEast = (column: number, row: number): RegionDef => ({
+    id: `East${column} ${row}`,
+    region: [
+      ox + getColumnOffset(column),
+      oy + getRowOffset(row),
+      getTabWidth(column),
+      getRowSize(row),
+    ],
+    rotation: 1,
+  });
+  const makeWest = (column: number, row: number): RegionDef => ({
+    id: `West${column} ${row}`,
+    region: [
+      column < 0
+        ? ox - getTabWidth(column)
+        : ox +
+          getColumnOffset(column) +
+          getColumnSize(column) -
+          getTabWidth(column),
+      oy + getRowOffset(row),
+      getTabWidth(column),
+      getRowSize(row),
+    ],
+    rotation: 3,
+  });
+
+  for (let column = 0; column < columns; column += 1) {
+    for (let row = 0; row < rows; row += 1) {
+      regions.push(
+        makeNorth(column, row),
+        makeSouth(column, row),
+        makeEast(column, row),
+        makeWest(column, row)
+      );
+    }
+  }
+
+  for (let column = 0; column < columns; column += 1) {
+    regions.push(makeNorth(column, rows), makeSouth(column, -1));
+  }
+  for (let row = 0; row < rows; row += 1) {
+    regions.push(makeEast(columns, row), makeWest(-1, row));
+  }
+
+  return regions;
+}
+
 export function drawRectangleButton(generator: Generator, region: Region) {
   generator.drawRectangle(region, {
     color: "#2d9cdb",
@@ -283,7 +420,8 @@ export function getColumnWidth(
 ): number {
   return makeDestinationPixels(
     options.width,
-    options.document.destinationColumns[column] ?? defaultDestination.width
+    options.document.destinationColumns[column] ??
+      getDefaultDestinationForPreset(options.document.preset).width
   );
 }
 
@@ -293,8 +431,54 @@ export function getRowHeight(
 ): number {
   return makeDestinationPixels(
     options.height,
-    options.document.destinationRows[row] ?? defaultDestination.height
+    options.document.destinationRows[row] ??
+      getDefaultDestinationForPreset(options.document.preset).height
   );
+}
+
+export function getSourceForFace(
+  document: DioramaDocument,
+  faceId: string
+): Region {
+  return document.sources[faceId] ?? getDefaultSourceForFace(document, faceId);
+}
+
+export function getDefaultDestinationForPreset(
+  preset: BlockPreset
+): DestinationSize {
+  return preset === "Quarter Blocks"
+    ? { width: 8, height: 8 }
+    : defaultDestination;
+}
+
+function getDefaultSourceForFace(
+  document: DioramaDocument,
+  faceId: string
+): Region {
+  if (document.preset !== "Quarter Blocks") {
+    return defaultSource;
+  }
+
+  const position = getFacePosition(faceId);
+  if (!position) {
+    return defaultSource;
+  }
+
+  return [(position.column % 2) * 8, (position.row % 2) * 8, 8, 8];
+}
+
+function getFacePosition(
+  faceId: string
+): { column: number; row: number } | null {
+  const match = /^BlockFace(\d+) (\d+)$/.exec(faceId);
+  if (!match) {
+    return null;
+  }
+
+  return {
+    column: parseInt(match[1] ?? "0", 10),
+    row: parseInt(match[2] ?? "0", 10),
+  };
 }
 
 export function getColumnCountThatFits({

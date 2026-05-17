@@ -1,6 +1,7 @@
 import type { Generator } from "@genroot/builder/modules/generator";
 import {
   drawRectangleButton,
+  makeEdgeControlRegions,
   makeEdgeRegions,
   type DioramaOptions,
   type RegionDef,
@@ -8,16 +9,20 @@ import {
 
 export function drawTabs(generator: Generator, options: DioramaOptions) {
   const regions = makeEdgeRegions(options);
+  const controlRegions = new Map(
+    makeEdgeControlRegions(options).map(({ id, region }) => [id, region])
+  );
 
   regions.forEach(({ id, region, rotation }) => {
+    const controlRegion = controlRegions.get(id) ?? region;
     const tabId = `Tabs${id}`;
     const tabValue = parseInt(generator.getSelectInputValue(tabId) ?? "0", 10);
 
     if (options.editMode === "Tabs") {
       if (options.showEditRegions) {
-        drawRectangleButton(generator, region);
+        drawRectangleButton(generator, controlRegion);
       }
-      generator.defineRegionInput(region, () => {
+      generator.defineRegionInput(controlRegion, () => {
         generator.setSelectInputValue(
           tabId,
           getNextTabValue(tabValue).toString()

@@ -3,11 +3,15 @@ import {
   type Region,
 } from "@genroot/builder/modules/generator";
 import {
-  defaultDestination,
+  blockPresets,
   drawRectangleButton,
+  getDefaultDestinationForPreset,
   getFaceId,
   makeBlockRegions,
+  makeEmptyDioramaDocument,
+  sanitizePreset,
   setDioramaDocument,
+  type DioramaDocument,
   type DestinationSize,
   type DioramaOptions,
 } from "./shared";
@@ -18,18 +22,21 @@ type DestinationRegionDef = {
   row: number | null;
 };
 
-export function getCurrentDestination(generator: Generator): DestinationSize {
+export function getCurrentDestination(
+  generator: Generator,
+  defaultValue: DestinationSize
+): DestinationSize {
   const width = generator.defineAndGetRangeInput("Destination Width", {
     min: 1,
     max: 32,
-    value: defaultDestination.width,
+    value: defaultValue.width,
     step: 1,
     showValue: true,
   });
   const height = generator.defineAndGetRangeInput("Destination Height", {
     min: 1,
     max: 32,
-    value: defaultDestination.height,
+    value: defaultValue.height,
     step: 1,
     showValue: true,
   });
@@ -61,6 +68,30 @@ export function drawDestinationRegions(
   });
 }
 
+export function defineAndGetPresetInput(
+  generator: Generator,
+  document: DioramaDocument
+): DioramaDocument {
+  if (!generator.getSelectInputValue("Block Preset")) {
+    generator.setSelectInputValue("Block Preset", document.preset);
+  }
+
+  const preset = sanitizePreset(
+    generator.defineAndGetSelectInput("Block Preset", blockPresets)
+  );
+  if (preset === document.preset) {
+    return document;
+  }
+
+  const nextDocument = makeEmptyDioramaDocument(preset);
+  const destination = getDefaultDestinationForPreset(preset);
+  generator.setNumberVariable("Destination Width", destination.width);
+  generator.setNumberVariable("Destination Height", destination.height);
+  setDioramaDocument(generator, nextDocument);
+
+  return nextDocument;
+}
+
 function makeFaceDestinationRegions(
   options: DioramaOptions
 ): DestinationRegionDef[] {
@@ -76,8 +107,6 @@ function makeColumnDestinationRegions(
   const blockRegions = new Map(
     makeBlockRegions(options).map(({ id, region }) => [id, region])
   );
-  const regionHeight = options.height / 4;
-  const y = options.oy >= regionHeight ? options.oy - regionHeight : options.oy;
   const regions: DestinationRegionDef[] = [];
 
   for (let column = 0; column < options.columns; column += 1) {
@@ -85,9 +114,15 @@ function makeColumnDestinationRegions(
     if (!region) {
       continue;
     }
-    const [x, , width] = region;
+    const [x, y, width, height] = region;
+    const regionHeight = height / 4;
     regions.push({
-      region: [x, y, width, regionHeight],
+      region: [
+        x,
+        y >= regionHeight ? y - regionHeight : y,
+        width,
+        regionHeight,
+      ],
       column,
       row: null,
     });
@@ -102,8 +137,6 @@ function makeRowDestinationRegions(
   const blockRegions = new Map(
     makeBlockRegions(options).map(({ id, region }) => [id, region])
   );
-  const regionWidth = options.width / 4;
-  const x = options.ox >= regionWidth ? options.ox - regionWidth : options.ox;
   const regions: DestinationRegionDef[] = [];
 
   for (let row = 0; row < options.rows; row += 1) {
@@ -111,9 +144,10 @@ function makeRowDestinationRegions(
     if (!region) {
       continue;
     }
-    const [, y, , height] = region;
+    const [x, y, width, height] = region;
+    const regionWidth = width / 4;
     regions.push({
-      region: [x, y, regionWidth, height],
+      region: [x >= regionWidth ? x - regionWidth : x, y, regionWidth, height],
       column: null,
       row,
     });
@@ -134,14 +168,16 @@ function setDestination(
     setDestinationValue(
       destinationColumns,
       target.column,
-      options.currentDestination.width
+      options.currentDestination.width,
+      getDefaultDestinationForPreset(options.document.preset).width
     );
   }
   if (target.row !== null) {
     setDestinationValue(
       destinationRows,
       target.row,
-      options.currentDestination.height
+      options.currentDestination.height,
+      getDefaultDestinationForPreset(options.document.preset).height
     );
   }
 
@@ -155,9 +191,10 @@ function setDestination(
 function setDestinationValue(
   destinations: Record<string, number>,
   index: number,
-  value: number
+  value: number,
+  defaultValue: number
 ) {
-  if (value === defaultDestination.width) {
+  if (value === defaultValue) {
     delete destinations[index];
   } else {
     destinations[index] = value;
