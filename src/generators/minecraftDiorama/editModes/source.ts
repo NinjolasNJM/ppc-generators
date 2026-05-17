@@ -79,44 +79,53 @@ function makeFaceSourceRegions(options: DioramaOptions): SourceRegionDef[] {
   }));
 }
 
-function makeColumnSourceRegions({
-  ox,
-  oy,
-  width,
-  height,
-  columns,
-  rows,
-}: DioramaOptions): SourceRegionDef[] {
-  const regionHeight = height / 4;
-  const y = oy >= regionHeight ? oy - regionHeight : oy;
+function makeColumnSourceRegions(options: DioramaOptions): SourceRegionDef[] {
+  const blockRegions = new Map(
+    makeBlockRegions(options).map(({ id, region }) => [id, region])
+  );
   const regions: SourceRegionDef[] = [];
 
-  for (let column = 0; column < columns; column += 1) {
+  for (let column = 0; column < options.columns; column += 1) {
+    const region = blockRegions.get(getFaceId(column, 0));
+    if (!region) {
+      continue;
+    }
+    const [x, y, width, height] = region;
+    const regionHeight = height / 4;
+
     regions.push({
-      region: [ox + width * column, y, width, regionHeight],
-      faceIds: Array.from({ length: rows }, (_, row) => getFaceId(column, row)),
+      region: [
+        x,
+        y >= regionHeight ? y - regionHeight : y,
+        width,
+        regionHeight,
+      ],
+      faceIds: Array.from({ length: options.rows }, (_, row) =>
+        getFaceId(column, row)
+      ),
     });
   }
 
   return regions;
 }
 
-function makeRowSourceRegions({
-  ox,
-  oy,
-  width,
-  height,
-  columns,
-  rows,
-}: DioramaOptions): SourceRegionDef[] {
-  const regionWidth = width / 4;
-  const x = ox >= regionWidth ? ox - regionWidth : ox;
+function makeRowSourceRegions(options: DioramaOptions): SourceRegionDef[] {
+  const blockRegions = new Map(
+    makeBlockRegions(options).map(({ id, region }) => [id, region])
+  );
   const regions: SourceRegionDef[] = [];
 
-  for (let row = 0; row < rows; row += 1) {
+  for (let row = 0; row < options.rows; row += 1) {
+    const region = blockRegions.get(getFaceId(0, row));
+    if (!region) {
+      continue;
+    }
+    const [x, y, width, height] = region;
+    const regionWidth = width / 4;
+
     regions.push({
-      region: [x, oy + height * row, regionWidth, height],
-      faceIds: Array.from({ length: columns }, (_, column) =>
+      region: [x >= regionWidth ? x - regionWidth : x, y, regionWidth, height],
+      faceIds: Array.from({ length: options.columns }, (_, column) =>
         getFaceId(column, row)
       ),
     });
