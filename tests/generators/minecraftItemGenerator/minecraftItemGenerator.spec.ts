@@ -102,6 +102,7 @@ test("minecraft item generator supports rotated and flipped textures", async ({
   await expect(page.getByLabel("Rotate texture")).toBeVisible();
   await expect(page.getByLabel("Flip texture horizontal")).toBeVisible();
   await expect(page.getByLabel("Flip texture vertical")).toBeVisible();
+  await expect(page.getByLabel("Erase texture")).toHaveCount(0);
   await expect(page.getByLabel("Add Item")).toBeVisible();
   await expect(page.getByLabel("Overlay Item")).toBeVisible();
   await expect(page.getByLabel("Remove Item")).toBeVisible();

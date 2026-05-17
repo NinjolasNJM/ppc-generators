@@ -19,6 +19,7 @@ export function TexturePicker(props: {
           frames={frames}
           onSelect={props.onSelect}
           enableRotation={true}
+          enableErase={false}
           tint={props.blend ?? null}
         />
       </div>
