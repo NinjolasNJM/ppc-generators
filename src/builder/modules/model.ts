@@ -1,6 +1,6 @@
 import { type ImageWithCanvas } from "./imageWithCanvas";
 import { type Texture } from "./texture";
-import { type Page, makePage } from "./modelPage";
+import { type Page, type PageOptions, makePage } from "./modelPage";
 import { makeUUID } from "./uuid";
 import {
   type Control,
@@ -238,14 +238,14 @@ export class Model {
     return newPage;
   }
 
-  usePage(id: string) {
+  usePage(id: string, options: PageOptions = {}) {
     const page = this.findPage(id);
     if (page) {
       this.setCurrentPage(page);
       return;
     }
 
-    const newPage = makePage(id);
+    const newPage = makePage(id, options);
 
     this.addPage(newPage);
     this.setCurrentPage(newPage);

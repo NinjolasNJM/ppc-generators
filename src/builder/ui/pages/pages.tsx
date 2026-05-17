@@ -3,13 +3,12 @@
 import React from "react";
 import { type GeneratorDef } from "@genroot/builder/modules/generatorDef";
 import { type Model } from "@genroot/builder/modules/model";
-import { A4 } from "@genroot/builder/modules/modelPage";
 
 import { RegionControls } from "./regionControls";
 import { SaveAsPDFButton } from "./saveAsPDFButton";
 import { SaveAsImageButton } from "./saveAsImageButton";
 import { PrintImageButton } from "./printImageButton";
-import { useElementWidthListener } from "./useElementWidthListener";
+import { useElementSizeListener } from "./useElementSizeListener";
 import { px, pageBorderWidth } from "./utils";
 
 export function Pages({
@@ -22,7 +21,7 @@ export function Pages({
   onChange: () => void;
 }) {
   const containerElRef = React.useRef<HTMLImageElement | null>(null);
-  const containerWidth = useElementWidthListener(containerElRef);
+  const pageElementSize = useElementSizeListener(containerElRef);
 
   const showPageIds = model.pages.length > 1;
 
@@ -43,11 +42,11 @@ export function Pages({
             ) : null}
 
             <div
-              className="mb-6 flex items-center justify-between gap-3"
-              style={{ maxWidth: px(A4.px.width) }}
+              className="mb-6 flex flex-wrap items-center justify-between gap-2"
+              style={{ maxWidth: px(page.sizes.px.width) }}
             >
-              <div className="flex items-center gap-3">
-                <PrintImageButton dataUrl={dataUrl} />
+              <div className="flex flex-wrap items-center gap-3">
+                <PrintImageButton dataUrl={dataUrl} page={page} />
                 {pageIndex === 0 ? (
                   <SaveAsPDFButton generatorDef={generatorDef} model={model} />
                 ) : null}
@@ -60,19 +59,26 @@ export function Pages({
             {/* Important: The following div uses absolute positioning for the regions. */}
             <div
               className="relative"
-              style={{ maxWidth: px(A4.px.width + pageBorderWidth * 2) }}
+              style={{
+                maxWidth: px(page.sizes.px.width + pageBorderWidth * 2),
+              }}
             >
               <img
                 ref={containerElRef}
-                className="border shadow-xl mb-8"
-                style={{ imageRendering: "pixelated" }}
+                className="mb-8 border shadow-xl"
+                style={{
+                  imageRendering: "pixelated",
+                  width: px(page.sizes.px.width),
+                  height: "auto",
+                }}
                 data-testid="generator-page-image"
                 src={dataUrl}
                 alt=""
               />
-              {containerWidth !== null ? (
+              {pageElementSize !== null ? (
                 <RegionControls
-                  containerWidth={containerWidth}
+                  pageElementSize={pageElementSize}
+                  pageSize={page.sizes.px}
                   model={model}
                   currentPageId={page.id}
                   onClick={(callback) => {
