@@ -13,7 +13,7 @@ async function setItemSize(
   page: Page,
   size: "Small (200%)" | "Medium (400%)" | "Large (700%)" | "Extra Large (1400%)" | "Custom"
 ) {
-  await page.getByLabel("Item Size").selectOption(size);
+  await page.getByLabel("Item Size").selectOption({ label: size });
 
   if (size === "Custom") {
     const customScale = page.getByLabel("Custom Scale (%)");
@@ -195,7 +195,7 @@ test("minecraft item generator supports custom item scales", async ({
   ] as const;
 
   for (const sizeOption of sizeOptions) {
-    await page.getByLabel("Item Size").selectOption(sizeOption);
+    await page.getByLabel("Item Size").selectOption({ label: sizeOption });
 
     if (sizeOption === "Custom") {
       const customScale = page.getByLabel("Custom Scale (%)");
@@ -314,6 +314,32 @@ test("minecraft item generator overlays across size and texture transform combin
 
     await expect(outputPage).toHaveScreenshot(overlayCase.snapshot);
   }
+});
+
+test("minecraft item generator toggles enchantment from the item region", async ({
+  page,
+}) => {
+  await page.goto("/generator/minecraft-item");
+
+  await page.getByLabel("Version").selectOption("minecraft-26.1.2-items");
+  await selectItemByTitle(page, "sword", "diamond sword");
+  await page.getByLabel("Add Item").click();
+
+  const itemRegion = page.getByTestId("region-Item 1");
+  await expect(itemRegion).toBeVisible();
+  await itemRegion.click();
+
+  const outputPages = page.getByTestId("generator-page-image");
+  await expect(outputPages).toHaveCount(1);
+
+  const outputPage = outputPages.nth(0);
+  await expect(outputPage).toBeVisible();
+  await expect(outputPage).toHaveAttribute("src", /data:image\/png/);
+  await renderImageAtNaturalSize(outputPage);
+
+  await expect(outputPage).toHaveScreenshot(
+    "minecraft-item-enchanted-toggle-page-1.png"
+  );
 });
 
 test("minecraft item generator clears the selected texture when switching to custom", async ({
