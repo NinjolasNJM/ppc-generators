@@ -30,6 +30,7 @@ import { drawDoor } from "./shapes/door";
 import { drawTrapdoor } from "./shapes/trapdoor";
 import { drawSnow } from "./shapes/snow";
 import { drawCake } from "./shapes/cake";
+import { drawShelf } from "./shapes/shelf";
 
 import thumnbailImage from "./thumbnail/v2-thumbnail-256.jpeg";
 import backgroundImage from "./images/Background.png";
@@ -58,6 +59,8 @@ import tabsCakeLeftImage from "./images/Tabs-Cake-Left.png";
 import tabsCakeMiddleImage from "./images/Tabs-Cake-Middle.png";
 import tabsCakeCornerImage from "./images/Tabs-Cake-Corner.png";
 import tabsCakeRightImage from "./images/Tabs-Cake-Right.png";
+import foldsShelfImage from "./images/Folds-Shelf.png";
+import tabsShelfImage from "./images/Tabs-Shelf.png";
 
 const id = "minecraft-block";
 
@@ -67,6 +70,7 @@ const history: HistoryDef = [
   "Dec 2021 lostminer - Block generator rewrite.",
   "Dec 2021 NinjolasNJM - Add Stairs, Fence, Door, Trapdoor and Snow.",
   "Jan 2022 NinjolasNJM - Add Cake Block type.",
+  "May 2026 NinjolasNJM - Add Shelf Block type.",
 ];
 
 const thumbnail: ThumbnailDef = {
@@ -100,6 +104,8 @@ const images: ImageDef[] = [
   { id: "Tabs-Cake-Middle", url: tabsCakeMiddleImage.src },
   { id: "Tabs-Cake-Corner", url: tabsCakeCornerImage.src },
   { id: "Tabs-Cake-Right", url: tabsCakeRightImage.src },
+  { id: "Folds-Shelf", url: foldsShelfImage.src },
+  { id: "Tabs-Shelf", url: tabsShelfImage.src },
 ];
 
 const textures: TextureDef[] = textureDefs;
@@ -117,7 +123,9 @@ const script: ScriptDef = (generator: Generator) => {
       choices: [],
     });
 
-    const customAtlas = parseAtlas(generator.getStringInputValue("custom Frames"));
+    const customAtlas = parseAtlas(
+      generator.getStringInputValue("custom Frames")
+    );
     const customTexture = generator.getTexture("custom");
     if (customTexture) {
       const textureUrl = customTexture.imageWithCanvas.image.src;
@@ -206,6 +214,7 @@ const script: ScriptDef = (generator: Generator) => {
       "Trapdoor",
       "Snow Layers",
       "Cake",
+      "Shelf",
     ]);
 
     const blockType = generator.getSelectInputValue(typeName);
@@ -244,6 +253,10 @@ const script: ScriptDef = (generator: Generator) => {
       }
       case "Cake": {
         drawCake(generator, blockId, ox, oy, showFolds);
+        break;
+      }
+      case "Shelf": {
+        drawShelf(generator, blockId, ox, oy, showFolds);
         break;
       }
     }

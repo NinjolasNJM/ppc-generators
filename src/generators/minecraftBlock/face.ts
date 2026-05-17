@@ -6,6 +6,7 @@ import {
   type Generator,
   type Region,
 } from "@genroot/builder/modules/generator";
+import { makeNextFlip } from "../_common/texturePicker/flip";
 import { currentBlockTextureId } from "./constants";
 import {
   type SelectedTextureWithBlend,
@@ -56,13 +57,32 @@ function drawTexture(
   const { textureDefId, frame, rotation, flip } = face.selectedTexture;
   const [dx, dy, dw, dh] = destination;
 
-  const [sx, sy] = source;
+  const [sx, sy, sw, sh] = source;
   const [fx, fy, fw, fh] = frame.rectangle;
 
-  const sourceRegion: Region = [sx + fx, sy + fy, fw, fh];
+  const flipOption = options?.flip ?? "None";
+  const [nextFlip, nextRotation] = makeNextFlip(flipOption, flip, rotation);
+
+  const scale =
+    fw === fh && fw > 0 && fw % 16 === 0 && fh % 16 === 0 ? fw / 16 : 1;
+  const scaledSource = [sx * scale, sy * scale, sw * scale, sh * scale] as const;
+  const [ssx, ssy, ssw, ssh] = scaledSource;
+
+  const sourceRegion: Region = (() => {
+    switch (nextRotation) {
+      case "Rot0":
+        return [fx + ssx, fy + ssy, ssw, ssh];
+      case "Rot90":
+        return [fx + ssy, fy + fw - (ssw + ssx), ssh, ssw];
+      case "Rot180":
+        return [fx + fw - (ssw + ssx), fy + fh - (ssh + ssy), ssw, ssh];
+      case "Rot270":
+        return [fx + fh - (ssh + ssy), fy + ssx, ssh, ssw];
+    }
+  })();
 
   const destinationRegion: Region = (() => {
-    switch (rotation) {
+    switch (nextRotation) {
       case "Rot0":
         return [dx, dy, dw, dh];
       case "Rot90":
@@ -78,7 +98,7 @@ function drawTexture(
 
   const rotate: number = ((): number => {
     const currRotate = options ? options.rotate ?? 0 : 0;
-    switch (rotation) {
+    switch (nextRotation) {
       case "Rot0":
         return currRotate;
       case "Rot90":
@@ -97,7 +117,7 @@ function drawTexture(
   const optionsWithRotate: DrawTextureOptions = {
     ...options,
     rotate,
-    flip,
+    flip: nextFlip,
     blend,
   };
 

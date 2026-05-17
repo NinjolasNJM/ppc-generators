@@ -154,7 +154,7 @@ describe("drawFace", () => {
     });
   });
 
-  it("uses the full selected frame size when sampling the source texture", () => {
+  it("scales partial source regions to match larger atlas frames", () => {
     const generator = makeGenerator(
       faceId,
       makeFaceJson({
@@ -164,12 +164,12 @@ describe("drawFace", () => {
       })
     );
 
-    drawFace(generator, faceId, source, destination);
+    drawFace(generator, faceId, [8, 3.5, 8, 1.5], destination);
 
     expect(generator.drawTexture).toHaveBeenCalledTimes(1);
     expect(generator.drawTexture).toHaveBeenCalledWith(
       "test-texture",
-      [464, 384, 32, 32],
+      [480, 391, 16, 3],
       destination,
       expect.objectContaining<DrawTextureOptions>({
         rotate: 0,
