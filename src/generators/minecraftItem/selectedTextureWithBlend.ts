@@ -3,6 +3,7 @@ import { type SelectedTexture } from "@genroot/generators/_common/texturePicker/
 export type SelectedTextureWithBlend = {
   selectedTexture: SelectedTexture | null;
   blend: string | null;
+  itemScale?: number;
 };
 
 export function decodeSelectedTextureWithBlend(

@@ -22,6 +22,7 @@ describe("selectedTextureWithBlend", () => {
         flip: "None" as const,
       },
       blend: "#ff00aa",
+      itemScale: 5,
     };
 
     const encoded = encodeSelectedTextureWithBlend(selectedTexture);
@@ -33,6 +34,7 @@ describe("selectedTextureWithBlend", () => {
       {
         selectedTexture: null,
         blend: null,
+        itemScale: 4,
       },
     ];
 
