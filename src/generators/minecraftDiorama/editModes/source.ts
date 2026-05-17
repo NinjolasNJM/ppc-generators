@@ -20,32 +20,40 @@ export function getCurrentSource(generator: Generator): Region {
     min: 0,
     max: 16,
     value: 0,
-    step: 1,
+    step: 0.5,
     showValue: true,
   });
   const y = generator.defineAndGetRangeInput("Source Y", {
     min: 0,
     max: 16,
     value: 0,
-    step: 1,
+    step: 0.5,
     showValue: true,
   });
   const width = generator.defineAndGetRangeInput("Source Width", {
-    min: 0,
+    min: 0.5,
     max: 16,
     value: 16,
-    step: 1,
+    step: 0.5,
     showValue: true,
   });
   const height = generator.defineAndGetRangeInput("Source Height", {
-    min: 0,
+    min: 0.5,
     max: 16,
     value: 16,
-    step: 1,
+    step: 0.5,
     showValue: true,
   });
 
-  return [x, y, Math.min(width, 16 - x), Math.min(height, 16 - y)];
+  const clampedX = Math.min(x, 15.5);
+  const clampedY = Math.min(y, 15.5);
+
+  return [
+    clampedX,
+    clampedY,
+    Math.max(0.5, Math.min(width, 16 - clampedX)),
+    Math.max(0.5, Math.min(height, 16 - clampedY)),
+  ];
 }
 
 export function drawSourceRegions(
@@ -83,6 +91,8 @@ function makeColumnSourceRegions(options: DioramaOptions): SourceRegionDef[] {
   const blockRegions = new Map(
     makeBlockRegions(options).map(({ id, region }) => [id, region])
   );
+  const regionHeight = options.height / 4;
+  const y = options.oy >= regionHeight ? options.oy - regionHeight : options.oy;
   const regions: SourceRegionDef[] = [];
 
   for (let column = 0; column < options.columns; column += 1) {
@@ -90,16 +100,10 @@ function makeColumnSourceRegions(options: DioramaOptions): SourceRegionDef[] {
     if (!region) {
       continue;
     }
-    const [x, y, width, height] = region;
-    const regionHeight = height / 4;
+    const [x, , width] = region;
 
     regions.push({
-      region: [
-        x,
-        y >= regionHeight ? y - regionHeight : y,
-        width,
-        regionHeight,
-      ],
+      region: [x, y, width, regionHeight],
       faceIds: Array.from({ length: options.rows }, (_, row) =>
         getFaceId(column, row)
       ),
@@ -113,6 +117,8 @@ function makeRowSourceRegions(options: DioramaOptions): SourceRegionDef[] {
   const blockRegions = new Map(
     makeBlockRegions(options).map(({ id, region }) => [id, region])
   );
+  const regionWidth = options.width / 4;
+  const x = options.ox >= regionWidth ? options.ox - regionWidth : options.ox;
   const regions: SourceRegionDef[] = [];
 
   for (let row = 0; row < options.rows; row += 1) {
@@ -120,11 +126,10 @@ function makeRowSourceRegions(options: DioramaOptions): SourceRegionDef[] {
     if (!region) {
       continue;
     }
-    const [x, y, width, height] = region;
-    const regionWidth = width / 4;
+    const [, y, , height] = region;
 
     regions.push({
-      region: [x >= regionWidth ? x - regionWidth : x, y, regionWidth, height],
+      region: [x, y, regionWidth, height],
       faceIds: Array.from({ length: options.columns }, (_, column) =>
         getFaceId(column, row)
       ),

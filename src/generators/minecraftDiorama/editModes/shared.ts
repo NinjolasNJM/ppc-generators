@@ -57,13 +57,63 @@ function decodeDioramaDocument(json: string | null): DioramaDocument {
   try {
     const parsed = JSON.parse(json) as Partial<DioramaDocument>;
     return {
-      sources: parsed.sources ?? {},
-      destinationColumns: parsed.destinationColumns ?? {},
-      destinationRows: parsed.destinationRows ?? {},
+      sources: sanitizeSources(parsed.sources),
+      destinationColumns: sanitizeDestinations(parsed.destinationColumns),
+      destinationRows: sanitizeDestinations(parsed.destinationRows),
     };
   } catch {
     return { sources: {}, destinationColumns: {}, destinationRows: {} };
   }
+}
+
+function sanitizeSources(
+  sources: Partial<DioramaDocument>["sources"]
+): DioramaDocument["sources"] {
+  return Object.fromEntries(
+    Object.entries(sources ?? {}).map(([id, source]) => [
+      id,
+      sanitizeSource(Array.isArray(source) ? source : defaultSource),
+    ])
+  );
+}
+
+function sanitizeSource([x, y, width, height]: Region): Region {
+  const sourceX = sanitizeNumber(x, defaultSource[0]);
+  const sourceY = sanitizeNumber(y, defaultSource[1]);
+  const sourceWidth = sanitizeNumber(width, defaultSource[2]);
+  const sourceHeight = sanitizeNumber(height, defaultSource[3]);
+  const clampedX = Math.max(0, Math.min(15.5, roundToHalf(sourceX)));
+  const clampedY = Math.max(0, Math.min(15.5, roundToHalf(sourceY)));
+
+  return [
+    clampedX,
+    clampedY,
+    Math.max(0.5, Math.min(roundToHalf(sourceWidth), 16 - clampedX)),
+    Math.max(0.5, Math.min(roundToHalf(sourceHeight), 16 - clampedY)),
+  ];
+}
+
+function sanitizeNumber(value: number, fallback: number): number {
+  return Number.isFinite(value) ? value : fallback;
+}
+
+function roundToHalf(value: number): number {
+  return Math.round(value * 2) / 2;
+}
+
+function sanitizeDestinations(
+  destinations:
+    | Partial<DioramaDocument>["destinationColumns"]
+    | Partial<DioramaDocument>["destinationRows"]
+): Record<string, number> {
+  return Object.fromEntries(
+    Object.entries(destinations ?? {})
+      .map(([id, destination]) => [
+        id,
+        Math.max(1, Math.round(sanitizeNumber(destination, 16))),
+      ])
+      .filter(([, destination]) => destination !== defaultDestination.width)
+  );
 }
 
 export function getDioramaDocument(generator: Generator): DioramaDocument {
@@ -128,13 +178,15 @@ export function makeEdgeRegions({
   const rowHeights = makeRowHeights({ height, rows, document });
   const columnOffsets = makeOffsets(columnWidths);
   const rowOffsets = makeOffsets(rowHeights);
+  const tabWidth = width / 4;
+  const tabHeight = height / 4;
   const getColumnSize = (column: number) =>
     columnWidths[Math.max(0, Math.min(columns - 1, column))] ?? width;
   const getRowSize = (row: number) =>
     rowHeights[Math.max(0, Math.min(rows - 1, row))] ?? height;
   const getColumnOffset = (column: number) => {
     if (column < 0) {
-      return -getColumnSize(column);
+      return -tabWidth;
     }
     if (column >= columns) {
       return getTotalSize(columnWidths);
@@ -143,7 +195,7 @@ export function makeEdgeRegions({
   };
   const getRowOffset = (row: number) => {
     if (row < 0) {
-      return -getRowSize(row);
+      return -tabHeight;
     }
     if (row >= rows) {
       return getTotalSize(rowHeights);
@@ -157,7 +209,7 @@ export function makeEdgeRegions({
       ox + getColumnOffset(column),
       oy + getRowOffset(row),
       getColumnSize(column),
-      getRowSize(row) / 4,
+      tabHeight,
     ],
     rotation: 2,
   });
@@ -165,9 +217,11 @@ export function makeEdgeRegions({
     id: `South${column} ${row}`,
     region: [
       ox + getColumnOffset(column),
-      oy + getRowOffset(row) + (getRowSize(row) * 3) / 4,
+      row < 0
+        ? oy - tabHeight
+        : oy + getRowOffset(row) + getRowSize(row) - tabHeight,
       getColumnSize(column),
-      getRowSize(row) / 4,
+      tabHeight,
     ],
     rotation: 0,
   });
@@ -176,7 +230,7 @@ export function makeEdgeRegions({
     region: [
       ox + getColumnOffset(column),
       oy + getRowOffset(row),
-      getColumnSize(column) / 4,
+      tabWidth,
       getRowSize(row),
     ],
     rotation: 1,
@@ -184,9 +238,11 @@ export function makeEdgeRegions({
   const makeWest = (column: number, row: number): RegionDef => ({
     id: `West${column} ${row}`,
     region: [
-      ox + getColumnOffset(column) + (getColumnSize(column) * 3) / 4,
+      column < 0
+        ? ox - tabWidth
+        : ox + getColumnOffset(column) + getColumnSize(column) - tabWidth,
       oy + getRowOffset(row),
-      getColumnSize(column) / 4,
+      tabWidth,
       getRowSize(row),
     ],
     rotation: 3,
@@ -241,6 +297,30 @@ export function getRowHeight(
   );
 }
 
+export function getColumnCountThatFits({
+  baseWidth,
+  width,
+  document,
+}: Pick<DioramaOptions, "width" | "document"> & {
+  baseWidth: number;
+}): number {
+  return getCountThatFits(baseWidth, (column) =>
+    getColumnWidth({ width, document }, column)
+  );
+}
+
+export function getRowCountThatFits({
+  baseHeight,
+  height,
+  document,
+}: Pick<DioramaOptions, "height" | "document"> & {
+  baseHeight: number;
+}): number {
+  return getCountThatFits(baseHeight, (row) =>
+    getRowHeight({ height, document }, row)
+  );
+}
+
 function makeColumnWidths({
   width,
   columns,
@@ -277,4 +357,23 @@ function makeOffsets(sizes: number[]): number[] {
 
 function getTotalSize(sizes: number[]): number {
   return sizes.reduce((total, size) => total + size, 0);
+}
+
+function getCountThatFits(
+  availableSize: number,
+  getSize: (index: number) => number
+): number {
+  let count = 0;
+  let usedSize = 0;
+
+  while (usedSize < availableSize) {
+    const nextSize = getSize(count);
+    if (usedSize + nextSize > availableSize) {
+      break;
+    }
+    usedSize += nextSize;
+    count += 1;
+  }
+
+  return Math.max(1, count);
 }

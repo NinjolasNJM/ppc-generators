@@ -33,7 +33,9 @@ import { drawFolds } from "./editModes/folds";
 import {
   defaultDestination,
   defaultSource,
+  getColumnCountThatFits,
   getDioramaDocument,
+  getRowCountThatFits,
   type DioramaOptions,
 } from "./editModes/shared";
 import { drawSourceRegions, getCurrentSource } from "./editModes/source";
@@ -172,6 +174,7 @@ function drawTexturePicker(generator: Generator, versionId: string | null) {
         tintChoiceGroups={blockTintChoiceGroups}
         onChange={(selectedTexture) => {
           onChange(encodeSelectedTexture(selectedTexture));
+          generator.setSelectInputValue("Edit Mode", "Blocks");
         }}
       />
     );
@@ -237,26 +240,10 @@ function getDioramaDimensions(generator: Generator) {
         })
       : parseInt(dioramaSize ?? "800", 10);
 
-  const separateHeight =
-    dioramaSize === "Custom"
-      ? generator.defineAndGetBooleanInput("Separate Height", false)
-      : false;
-
-  const dioramaHeight =
-    dioramaSize === "Custom" && separateHeight
-      ? generator.defineAndGetRangeInput("Diorama Height", {
-          min: 100,
-          max: 1600,
-          value: 800,
-          step: 50,
-          showValue: true,
-        })
-      : dioramaWidth;
-
   return {
     dioramaSize,
     dioramaWidth,
-    dioramaHeight,
+    dioramaHeight: dioramaWidth,
   };
 }
 
@@ -305,14 +292,16 @@ const script: ScriptDef = (generator: Generator) => {
   const baseHeight = isLandscape ? 512 : 768;
   const width = Math.round((16 * dioramaWidth) / 100);
   const height = Math.round((16 * dioramaHeight) / 100);
+  const columns = getColumnCountThatFits({ baseWidth, width, document });
+  const rows = getRowCountThatFits({ baseHeight, height, document });
 
   drawDiorama(generator, {
     ox,
     oy,
     width,
     height,
-    columns: Math.max(1, Math.floor(baseWidth / width)),
-    rows: Math.max(1, Math.floor(baseHeight / height)),
+    columns,
+    rows,
     editMode,
     showEditRegions,
     document,
