@@ -337,11 +337,13 @@ export function TexturePicker({
 
   const onSelectClick = (frame: TextureFrame) => {
     setSelectedFrame(frame);
+    setRotation("Rot0");
+    setFlip("None");
     const selectedTexture = {
       textureDefId: textureDef.id,
       frame: frame,
-      rotation: rotation,
-      flip: flip,
+      rotation: "Rot0" as const,
+      flip: "None" as const,
     };
     onSelect(selectedTexture);
   };

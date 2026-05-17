@@ -25,6 +25,10 @@ async function setItemSize(
   }
 }
 
+function getPreviewTile(page: Page) {
+  return page.getByTestId("texture-picker-preview").locator("div").first();
+}
+
 test("minecraft item generator matches the default screenshots", async ({ page }) => {
   await page.goto("/generator/minecraft-item");
 
@@ -120,6 +124,56 @@ test("minecraft item generator supports rotated and flipped textures", async ({
 
   await expect(outputPage).toHaveScreenshot(
     "minecraft-item-rotated-and-flipped-page-1.png"
+  );
+});
+
+test("minecraft item generator resets rotation when a new texture is selected", async ({
+  page,
+}) => {
+  await page.goto("/generator/minecraft-item");
+
+  await page.getByLabel("Version").selectOption("minecraft-26.1.2-items");
+  await selectItemByTitle(page, "sword", "diamond sword");
+  await page.getByLabel("Rotate texture").click();
+
+  await expect(getPreviewTile(page)).toHaveAttribute(
+    "style",
+    /transform:\s*rotate\(90deg\)/
+  );
+
+  await page.getByLabel("Add Item").click();
+  await selectItemByTitle(page, "bow", "bow");
+
+  await expect(getPreviewTile(page)).toHaveAttribute(
+    "style",
+    /transform:\s*rotate\(0deg\)/
+  );
+});
+
+test("minecraft item generator resets flip when a new texture is selected", async ({
+  page,
+}) => {
+  await page.goto("/generator/minecraft-item");
+
+  await page.getByLabel("Version").selectOption("minecraft-26.1.2-items");
+  await selectItemByTitle(page, "sword", "diamond sword");
+  await page.getByLabel("Flip texture horizontal").click();
+
+  await expect(getPreviewTile(page)).toHaveAttribute(
+    "style",
+    /scaleX\(-1\)/
+  );
+
+  await page.getByLabel("Add Item").click();
+  await selectItemByTitle(page, "bow", "bow");
+
+  await expect(getPreviewTile(page)).toHaveAttribute(
+    "style",
+    /transform:\s*rotate\(0deg\)/
+  );
+  await expect(getPreviewTile(page)).not.toHaveAttribute(
+    "style",
+    /scaleX\(-1\)/
   );
 });
 
