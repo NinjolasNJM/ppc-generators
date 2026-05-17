@@ -48,6 +48,18 @@ test("minecraft item generator matches the default screenshots", async ({ page }
   }
 });
 
+test("minecraft item generator keeps instructions collapsed in the left column", async ({
+  page,
+}) => {
+  await page.goto("/generator/minecraft-item");
+
+  const sidebar = page.getByTestId("generator-sidebar");
+  await expect(sidebar).toBeVisible();
+  await expect(sidebar).toHaveScreenshot(
+    "minecraft-item-instructions-sidebar.png"
+  );
+});
+
 test("minecraft item generator renders custom atlas textures", async ({
   page,
 }) => {
