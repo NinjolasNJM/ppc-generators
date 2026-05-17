@@ -242,12 +242,14 @@ export function TexturePicker({
   frames,
   onSelect,
   enableRotation,
+  enableErase = true,
   tint,
 }: {
   textureDef: TextureDef;
   frames: TextureFrame[];
   onSelect: (selectedTexture: SelectedTexture) => void;
   enableRotation: boolean;
+  enableErase?: boolean;
   tint?: string | null;
 }) {
   const [search, setSearch] = React.useState("");
@@ -337,11 +339,13 @@ export function TexturePicker({
 
   const onSelectClick = (frame: TextureFrame) => {
     setSelectedFrame(frame);
+    setRotation("Rot0");
+    setFlip("None");
     const selectedTexture = {
       textureDefId: textureDef.id,
       frame: frame,
-      rotation: rotation,
-      flip: flip,
+      rotation: "Rot0" as const,
+      flip: "None" as const,
     };
     onSelect(selectedTexture);
   };
@@ -387,7 +391,9 @@ export function TexturePicker({
           {enableRotation ? (
             <div>
               <div className="flex justify-around mt-3">
-                <EraseButton onClick={() => onEraseClick()} />
+                {enableErase ? (
+                  <EraseButton onClick={() => onEraseClick()} />
+                ) : null}
                 <RotationButton onClick={() => onRotateClick()} />
               </div>
               <div className="flex justify-around mt-3">

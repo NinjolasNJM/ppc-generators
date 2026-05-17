@@ -118,7 +118,8 @@ export class Model {
     min: number,
     max: number,
     value: number,
-    step: number
+    step: number,
+    showValue?: boolean
   ) {
     this.addControl({
       kind: "Range",
@@ -127,6 +128,7 @@ export class Model {
       max,
       value,
       step,
+      showValue,
     });
     const currentValue = this.getNumberVariable(id);
     if (currentValue === null) {
@@ -134,10 +136,15 @@ export class Model {
     }
   }
 
-  addButtonControl(id: string, onClick: () => void) {
+  addButtonControl(
+    id: string,
+    onClick: () => void,
+    color?: "Gray" | "Blue" | "Red" | "Green"
+  ) {
     this.addControl({
       kind: "Button",
       id,
+      color,
       onClick,
     });
   }

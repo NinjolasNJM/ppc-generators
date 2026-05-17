@@ -2,7 +2,9 @@ import {
   makeTextureVersions,
   type TextureVersion as CommonTextureVersion,
 } from "../../_common/textureVersions";
-import { minecraftTextureVersionDefinitions as definitions } from "../../_common/minecraftTextureVersions";
+import {
+  minecraftTextureVersionDefinitionsItemsFirst as definitions,
+} from "../../_common/minecraftTextureVersions";
 import { customTextureVersion } from "../../_common/customTextureVersion";
 
 export const textureVersions: TextureVersion[] = [

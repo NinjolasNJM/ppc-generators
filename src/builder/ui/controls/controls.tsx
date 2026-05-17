@@ -188,6 +188,7 @@ export function Controls({
               <ButtonControl
                 key={control.id}
                 id={control.id}
+                color={control.color}
                 onClick={() => {
                   control.onClick();
                   onButtonControlClick();
@@ -204,6 +205,7 @@ export function Controls({
                 max={control.max}
                 step={control.step}
                 value={control.value}
+                showValue={control.showValue}
                 onChange={(value) => onRangeInputChange(control.id, value)}
               />
             );

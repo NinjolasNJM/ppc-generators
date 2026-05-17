@@ -109,14 +109,16 @@ export class Generator {
       max,
       value,
       step,
+      showValue,
     }: {
       min: number;
       max: number;
       value: number;
       step: number;
+      showValue?: boolean;
     }
   ): void {
-    this.model.addRangeControl(id, min, max, value, step);
+    this.model.addRangeControl(id, min, max, value, step, showValue);
   }
 
   defineAndGetRangeInput(
@@ -143,8 +145,12 @@ export class Generator {
     this.model.addCustomInputControl(id, render);
   }
 
-  defineButtonInput(id: string, onClick: () => void): void {
-    this.model.addButtonControl(id, onClick);
+  defineButtonInput(
+    id: string,
+    onClick: () => void,
+    color?: "Gray" | "Blue" | "Red" | "Green"
+  ): void {
+    this.model.addButtonControl(id, onClick, color);
   }
 
   hasTexture(id: string): boolean {
