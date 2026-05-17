@@ -27,26 +27,28 @@ export function defineInputRegion(
         currentBlockTextureId
       );
 
-    const selectedTexture = selectedTextureJson
-      ? decodeSelectedTexture(selectedTextureJson)
-      : null;
+      const selectedTexture = selectedTextureJson
+        ? decodeSelectedTexture(selectedTextureJson)
+        : null;
 
-    if (!selectedTexture) {
-      return;
-    }
+      if (!selectedTexture) {
+        return;
+      }
 
-    const curentFaceTexturesJson = generator.getStringInputValue(faceId);
-    const currentFaceTextures = curentFaceTexturesJson
-      ? decodeSelectedTextures(curentFaceTexturesJson)
-      : [];
+      const curentFaceTexturesJson = generator.getStringInputValue(faceId);
+      const currentFaceTextures = curentFaceTexturesJson
+        ? decodeSelectedTextures(curentFaceTexturesJson)
+        : [];
 
-    const shouldErase = selectedTexture.textureDefId === "";
-    const newFaceTextures = shouldErase
-      ? currentFaceTextures.slice(0, -1)
-      : currentFaceTextures.concat([selectedTexture]);
-    const newFaceTexturesJson = encodeSelectedTextures(newFaceTextures);
-    generator.setStringInputValue(faceId, newFaceTexturesJson);
-  }, faceId);
+      const shouldErase = selectedTexture.textureDefId === "";
+      const newFaceTextures = shouldErase
+        ? currentFaceTextures.slice(0, -1)
+        : currentFaceTextures.concat([selectedTexture]);
+      const newFaceTexturesJson = encodeSelectedTextures(newFaceTextures);
+      generator.setStringInputValue(faceId, newFaceTexturesJson);
+    },
+    faceId
+  );
 }
 
 function drawTexture(

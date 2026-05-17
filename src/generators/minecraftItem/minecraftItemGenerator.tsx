@@ -28,26 +28,27 @@ import {
 } from "@genroot/builder/ui/texturePicker/selectedTexture";
 import {
   allTextureDefs,
-  versionIdsItemsFirst as versionIds,
+  versionIdsItemsFirst,
   findVersion,
-} from "@genroot/generators/_common/textures/textureVersions";
-import { TexturePicker } from "@genroot/generators/minecraftItem/ui/texturePicker";
+} from "../_common/textures/textureVersions";
+import { TexturePicker } from "../_common/plugins/texturePicker/texturePicker";
+import { itemTintChoiceGroups } from "../_common/tintSelector/tints";
 import {
   defineGlintControls,
   itemGlintTextureDefs,
-} from "@genroot/generators/_common/plugins/glint";
+} from "../_common/plugins/glint";
 import {
   parseAtlas,
   updateCustomTextureAtlas,
   updateCustomTextureUrl,
-} from "@genroot/generators/_common/textures/customTextureVersion";
+} from "../_common/textures/customTextureVersion";
 import {
   type Rectangle,
   getItemDimensions,
   getItemLayers,
   getItemLayout,
   getLayerHalfDestination,
-} from "@genroot/generators/minecraftItem/itemLayout";
+} from "./itemLayout";
 
 import thumnbailImage from "./thumbnail/v2-thumbnail-256.jpeg";
 import backgroundImage from "./images/Background.png";
@@ -435,7 +436,7 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Show a drop down of different texture versions
 
-  generator.defineSelectInput("Version", versionIds);
+  generator.defineSelectInput("Version", versionIdsItemsFirst);
 
   const versionId = generator.getSelectInputValue("Version") ?? "";
 
@@ -518,25 +519,12 @@ const script: ScriptDef = (generator: Generator) => {
     }
     return (
       <TexturePicker
-        textureVersion={textureVersion}
-        blend={resolvedCurrentTexture ? resolvedCurrentTexture.blend : null}
-        onSelect={(selectedTexture) => {
-          const newTexture: SelectedTexture = {
-            ...selectedTexture,
-            blend: resolvedCurrentTexture ? resolvedCurrentTexture.blend : null,
-          };
-          onChange(encodeSelectedTexture(newTexture));
-        }}
-        onBlendSelected={(blend) => {
-          if (!resolvedCurrentTexture) {
-            return;
-          }
-          onChange(
-            encodeSelectedTexture({
-              ...resolvedCurrentTexture,
-              blend,
-            })
-          );
+        versionId={versionId}
+        selectedTexture={resolvedCurrentTexture}
+        tintChoiceGroups={itemTintChoiceGroups}
+        enableErase={false}
+        onChange={(selectedTexture) => {
+          onChange(encodeSelectedTexture(selectedTexture));
         }}
       />
     );

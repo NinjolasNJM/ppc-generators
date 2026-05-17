@@ -10,30 +10,30 @@ import type {
 } from "@genroot/builder/modules/generatorDef";
 import { type Generator } from "@genroot/builder/modules/generator";
 import {
-  type SelectedTexture,
   encodeSelectedTexture,
   decodeSelectedTexture,
 } from "@genroot/builder/ui/texturePicker/selectedTexture";
 import {
   allTextureDefs,
   versionIdsBlocksFirst,
-} from "@genroot/generators/_common/textures/textureVersions";
-import { TexturePicker } from "@genroot/generators/minecraftBlock/texturePicker";
-import { currentBlockTextureId } from "@genroot/generators/minecraftBlock/constants";
+} from "../_common/textures/textureVersions";
+import { TexturePicker } from "../_common/plugins/texturePicker/texturePicker";
+import { blockTintChoiceGroups } from "../_common/tintSelector/tints";
+import { currentBlockTextureId } from "./constants";
 import {
   parseAtlas,
   updateCustomTextureAtlas,
   updateCustomTextureUrl,
-} from "@genroot/generators/_common/textures/customTextureVersion";
-import { drawBlock } from "@genroot/generators/minecraftBlock/shapes/block";
-import { drawSlab } from "@genroot/generators/minecraftBlock/shapes/slab";
-import { drawStair } from "@genroot/generators/minecraftBlock/shapes/stair";
-import { drawFence } from "@genroot/generators/minecraftBlock/shapes/fence";
-import { drawDoor } from "@genroot/generators/minecraftBlock/shapes/door";
-import { drawTrapdoor } from "@genroot/generators/minecraftBlock/shapes/trapdoor";
-import { drawSnow } from "@genroot/generators/minecraftBlock/shapes/snow";
-import { drawCake } from "@genroot/generators/minecraftBlock/shapes/cake";
-import { drawShelf } from "@genroot/generators/minecraftBlock/shapes/shelf";
+} from "../_common/textures/customTextureVersion";
+import { drawBlock } from "./shapes/block";
+import { drawSlab } from "./shapes/slab";
+import { drawStair } from "./shapes/stair";
+import { drawFence } from "./shapes/fence";
+import { drawDoor } from "./shapes/door";
+import { drawTrapdoor } from "./shapes/trapdoor";
+import { drawSnow } from "./shapes/snow";
+import { drawCake } from "./shapes/cake";
+import { drawShelf } from "./shapes/shelf";
 
 import thumnbailImage from "./thumbnail/v2-thumbnail-256.jpeg";
 import backgroundImage from "./images/Background.png";
@@ -169,29 +169,10 @@ const script: ScriptDef = (generator: Generator) => {
     return (
       <TexturePicker
         versionId={versionId}
-        blend={resolvedCurrentTexture ? resolvedCurrentTexture.blend : null}
-        onTextureSelected={(selectedTexture) => {
-          const newTexture: SelectedTexture = {
-            ...selectedTexture,
-            blend:
-              selectedTexture.textureDefId === ""
-                ? null
-                : resolvedCurrentTexture
-                  ? resolvedCurrentTexture.blend
-                  : null,
-          };
-          onChange(encodeSelectedTexture(newTexture));
-        }}
-        onBlendSelected={(blend) => {
-          if (!resolvedCurrentTexture) {
-            return;
-          }
-          onChange(
-            encodeSelectedTexture({
-              ...resolvedCurrentTexture,
-              blend,
-            })
-          );
+        selectedTexture={resolvedCurrentTexture}
+        tintChoiceGroups={blockTintChoiceGroups}
+        onChange={(selectedTexture) => {
+          onChange(encodeSelectedTexture(selectedTexture));
         }}
       />
     );
@@ -273,20 +254,24 @@ const script: ScriptDef = (generator: Generator) => {
     }
   }
 
-  generator.defineButtonInput("Clear", () => {
-    const currentTextureChoice = generator.getStringInputValue(
-      currentBlockTextureId
-    );
-
-    generator.clearAllVariables();
-
-    if (currentTextureChoice) {
-      generator.setStringInputValue(
-        currentBlockTextureId,
-        currentTextureChoice
+  generator.defineButtonInput(
+    "Clear",
+    () => {
+      const currentTextureChoice = generator.getStringInputValue(
+        currentBlockTextureId
       );
-    }
-  }, "Red");
+
+      generator.clearAllVariables();
+
+      if (currentTextureChoice) {
+        generator.setStringInputValue(
+          currentBlockTextureId,
+          currentTextureChoice
+        );
+      }
+    },
+    "Red"
+  );
 
   generator.drawImage("Title", [0, 0]);
 };
