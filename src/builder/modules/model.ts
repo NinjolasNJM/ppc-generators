@@ -48,12 +48,18 @@ export class Model {
     });
   }
 
-  addRegionControl(pageId: string, region: Region, onClick: () => void) {
+  addRegionControl(
+    pageId: string,
+    region: Region,
+    onClick: () => void,
+    id?: string
+  ) {
     this.addControl({
       kind: "Region",
       pageId,
       region,
       onClick,
+      id,
     });
   }
 

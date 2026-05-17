@@ -93,6 +93,7 @@ function MinecraftSkinFetchInput({
         </div>
 
         <Button
+          title="Fetch skin"
           size="Small"
           state={buttonState}
           onClick={() => void onFetchSkin()}

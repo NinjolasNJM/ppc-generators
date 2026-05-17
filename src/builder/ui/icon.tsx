@@ -1,5 +1,8 @@
 import {
   ArrowDownIcon as HeroArrowDownIcon,
+  ArrowsRightLeftIcon as HeroArrowsRightLeftIcon,
+  ArrowsUpDownIcon as HeroArrowsUpDownIcon,
+  BackspaceIcon as HeroBackspaceIcon,
   ArrowPathIcon as HeroArrowPathIcon,
   XMarkIcon as HeroXMarkIcon,
 } from "@heroicons/react/24/outline";
@@ -74,4 +77,34 @@ export function XMarkIcon({
   color?: IconColor;
 }) {
   return <HeroXMarkIcon className={makeClassName(size, color)} />;
+}
+
+export function BackspaceIcon({
+  size = "Medium",
+  color = "Black",
+}: {
+  size?: IconSize;
+  color?: IconColor;
+}) {
+  return <HeroBackspaceIcon className={makeClassName(size, color)} />;
+}
+
+export function ArrowsRightLeftIcon({
+  size = "Medium",
+  color = "Black",
+}: {
+  size?: IconSize;
+  color?: IconColor;
+}) {
+  return <HeroArrowsRightLeftIcon className={makeClassName(size, color)} />;
+}
+
+export function ArrowsUpDownIcon({
+  size = "Medium",
+  color = "Black",
+}: {
+  size?: IconSize;
+  color?: IconColor;
+}) {
+  return <HeroArrowsUpDownIcon className={makeClassName(size, color)} />;
 }

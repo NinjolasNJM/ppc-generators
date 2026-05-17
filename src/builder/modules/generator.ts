@@ -22,6 +22,7 @@ import {
 } from "./renderers/drawRectangle";
 import { type LineProps, drawLine } from "./renderers/drawLine";
 import { type TabOrientation, drawTab } from "./renderers/drawTab";
+import { drawText } from "./renderers/drawText";
 import { fillBackgroundColor } from "./renderers/fillBackgroundColor";
 import { type Page } from "./modelPage";
 import { fillRect } from "./renderers/fillRect";
@@ -87,9 +88,13 @@ export class Generator {
     return this.getSelectInputValue(id);
   }
 
-  defineRegionInput(region: Region, onClick: () => void): void {
+  defineRegionInput(
+    region: Region,
+    onClick: () => void,
+    id?: string
+  ): void {
     const currentPage = this.getCurrentPage();
-    this.model.addRegionControl(currentPage.id, region, onClick);
+    this.model.addRegionControl(currentPage.id, region, onClick, id);
   }
 
   defineRangeInput(
@@ -278,6 +283,11 @@ export class Generator {
       showFoldLine,
       tabAngle
     );
+  }
+
+  drawText(text: string, position: Position, size: number): void {
+    const currentPage = this.getCurrentPage();
+    drawText(currentPage.canvasWithContext, text, position, size);
   }
 
   getImagePixelColor(id: string, [x, y]: [number, number]): Color | null {

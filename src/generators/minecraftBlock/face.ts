@@ -39,7 +39,7 @@ export function defineInputRegion(
         encodeSelectedTextureWithBlendArray(newFaceTextures);
       generator.setStringInputValue(faceId, newFaceTexturesJson);
     }
-  });
+  }, faceId);
 }
 
 function drawTexture(
@@ -53,13 +53,13 @@ function drawTexture(
     return;
   }
 
-  const { textureDefId, frame, rotation } = face.selectedTexture;
+  const { textureDefId, frame, rotation, flip } = face.selectedTexture;
   const [dx, dy, dw, dh] = destination;
 
-  const [sx, sy, sw, sh] = source;
-  const [fx, fy] = frame.rectangle;
+  const [sx, sy] = source;
+  const [fx, fy, fw, fh] = frame.rectangle;
 
-  const sourceRegion: Region = [sx + fx, sy + fy, sw, sh];
+  const sourceRegion: Region = [sx + fx, sy + fy, fw, fh];
 
   const destinationRegion: Region = (() => {
     switch (rotation) {
@@ -97,6 +97,7 @@ function drawTexture(
   const optionsWithRotate: DrawTextureOptions = {
     ...options,
     rotate,
+    flip,
     blend,
   };
 

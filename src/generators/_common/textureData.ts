@@ -1,4 +1,4 @@
-import { type TextureDef } from "./generatorDef";
+import { type TextureDef } from "@genroot/builder/modules/generatorDef";
 
 // These "TextureData" types are the shapes of the generated texture data.
 
@@ -52,27 +52,19 @@ function tileToTextureFrames(
   if (xMod > 0 || yMod > 0) {
     return [];
   }
-  const rows = tile.height / frameSize;
-  const cols = tile.width / frameSize;
+  const frameCount = tile.frames.length;
   const frames: TextureFrame[] = [];
-  for (let col = 0; col < cols; col++) {
-    for (let row = 0; row < rows; row++) {
-      const frameIndex = col * rows + row;
-      const id = tile.name + "_" + String(frameIndex);
-      const frame: TextureFrame = {
-        id,
-        name: tile.name,
-        rectangle: [
-          tile.x + col * frameSize,
-          tile.y + row * frameSize,
-          frameSize,
-          frameSize,
-        ],
-        frameIndex,
-        frameCount: rows * cols,
-      };
-      frames.push(frame);
-    }
+  for (let frameIndex = 0; frameIndex < frameCount; frameIndex++) {
+    const tileFrame = tile.frames[frameIndex]!;
+    const id = frameCount > 1 ? tile.name + "_" + String(frameIndex) : tile.name;
+    const frame: TextureFrame = {
+      id,
+      name: tile.name,
+      rectangle: [tileFrame.x, tileFrame.y, tileFrame.width, tileFrame.height],
+      frameIndex,
+      frameCount,
+    };
+    frames.push(frame);
   }
 
   return frames;

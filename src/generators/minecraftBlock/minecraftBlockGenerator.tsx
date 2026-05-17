@@ -118,6 +118,7 @@ const script: ScriptDef = (generator: Generator) => {
     return (
       <TexturePicker
         versionId={versionId}
+        blend={currentTexture ? currentTexture.blend : null}
         onTextureSelected={(selectedTexture) => {
           const newTexture: SelectedTextureWithBlend = {
             selectedTexture,

@@ -32,6 +32,7 @@ import { generator as minecraftVillagerCharacterGenerator } from "@genroot/gener
 import { generator as minecraftWitherGenerator } from "@genroot/generators/minecraftWither/minecraftWitherGenerator";
 import { generator as minecraftWolfCharacterGenerator } from "@genroot/generators/minecraftWolfCharacter/minecraftWolfCharacterGenerator";
 import { generator as minecraftArmorGenerator } from "@genroot/generators/minecraftArmor/minecraftArmorGenerator";
+import { generator as testingGenerator } from "@genroot/generators/testing/testingGenerator";
 
 const isProductionEnvironment: boolean = process.env.NODE_ENV === "production";
 const isDevelopmentEnvironment: boolean = process.env.NODE_ENV === "development";
@@ -91,7 +92,7 @@ export const dev: GeneratorDef[] = isDevelopmentEnvironment
 
 export const test: GeneratorDef[] = isProductionEnvironment
   ? []
-  : [exampleGenerator];
+  : [exampleGenerator, testingGenerator];
 
 function concatArrays<GeneratorDef>(arrays: Array<Array<GeneratorDef>>) {
   return arrays.reduce((acc, val) => acc.concat(val), []);
