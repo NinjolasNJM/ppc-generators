@@ -258,6 +258,14 @@ export function TexturePicker({
   const [rotation, setRotation] = React.useState<Rotation>("Rot0");
   const [flip, setFlip] = React.useState<Flip>("None");
 
+  React.useEffect(() => {
+    if (selectedFrame && !frames.some((frame) => frame.id === selectedFrame.id)) {
+      setSelectedFrame(null);
+      setRotation("Rot0");
+      setFlip("None");
+    }
+  }, [frames, selectedFrame]);
+
   const framesFiltered = search
     ? frames.filter((frame) => matchesTextureSearch(frame.name, search))
     : frames;

@@ -3,6 +3,7 @@ import React from "react";
 import { type Texture } from "@genroot/builder/modules/texture";
 import { type Model } from "@genroot/builder/modules/model";
 import { TextureControl } from "./textureControl";
+import { AtlasControl } from "./atlasControl";
 import { BooleanControl } from "./booleanControl";
 import { SelectControl } from "./selectControl";
 import { RangeControl } from "./rangeControl";
@@ -29,6 +30,21 @@ export function Controls({
       model.addTexture(id, texture);
     } else {
       model.removeTexture(id);
+    }
+    onChange(model);
+  };
+
+  const onAtlasChange = (
+    id: string,
+    texture: Texture | null,
+    frames: string | null
+  ) => {
+    if (texture) {
+      model.addTexture(id, texture);
+      model.setStringVariable(`${id} Frames`, frames ?? "");
+    } else {
+      model.removeTexture(id);
+      model.setStringVariable(`${id} Frames`, "");
     }
     onChange(model);
   };
@@ -93,11 +109,28 @@ export function Controls({
               <TextureControl
                 key={control.id}
                 id={control.id}
+                label={control.props.label}
                 choices={control.props.choices}
                 standardWidth={control.props.standardWidth}
                 standardHeight={control.props.standardHeight}
                 textures={model.values.textures}
                 onChange={(texture) => onTextureChange(control.id, texture)}
+              />
+            );
+          }
+          case "AtlasInput": {
+            return (
+              <AtlasControl
+                key={control.id}
+                id={control.id}
+                label={control.props.label}
+                choices={control.props.choices}
+                standardWidth={control.props.standardWidth}
+                standardHeight={control.props.standardHeight}
+                textures={model.values.textures}
+                onChange={(texture, frames) =>
+                  onAtlasChange(control.id, texture, frames)
+                }
               />
             );
           }

@@ -14,6 +14,7 @@ export function TexturePicker(props: {
     <div>
       <div className="mb-8">
         <CommonTexturePicker
+          key={textureDef.id}
           textureDef={textureDef}
           frames={frames}
           onSelect={props.onSelect}

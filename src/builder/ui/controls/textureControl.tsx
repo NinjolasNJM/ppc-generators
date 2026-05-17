@@ -8,6 +8,7 @@ import { type SelectOption, Select } from "../form/select";
 
 export function TextureControl({
   id,
+  label,
   choices,
   standardWidth,
   standardHeight,
@@ -15,6 +16,7 @@ export function TextureControl({
   onChange,
 }: {
   id: string;
+  label?: string;
   choices: string[];
   standardWidth: number;
   standardHeight: number;
@@ -64,7 +66,7 @@ export function TextureControl({
   return (
     <fieldset className="mb-4 min-w-0">
       <legend className="font-bold mb-1" id={legendId}>
-        {id}
+        {label ?? id}
       </legend>
       <div className="flex flex-wrap">
         <div className="flex mb-4 space-x-4 items-center mr-4">

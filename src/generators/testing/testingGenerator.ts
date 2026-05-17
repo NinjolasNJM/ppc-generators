@@ -10,6 +10,7 @@ import type {
   ThumbnailDef,
 } from "@genroot/builder/modules/generatorDef";
 import { type Generator } from "@genroot/builder/modules/generator";
+import { type Atlas } from "../_common/textureData";
 
 import thumbnailImage from "./images/thumbnail.png";
 import testSheetImage from "./images/testSheet.png";
@@ -20,6 +21,7 @@ const name = "Testing";
 
 const history: HistoryDef = [
   "16 May 2026 Codex - Added a visual regression board for shared rendering cases.",
+  "17 May 2026 Codex - Added an atlas input case for multi-texture uploads.",
 ];
 
 const thumbnail: ThumbnailDef = {
@@ -77,6 +79,31 @@ const script: ScriptDef = (generator: Generator) => {
   // Render both sources to the same destination size so density is the only difference.
   generator.drawTexture("TestSheet", [0, 0, 16, 16], [48, 64, 128, 128]);
   generator.drawTexture("TestSheet", [16, 0, 32, 32], [176, 64, 128, 128]);
+
+  generator.defineAtlasInput("Textures", {
+    standardWidth: 16,
+    standardHeight: 16,
+    choices: [],
+    label: "Textures",
+  });
+
+  const atlasJson = generator.getStringInputValue("Textures Frames");
+  const atlas: Atlas | null = atlasJson ? JSON.parse(atlasJson) : null;
+
+  if (generator.hasTexture("Textures") && atlas) {
+    // Pack multiple uploads into one atlas and render the resulting frames.
+    generator.usePage("Atlas Input");
+    let drawY = 32;
+    atlas.frames.forEach((tile) => {
+      const [srcX, srcY, width, height] = tile.rectangle;
+      generator.drawTexture(
+        "Textures",
+        [srcX, srcY, width, height],
+        [32, drawY, width * 2, height * 2]
+      );
+      drawY += height * 2 + 12;
+    });
+  }
 };
 
 export const generator: GeneratorDef = {
