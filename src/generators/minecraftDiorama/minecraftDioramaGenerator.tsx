@@ -26,16 +26,19 @@ import { TexturePicker } from "../_common/plugins/texturePicker/texturePicker";
 import { blockTintChoiceGroups } from "../_common/plugins/texturePicker/tints";
 import { drawBlocks } from "./editModes/blocks";
 import {
+  defineAndGetPresetInput,
   drawDestinationRegions,
   getCurrentDestination,
 } from "./editModes/destination";
 import { drawFolds } from "./editModes/folds";
 import {
-  defaultDestination,
   defaultSource,
   getColumnCountThatFits,
+  getDefaultDestinationForPreset,
   getDioramaDocument,
   getRowCountThatFits,
+  makeEmptyDioramaDocument,
+  setDioramaDocument,
   type DioramaOptions,
 } from "./editModes/shared";
 import { drawSourceRegions, getCurrentSource } from "./editModes/source";
@@ -254,7 +257,12 @@ const script: ScriptDef = (generator: Generator) => {
 
   defineCustomTextureInput(generator, versionId);
   drawTexturePicker(generator, versionId);
-
+  const { dioramaSize, dioramaWidth, dioramaHeight } =
+    getDioramaDimensions(generator);
+  const document = defineAndGetPresetInput(
+    generator,
+    getDioramaDocument(generator)
+  );
   const editMode = generator.defineAndGetSelectInput("Edit Mode", [
     "Blocks",
     "Tabs",
@@ -262,15 +270,16 @@ const script: ScriptDef = (generator: Generator) => {
     "Source",
     "Destination",
   ]);
-  const document = getDioramaDocument(generator);
   const currentSource =
     editMode === "Source" ? getCurrentSource(generator) : defaultSource;
   const currentDestination =
     editMode === "Destination"
-      ? getCurrentDestination(generator)
-      : defaultDestination;
-  const { dioramaSize, dioramaWidth, dioramaHeight } =
-    getDioramaDimensions(generator);
+      ? getCurrentDestination(
+          generator,
+          getDefaultDestinationForPreset(document.preset)
+        )
+      : getDefaultDestinationForPreset(document.preset);
+
   const isLandscape = generator.defineAndGetBooleanInput(
     "Landscape Mode",
     false
@@ -295,7 +304,7 @@ const script: ScriptDef = (generator: Generator) => {
   const columns = getColumnCountThatFits({ baseWidth, width, document });
   const rows = getRowCountThatFits({ baseHeight, height, document });
 
-  drawDiorama(generator, {
+  const dioramaOptions: DioramaOptions = {
     ox,
     oy,
     width,
@@ -307,67 +316,81 @@ const script: ScriptDef = (generator: Generator) => {
     document,
     currentSource,
     currentDestination,
-  });
+  };
 
-  generator.defineButtonInput("Clear", () => {
-    const currentTextureChoice = generator.getStringInputValue(
-      "CurrentBlockTexture"
-    );
-    const currentVersionId = versionId;
-    const currentEditMode = editMode;
-    const currentDioramaSize = dioramaSize;
-    const currentPageFormat = isLandscape;
-    const currentShowEditRegions = showEditRegions;
-    const currentSourceX = generator.getNumberVariable("Source X");
-    const currentSourceY = generator.getNumberVariable("Source Y");
-    const currentSourceWidth = generator.getNumberVariable("Source Width");
-    const currentSourceHeight = generator.getNumberVariable("Source Height");
-    const currentDestinationWidth =
-      generator.getNumberVariable("Destination Width");
-    const currentDestinationHeight =
-      generator.getNumberVariable("Destination Height");
+  drawDiorama(generator, dioramaOptions);
 
-    generator.clearAllVariables();
-
-    if (currentTextureChoice) {
-      generator.setStringInputValue(
-        "CurrentBlockTexture",
-        currentTextureChoice
+  generator.defineButtonInput(
+    "Clear",
+    () => {
+      const currentTextureChoice = generator.getStringInputValue(
+        "CurrentBlockTexture"
       );
-    }
-    if (currentVersionId) {
-      generator.setSelectInputValue("Version", currentVersionId);
-    }
-    if (currentEditMode) {
-      generator.setSelectInputValue("Edit Mode", currentEditMode);
-    }
-    if (currentDioramaSize) {
-      generator.setSelectInputValue("Diorama Size", currentDioramaSize);
-    }
-    generator.setBooleanInputValue("Landscape Mode", currentPageFormat);
-    generator.setBooleanInputValue("Show Edit Regions", currentShowEditRegions);
-    if (currentSourceX !== null) {
-      generator.setNumberVariable("Source X", currentSourceX);
-    }
-    if (currentSourceY !== null) {
-      generator.setNumberVariable("Source Y", currentSourceY);
-    }
-    if (currentSourceWidth !== null) {
-      generator.setNumberVariable("Source Width", currentSourceWidth);
-    }
-    if (currentSourceHeight !== null) {
-      generator.setNumberVariable("Source Height", currentSourceHeight);
-    }
-    if (currentDestinationWidth !== null) {
-      generator.setNumberVariable("Destination Width", currentDestinationWidth);
-    }
-    if (currentDestinationHeight !== null) {
-      generator.setNumberVariable(
-        "Destination Height",
-        currentDestinationHeight
+      const currentVersionId = versionId;
+      const currentEditMode = editMode;
+      const currentDioramaSize = dioramaSize;
+      const currentPageFormat = isLandscape;
+      const currentShowEditRegions = showEditRegions;
+      const currentSourceX = generator.getNumberVariable("Source X");
+      const currentSourceY = generator.getNumberVariable("Source Y");
+      const currentSourceWidth = generator.getNumberVariable("Source Width");
+      const currentSourceHeight = generator.getNumberVariable("Source Height");
+      const currentDestinationWidth =
+        generator.getNumberVariable("Destination Width");
+      const currentDestinationHeight =
+        generator.getNumberVariable("Destination Height");
+      const currentPreset = document.preset;
+
+      generator.clearAllVariables();
+
+      if (currentTextureChoice) {
+        generator.setStringInputValue(
+          "CurrentBlockTexture",
+          currentTextureChoice
+        );
+      }
+      if (currentVersionId) {
+        generator.setSelectInputValue("Version", currentVersionId);
+      }
+      if (currentEditMode) {
+        generator.setSelectInputValue("Edit Mode", currentEditMode);
+      }
+      if (currentDioramaSize) {
+        generator.setSelectInputValue("Diorama Size", currentDioramaSize);
+      }
+      generator.setBooleanInputValue("Landscape Mode", currentPageFormat);
+      generator.setBooleanInputValue(
+        "Show Edit Regions",
+        currentShowEditRegions
       );
-    }
-  });
+      if (currentSourceX !== null) {
+        generator.setNumberVariable("Source X", currentSourceX);
+      }
+      if (currentSourceY !== null) {
+        generator.setNumberVariable("Source Y", currentSourceY);
+      }
+      if (currentSourceWidth !== null) {
+        generator.setNumberVariable("Source Width", currentSourceWidth);
+      }
+      if (currentSourceHeight !== null) {
+        generator.setNumberVariable("Source Height", currentSourceHeight);
+      }
+      if (currentDestinationWidth !== null) {
+        generator.setNumberVariable(
+          "Destination Width",
+          currentDestinationWidth
+        );
+      }
+      if (currentDestinationHeight !== null) {
+        generator.setNumberVariable(
+          "Destination Height",
+          currentDestinationHeight
+        );
+      }
+      setDioramaDocument(generator, makeEmptyDioramaDocument(currentPreset));
+    },
+    "Red"
+  );
 
   generator.drawImage(
     isLandscape ? "Title Landscape" : "Title Portrait",

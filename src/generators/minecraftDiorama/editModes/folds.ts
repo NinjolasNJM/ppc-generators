@@ -4,6 +4,7 @@ import {
 } from "@genroot/builder/modules/generator";
 import {
   drawRectangleButton,
+  makeEdgeControlRegions,
   makeEdgeRegions,
   type DioramaOptions,
   type RegionDef,
@@ -11,16 +12,20 @@ import {
 
 export function drawFolds(generator: Generator, options: DioramaOptions) {
   const regions = makeEdgeRegions(options);
+  const controlRegions = new Map(
+    makeEdgeControlRegions(options).map(({ id, region }) => [id, region])
+  );
 
   regions.forEach(({ id, region, rotation }) => {
+    const controlRegion = controlRegions.get(id) ?? region;
     const foldId = `Folds${id}`;
     const isFoldEnabled = generator.getBooleanInputValue(foldId) ?? false;
 
     if (options.editMode === "Folds") {
       if (options.showEditRegions) {
-        drawRectangleButton(generator, region);
+        drawRectangleButton(generator, controlRegion);
       }
-      generator.defineRegionInput(region, () => {
+      generator.defineRegionInput(controlRegion, () => {
         generator.setBooleanInputValue(foldId, !isFoldEnabled);
       });
     }
