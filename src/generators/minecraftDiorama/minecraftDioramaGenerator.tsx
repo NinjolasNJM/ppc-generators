@@ -503,7 +503,9 @@ const script: ScriptDef = (generator: Generator) => {
     false
   );
 
-  generator.usePage("Page");
+  generator.usePage("Page", {
+    orientation: isLandscape ? "landscape" : "portrait",
+  });
   generator.fillBackgroundColorWithWhite();
   generator.drawImage("Background", [0, 0]);
 
