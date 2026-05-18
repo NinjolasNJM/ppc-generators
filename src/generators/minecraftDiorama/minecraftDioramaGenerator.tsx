@@ -5,7 +5,6 @@ import type {
   HistoryDef,
   ImageDef,
   ScriptDef,
-  TextureDef,
   ThumbnailDef,
 } from "@genroot/builder/modules/generatorDef";
 import { type Generator } from "@genroot/builder/modules/generator";
@@ -54,18 +53,6 @@ import thumbnailImage from "./thumbnail/v2-thumbnail-256.jpeg";
 import backgroundImage from "./images/Background.png";
 import titleLandscapeImage from "./images/TitleLandscape.png";
 import titlePortraitImage from "./images/TitlePortrait.png";
-import cornerTexture from "./textures/Corner.png";
-import debugTexture from "./textures/debug.png";
-import foldTexture from "./textures/Fold.png";
-import foldCornerTexture from "./textures/FoldCorner.png";
-import foldSlabTexture from "./textures/FoldSlab.png";
-import slabTexture from "./textures/Slab.png";
-import tabTexture from "./textures/Tab.png";
-import tabCornerTexture from "./textures/TabCorner.png";
-import tabLeftTexture from "./textures/TabLeft.png";
-import tabMiddleTexture from "./textures/TabMiddle.png";
-import tabRightTexture from "./textures/TabRight.png";
-import tabSlabTexture from "./textures/TabSlab.png";
 
 const id = "minecraft-diorama";
 
@@ -153,82 +140,7 @@ const images: ImageDef[] = [
   { id: "Title Portrait", url: titlePortraitImage.src },
 ];
 
-const dioramaTextureDefs: TextureDef[] = [
-  {
-    id: "Diorama Corner",
-    url: cornerTexture.src,
-    standardWidth: 128,
-    standardHeight: 128,
-  },
-  {
-    id: "Diorama Debug",
-    url: debugTexture.src,
-    standardWidth: 128,
-    standardHeight: 128,
-  },
-  {
-    id: "Diorama Fold",
-    url: foldTexture.src,
-    standardWidth: 128,
-    standardHeight: 128,
-  },
-  {
-    id: "Diorama Fold Corner",
-    url: foldCornerTexture.src,
-    standardWidth: 128,
-    standardHeight: 128,
-  },
-  {
-    id: "Diorama Fold Slab",
-    url: foldSlabTexture.src,
-    standardWidth: 128,
-    standardHeight: 128,
-  },
-  {
-    id: "Diorama Slab",
-    url: slabTexture.src,
-    standardWidth: 128,
-    standardHeight: 128,
-  },
-  {
-    id: "Diorama Tab",
-    url: tabTexture.src,
-    standardWidth: 128,
-    standardHeight: 128,
-  },
-  {
-    id: "Diorama Tab Corner",
-    url: tabCornerTexture.src,
-    standardWidth: 128,
-    standardHeight: 128,
-  },
-  {
-    id: "Diorama Tab Left",
-    url: tabLeftTexture.src,
-    standardWidth: 128,
-    standardHeight: 128,
-  },
-  {
-    id: "Diorama Tab Middle",
-    url: tabMiddleTexture.src,
-    standardWidth: 128,
-    standardHeight: 128,
-  },
-  {
-    id: "Diorama Tab Right",
-    url: tabRightTexture.src,
-    standardWidth: 128,
-    standardHeight: 128,
-  },
-  {
-    id: "Diorama Tab Slab",
-    url: tabSlabTexture.src,
-    standardWidth: 128,
-    standardHeight: 128,
-  },
-];
-
-const textures: TextureDef[] = allTextureDefs.concat(dioramaTextureDefs);
+const textures = allTextureDefs;
 
 function drawTexturePicker(generator: Generator, versionId: string | null) {
   const currentTextureJson = generator.getStringInputValue(
