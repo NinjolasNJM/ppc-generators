@@ -34,7 +34,13 @@ export function PrintImageButton({
   };
 
   return (
-    <Button title="Print page" state="Ready" size="Medium" onClick={onClick}>
+    <Button
+      title="Print page"
+      state="Ready"
+      color="Green"
+      size="Medium"
+      onClick={onClick}
+    >
       <span className="sm:hidden">Print</span>
       <span className="hidden sm:inline">Print page</span>
     </Button>
