@@ -43,6 +43,7 @@ import {
 } from "./editModes/shared";
 import { drawSourceRegions, getCurrentSource } from "./editModes/source";
 import { drawTabs } from "./editModes/tabs";
+import { defineDioramaSaveInput } from "./saveControl";
 
 import thumbnailImage from "./thumbnail/v2-thumbnail-256.jpeg";
 import backgroundImage from "./images/Background.png";
@@ -288,6 +289,7 @@ const script: ScriptDef = (generator: Generator) => {
     "Show Edit Regions",
     false
   );
+  defineDioramaSaveInput(generator);
 
   generator.usePage("Page", {
     orientation: isLandscape ? "landscape" : "portrait",
