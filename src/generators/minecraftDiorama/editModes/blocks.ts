@@ -1,5 +1,5 @@
 import type { Generator } from "@genroot/builder/modules/generator";
-import * as Face from "../../_common/plugins/texturePicker/face";
+import * as Face from "../../minecraftBlock/face";
 import {
   drawRectangleButton,
   getSourceForFace,

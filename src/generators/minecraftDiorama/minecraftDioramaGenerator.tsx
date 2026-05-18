@@ -23,7 +23,7 @@ import {
   versionIdsBlocksFirst as versionIds,
 } from "../_common/textures/textureVersions";
 import { TexturePicker } from "../_common/plugins/texturePicker/texturePicker";
-import { blockTintChoiceGroups } from "../_common/plugins/texturePicker/tints";
+import { blockTintChoiceGroups } from "../_common/tintSelector/tints";
 import { drawBlocks } from "./editModes/blocks";
 import {
   defineAndGetPresetInput,
