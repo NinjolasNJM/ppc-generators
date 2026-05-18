@@ -239,9 +239,19 @@ export class Model {
   }
 
   usePage(id: string, options: PageOptions = {}) {
+    const size = options.size ?? "A4";
+    const orientation = options.orientation ?? "portrait";
     const page = this.findPage(id);
     if (page) {
-      this.setCurrentPage(page);
+      if (page.size === size && page.orientation === orientation) {
+        this.setCurrentPage(page);
+        return;
+      }
+
+      const replacementPage = makePage(id, options);
+      const pageIndex = this.pages.indexOf(page);
+      this.pages.splice(pageIndex, 1, replacementPage);
+      this.setCurrentPage(replacementPage);
       return;
     }
 
