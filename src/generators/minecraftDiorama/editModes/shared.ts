@@ -409,7 +409,8 @@ export function makeEdgeControlRegions({
 export function drawRectangleButton(generator: Generator, region: Region) {
   generator.drawRectangle(region, {
     color: "#2d9cdb",
-    lineDash: [3, 3],
+    lineDash: [2, 2],
+    lineDashOffset: 3,
     width: 1,
   });
 }
