@@ -13,7 +13,14 @@ import {
   decodeSelectedTextures,
   encodeSelectedTextures,
 } from "@genroot/builder/ui/texturePicker/selectedTexture";
+import { type Flip } from "@genroot/builder/ui/texturePicker/flip";
+import { type Rotation } from "@genroot/builder/ui/texturePicker/rotation";
 import { currentBlockTextureId } from "./constants";
+
+export type FaceTextureTransform = {
+  rotate: 0 | 90 | 180 | 270;
+  flip: Flip;
+};
 
 export function defineInputRegion(
   generator: Generator,
@@ -152,4 +159,42 @@ export function drawFace(
       drawTexture(generator, selectedTexture, source, destination, options);
     });
   }
+}
+
+export function drawFaceWithTextureTransform(
+  generator: Generator,
+  faceId: string,
+  source: Region,
+  destination: Region,
+  transform: FaceTextureTransform
+) {
+  const faceTexturesJson = generator.getStringInputValue(faceId);
+  if (faceTexturesJson) {
+    const faceTextures = decodeSelectedTextures(faceTexturesJson);
+    faceTextures.forEach((selectedTexture: SelectedTexture) => {
+      drawTexture(
+        generator,
+        {
+          ...selectedTexture,
+          rotation: rotateTextureRotation(
+            selectedTexture.rotation,
+            transform.rotate
+          ),
+        },
+        source,
+        destination,
+        { flip: transform.flip }
+      );
+    });
+  }
+}
+
+function rotateTextureRotation(
+  rotation: Rotation,
+  degrees: FaceTextureTransform["rotate"]
+): Rotation {
+  const rotations: Rotation[] = ["Rot0", "Rot90", "Rot180", "Rot270"];
+  const currentIndex = rotations.indexOf(rotation);
+  const addIndex = degrees / 90;
+  return rotations[(currentIndex + addIndex) % rotations.length] ?? "Rot0";
 }
