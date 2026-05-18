@@ -34,17 +34,23 @@ export function Pages({
           model.pages.length > 1
             ? `${generatorDef.name} - ${page.id}`
             : generatorDef.name;
+        const isFirstPage = pageIndex === 0;
 
         return (
           <div key={page.id}>
-            {showPageIds ? (
+            {showPageIds && !isFirstPage ? (
               <h1 className="font-bold text-2xl mb-4">{page.id}</h1>
             ) : null}
 
             <div
-              className="mb-6 flex flex-wrap items-center justify-between gap-2"
+              className="relative mb-6 flex flex-wrap items-center justify-between gap-2"
               style={{ maxWidth: px(page.sizes.px.width) }}
             >
+              {showPageIds && isFirstPage ? (
+                <h1 className="absolute -top-10 left-0 font-bold text-2xl">
+                  {page.id}
+                </h1>
+              ) : null}
               <div className="flex flex-wrap items-center gap-3">
                 <PrintImageButton dataUrl={dataUrl} page={page} />
                 {pageIndex === 0 ? (
@@ -56,7 +62,6 @@ export function Pages({
               </div>
             </div>
 
-            {/* Important: The following div uses absolute positioning for the regions. */}
             <div
               className="relative"
               style={{

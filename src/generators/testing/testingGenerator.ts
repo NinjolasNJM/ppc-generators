@@ -11,7 +11,6 @@ import type {
 } from "@genroot/builder/modules/generatorDef";
 import { type Generator } from "@genroot/builder/modules/generator";
 import { type Atlas } from "@genroot/builder/modules/textureData";
-import { defineDioramaSaveInput } from "../minecraftDiorama/saveControl";
 
 import thumbnailImage from "./images/thumbnail.png";
 import testSheetImage from "./images/testSheet.png";
@@ -23,7 +22,6 @@ const name = "Testing";
 const history: HistoryDef = [
   "16 May 2026 Codex - Added a visual regression board for shared rendering cases.",
   "17 May 2026 Codex - Added an atlas input case for multi-texture uploads.",
-  "18 May 2026 Codex - Added a diorama JSON import/export example.",
 ];
 
 const thumbnail: ThumbnailDef = {
@@ -111,33 +109,6 @@ const script: ScriptDef = (generator: Generator) => {
       drawY += height * 2 + 12;
     });
   }
-
-  generator.usePage("Diorama Save Example");
-  generator.defineText("Diorama JSON import/export example");
-  if (!generator.getStringInputValue("DioramaDocument")) {
-    generator.setStringInputValue(
-      "DioramaDocument",
-      JSON.stringify({
-        preset: "Quarter Blocks",
-        sources: {
-          "BlockFace0 0": [0, 0, 8, 8],
-          "BlockFace1 0": [8, 0, 8, 8],
-        },
-        destinationColumns: {
-          "0": 8,
-          "1": 8,
-        },
-        destinationRows: {
-          "0": 8,
-        },
-      })
-    );
-    generator.setStringInputValue("BlockFace0 0", "testing-face-json");
-    generator.setStringInputValue("TabsNorth0 0", "1");
-    generator.setBooleanInputValue("FoldsEast0 0", true);
-    generator.setNumberVariable("Source X", 0.5);
-  }
-  defineDioramaSaveInput(generator);
 };
 
 export const generator: GeneratorDef = {
