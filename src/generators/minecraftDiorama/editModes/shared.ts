@@ -286,15 +286,17 @@ export function makeEdgeRegions({
   const rowHeights = makeRowHeights({ height, rows, document });
   const columnOffsets = makeOffsets(columnWidths);
   const rowOffsets = makeOffsets(rowHeights);
-  const tabWidth = width / 4;
-  const tabHeight = height / 4;
   const getColumnSize = (column: number) =>
     columnWidths[Math.max(0, Math.min(columns - 1, column))] ?? width;
   const getRowSize = (row: number) =>
     rowHeights[Math.max(0, Math.min(rows - 1, row))] ?? height;
+  const getTabWidth = (column: number) =>
+    Math.min(width / 4, getColumnSize(column) / 2);
+  const getTabHeight = (row: number) =>
+    Math.min(height / 4, getRowSize(row) / 2);
   const getColumnOffset = (column: number) => {
     if (column < 0) {
-      return -tabWidth;
+      return -getTabWidth(column);
     }
     if (column >= columns) {
       return getTotalSize(columnWidths);
@@ -303,7 +305,7 @@ export function makeEdgeRegions({
   };
   const getRowOffset = (row: number) => {
     if (row < 0) {
-      return -tabHeight;
+      return -getTabHeight(row);
     }
     if (row >= rows) {
       return getTotalSize(rowHeights);
@@ -317,7 +319,7 @@ export function makeEdgeRegions({
       ox + getColumnOffset(column),
       oy + getRowOffset(row),
       getColumnSize(column),
-      tabHeight,
+      getTabHeight(row),
     ],
     rotation: 2,
   });
@@ -326,10 +328,10 @@ export function makeEdgeRegions({
     region: [
       ox + getColumnOffset(column),
       row < 0
-        ? oy - tabHeight
-        : oy + getRowOffset(row) + getRowSize(row) - tabHeight,
+        ? oy - getTabHeight(row)
+        : oy + getRowOffset(row) + getRowSize(row) - getTabHeight(row),
       getColumnSize(column),
-      tabHeight,
+      getTabHeight(row),
     ],
     rotation: 0,
   });
@@ -338,7 +340,7 @@ export function makeEdgeRegions({
     region: [
       ox + getColumnOffset(column),
       oy + getRowOffset(row),
-      tabWidth,
+      getTabWidth(column),
       getRowSize(row),
     ],
     rotation: 1,
@@ -347,10 +349,13 @@ export function makeEdgeRegions({
     id: `West${column} ${row}`,
     region: [
       column < 0
-        ? ox - tabWidth
-        : ox + getColumnOffset(column) + getColumnSize(column) - tabWidth,
+        ? ox - getTabWidth(column)
+        : ox +
+          getColumnOffset(column) +
+          getColumnSize(column) -
+          getTabWidth(column),
       oy + getRowOffset(row),
-      tabWidth,
+      getTabWidth(column),
       getRowSize(row),
     ],
     rotation: 3,
