@@ -2,12 +2,26 @@ import {
   type Generator,
   type Region,
 } from "@genroot/builder/modules/generator";
+import { type Flip } from "@genroot/builder/modules/renderers/drawTexture";
 
-export type EditMode = "Blocks" | "Tabs" | "Folds" | "Source" | "Destination";
+export type EditMode =
+  | "Blocks"
+  | "Tabs"
+  | "Folds"
+  | "Source"
+  | "Destination"
+  | "Transform";
 
 export type DestinationSize = {
   width: number;
   height: number;
+};
+
+export type FaceRotation = 0 | 90 | 180 | 270;
+
+export type FaceTransform = {
+  rotate: FaceRotation;
+  flip: Flip;
 };
 
 export type BlockPreset = "Full Blocks" | "Quarter Blocks";
@@ -17,6 +31,7 @@ export type DioramaDocument = {
   sources: Record<string, Region>;
   destinationColumns: Record<string, number>;
   destinationRows: Record<string, number>;
+  transforms: Record<string, FaceTransform>;
 };
 
 export type DioramaOptions = {
@@ -31,6 +46,7 @@ export type DioramaOptions = {
   document: DioramaDocument;
   currentSource: Region;
   currentDestination: DestinationSize;
+  currentTransform: FaceTransform;
 };
 
 export type RegionDef = {
@@ -43,6 +59,7 @@ const dioramaDocumentInputId = "DioramaDocument";
 
 export const defaultSource: Region = [0, 0, 16, 16];
 export const defaultDestination: DestinationSize = { width: 16, height: 16 };
+export const defaultTransform: FaceTransform = { rotate: 0, flip: "None" };
 export const defaultPreset: BlockPreset = "Full Blocks";
 export const blockPresets: BlockPreset[] = ["Full Blocks", "Quarter Blocks"];
 
@@ -73,6 +90,7 @@ function decodeDioramaDocument(json: string | null): DioramaDocument {
         parsed.destinationRows,
         getDefaultDestinationForPreset(preset).height
       ),
+      transforms: sanitizeTransforms(parsed.transforms),
     };
   } catch {
     return makeEmptyDioramaDocument();
@@ -87,6 +105,7 @@ export function makeEmptyDioramaDocument(
     sources: {},
     destinationColumns: {},
     destinationRows: {},
+    transforms: {},
   };
 }
 
@@ -142,6 +161,66 @@ function sanitizeDestinations(
         Math.max(1, Math.round(sanitizeNumber(destination, 16))),
       ])
       .filter(([, destination]) => destination !== defaultValue)
+  );
+}
+
+function sanitizeTransforms(
+  transforms: Partial<DioramaDocument>["transforms"]
+): DioramaDocument["transforms"] {
+  return Object.fromEntries(
+    Object.entries(transforms ?? {})
+      .map(
+        ([id, transform]): [string, FaceTransform] => [
+          id,
+          sanitizeTransform(transform),
+        ]
+      )
+      .filter(([, transform]) => !isDefaultTransform(transform))
+  );
+}
+
+function sanitizeTransform(transform: unknown): FaceTransform {
+  if (!transform || typeof transform !== "object") {
+    return defaultTransform;
+  }
+
+  const candidate = transform as Partial<FaceTransform>;
+  return {
+    rotate: sanitizeFaceRotation(candidate.rotate),
+    flip: sanitizeFlip(candidate.flip),
+  };
+}
+
+function sanitizeFaceRotation(rotation: unknown): FaceRotation {
+  switch (rotation) {
+    case 90:
+      return 90;
+    case 180:
+      return 180;
+    case 270:
+      return 270;
+    case 0:
+    default:
+      return 0;
+  }
+}
+
+function sanitizeFlip(flip: unknown): Flip {
+  switch (flip) {
+    case "Horizontal":
+      return "Horizontal";
+    case "Vertical":
+      return "Vertical";
+    case "None":
+    default:
+      return "None";
+  }
+}
+
+export function isDefaultTransform(transform: FaceTransform): boolean {
+  return (
+    transform.rotate === defaultTransform.rotate &&
+    transform.flip === defaultTransform.flip
   );
 }
 
@@ -442,6 +521,13 @@ export function getSourceForFace(
   faceId: string
 ): Region {
   return document.sources[faceId] ?? getDefaultSourceForFace(document, faceId);
+}
+
+export function getTransformForFace(
+  document: DioramaDocument,
+  faceId: string
+): FaceTransform {
+  return document.transforms[faceId] ?? defaultTransform;
 }
 
 export function getDefaultDestinationForPreset(

@@ -39,10 +39,15 @@ import {
   getRowCountThatFits,
   makeEmptyDioramaDocument,
   setDioramaDocument,
+  defaultTransform,
   type DioramaOptions,
 } from "./editModes/shared";
 import { drawSourceRegions, getCurrentSource } from "./editModes/source";
 import { drawTabs } from "./editModes/tabs";
+import {
+  drawTransformRegions,
+  getCurrentTransform,
+} from "./editModes/transform";
 
 import thumbnailImage from "./thumbnail/v2-thumbnail-256.jpeg";
 import backgroundImage from "./images/Background.png";
@@ -221,6 +226,7 @@ function drawDiorama(generator: Generator, options: DioramaOptions) {
   drawTabs(generator, options);
   drawSourceRegions(generator, options);
   drawDestinationRegions(generator, options);
+  drawTransformRegions(generator, options);
   drawFolds(generator, options);
 }
 
@@ -269,6 +275,7 @@ const script: ScriptDef = (generator: Generator) => {
     "Folds",
     "Source",
     "Destination",
+    "Transform",
   ]);
   const currentSource =
     editMode === "Source" ? getCurrentSource(generator) : defaultSource;
@@ -279,6 +286,8 @@ const script: ScriptDef = (generator: Generator) => {
           getDefaultDestinationForPreset(document.preset)
         )
       : getDefaultDestinationForPreset(document.preset);
+  const currentTransform =
+    editMode === "Transform" ? getCurrentTransform(generator) : defaultTransform;
 
   const isLandscape = generator.defineAndGetBooleanInput(
     "Landscape Mode",
@@ -316,6 +325,7 @@ const script: ScriptDef = (generator: Generator) => {
     document,
     currentSource,
     currentDestination,
+    currentTransform,
   };
 
   drawDiorama(generator, dioramaOptions);
@@ -339,6 +349,8 @@ const script: ScriptDef = (generator: Generator) => {
         generator.getNumberVariable("Destination Width");
       const currentDestinationHeight =
         generator.getNumberVariable("Destination Height");
+      const currentFaceRotation = generator.getSelectInputValue("Face Rotation");
+      const currentFaceFlip = generator.getSelectInputValue("Face Flip");
       const currentPreset = document.preset;
 
       generator.clearAllVariables();
@@ -386,6 +398,12 @@ const script: ScriptDef = (generator: Generator) => {
           "Destination Height",
           currentDestinationHeight
         );
+      }
+      if (currentFaceRotation) {
+        generator.setSelectInputValue("Face Rotation", currentFaceRotation);
+      }
+      if (currentFaceFlip) {
+        generator.setSelectInputValue("Face Flip", currentFaceFlip);
       }
       setDioramaDocument(generator, makeEmptyDioramaDocument(currentPreset));
     },
