@@ -41,6 +41,7 @@ import {
   setDioramaDocument,
   defaultTransform,
   type DioramaOptions,
+  type EditMode,
 } from "./editModes/shared";
 import { drawSourceRegions, getCurrentSource } from "./editModes/source";
 import { drawTabs } from "./editModes/tabs";
@@ -495,6 +496,57 @@ function getFacePositionFromId(
   };
 }
 
+function clearDioramaEditMode(
+  generator: Generator,
+  document: ReturnType<typeof getDioramaDocument>,
+  editMode: EditMode | string | null
+): void {
+  switch (editMode) {
+    case "Blocks":
+      clearVariablesMatching(generator, /^BlockFace-?\d+ -?\d+$/);
+      break;
+    case "Tabs":
+      clearVariablesMatching(
+        generator,
+        /^Tabs(?:North|South|East|West)-?\d+ -?\d+$/
+      );
+      break;
+    case "Folds":
+      clearVariablesMatching(
+        generator,
+        /^Folds(?:North|South|East|West)-?\d+ -?\d+$/
+      );
+      break;
+    case "Source":
+      setDioramaDocument(generator, {
+        ...document,
+        sources: {},
+      });
+      break;
+    case "Destination":
+      setDioramaDocument(generator, {
+        ...document,
+        destinationColumns: {},
+        destinationRows: {},
+      });
+      break;
+    case "Transform":
+      setDioramaDocument(generator, {
+        ...document,
+        transforms: {},
+      });
+      break;
+  }
+}
+
+function clearVariablesMatching(generator: Generator, idPattern: RegExp): void {
+  Array.from(generator.model.values.variables.keys()).forEach((id) => {
+    if (idPattern.test(id)) {
+      generator.model.values.variables.delete(id);
+    }
+  });
+}
+
 const script: ScriptDef = (generator: Generator) => {
   generator.defineSelectInput("Version", versionIds);
 
@@ -589,7 +641,15 @@ const script: ScriptDef = (generator: Generator) => {
   generator.defineCustomStringInput("Diorama Clear Button Break", () => <div />);
 
   generator.defineButtonInput(
-    "Clear",
+    "Clear Edit Mode",
+    () => {
+      clearDioramaEditMode(generator, document, editMode);
+    },
+    "Red"
+  );
+
+  generator.defineButtonInput(
+    "Clear All",
     () => {
       const currentTextureChoice = generator.getStringInputValue(
         "CurrentBlockTexture"
