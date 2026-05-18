@@ -13,6 +13,29 @@ function toRadians(degrees: number): number {
   return degrees * (Math.PI / 180);
 }
 
+function getTabGeometry(
+  crossSize: number,
+  maxHeight: number,
+  tabAngle: number
+): { inset: number; tabHeight: number } {
+  const tabAngleRad = toRadians(tabAngle);
+  // Keep width-limited tabs as tiny trapezoids instead of collapsing p2/p3.
+  // Since line drawing includes both endpoints, a 1-coordinate span draws a
+  // 2-pixel flat top.
+  const minFlatTopSpan = crossSize >= 1 ? 1 : 0;
+  const maxInset = Math.max(0, (crossSize - minFlatTopSpan) / 2);
+  const idealTriangleHeight = Math.tan(tabAngleRad) * maxInset;
+  const tabHeight = Math.min(maxHeight, idealTriangleHeight);
+
+  return {
+    inset:
+      tabHeight > 0 && Math.tan(tabAngleRad) !== 0
+        ? tabHeight / Math.tan(tabAngleRad)
+        : 0,
+    tabHeight,
+  };
+}
+
 function drawTabOutline(page: CanvasWithContext, points: Point[]) {
   const [firstPoint] = points;
   if (!firstPoint) {
@@ -46,17 +69,7 @@ function drawTabNorth(
   const w2 = w - 1;
   const h2 = h - 1;
 
-  const tabAngleRad = toRadians(tabAngle);
-
-  const maxInset = w2 / 2;
-
-  let inset = h2 / Math.tan(tabAngleRad);
-  let tabHeight = 0;
-
-  [inset, tabHeight] =
-    inset > maxInset
-      ? [maxInset, Math.tan(tabAngleRad) * maxInset]
-      : [inset, h2];
+  const { inset, tabHeight } = getTabGeometry(w2, h2, tabAngle);
 
   const outerY = h2 - tabHeight;
   const baseLeft = translatePoint([0, h2], x, y);
@@ -110,16 +123,7 @@ function drawTabEast(
   const w2 = w - 1;
   const h2 = h - 1;
 
-  const tabAngleRad = toRadians(tabAngle);
-
-  const maxInset = h2 / 2;
-  let inset = w2 / Math.tan(tabAngleRad);
-  let tabHeight = 0;
-
-  [inset, tabHeight] =
-    inset > maxInset
-      ? [maxInset, Math.tan(tabAngleRad) * maxInset]
-      : [inset, w2];
+  const { inset, tabHeight } = getTabGeometry(h2, w2, tabAngle);
 
   const baseTop = translatePoint([0, 0], x, y);
   const baseBottom = translatePoint([0, h2], x, y);
@@ -165,16 +169,7 @@ function drawTabSouth(
   const w2 = w - 1;
   const h2 = h - 1;
 
-  const tabAngleRad = toRadians(tabAngle);
-
-  const maxInset = w2 / 2;
-  let inset = h2 / Math.tan(tabAngleRad);
-  let tabHeight = 0;
-
-  [inset, tabHeight] =
-    inset > maxInset
-      ? [maxInset, Math.tan(tabAngleRad) * maxInset]
-      : [inset, h2];
+  const { inset, tabHeight } = getTabGeometry(w2, h2, tabAngle);
 
   const baseLeft = translatePoint([0, 0], x, y);
   const baseRight = translatePoint([w2, 0], x, y);
@@ -225,16 +220,7 @@ function drawTabWest(
   const w2 = w - 1;
   const h2 = h - 1;
 
-  const tabAngleRad = toRadians(tabAngle);
-
-  const maxInset = h2 / 2;
-  let inset = w2 / Math.tan(tabAngleRad);
-  let tabHeight = 0;
-
-  [inset, tabHeight] =
-    inset > maxInset
-      ? [maxInset, Math.tan(tabAngleRad) * maxInset]
-      : [inset, w2];
+  const { inset, tabHeight } = getTabGeometry(h2, w2, tabAngle);
 
   const baseTop = translatePoint([w2, 0], x, y);
   const baseBottom = translatePoint([w2, h2], x, y);
