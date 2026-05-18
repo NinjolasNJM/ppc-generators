@@ -80,6 +80,68 @@ const history: HistoryDef = [
   "May 2026 NinjolasNJM - Plug generator into the TypeScript app.",
 ];
 
+const instructions = `
+## How to use the Minecraft Diorama Generator?
+* The Diorama Generator is a generator designed as an advanced version of the block generator, to aide in the creation of any papercraft using block textures, in particular dioramas.
+* It contains essentially a blank canvas to place block textures on with great control over how they are placed, and to annotate with tabs, folds, and the like.
+* With a bit of effort, it can be used to create an accurate papercraft of any block model, and make custom diorama designs in an easy and accessible way.
+
+### Grid and Pages
+* Unlike the block generator, the diorama generator's faces are arraned as a grid across the whole page.
+* Using the "Diorama Size" input, the grid's base size can be changed.
+* Using the "Add Page" and "Remove Page" buttons, pages can be added and removed from the diorama.
+* The faces of the grid will be remembered even if a page is removed, or if the scale is enlarged so that the face is no longer visible.
+* Using the "Fit Pages to Design" button, the amount of pages can be set to include all faces that have been filled.
+* This can be used to draw a design at a smaller scale on one page, then by scaling up to a larger size that the design would be printed as, the design will automatically be split into multiple pages with the same information.
+* Using the "Landscape Mode" toggle, the aspect ratio of pages can be changed to one that is landscape instead of portrait.
+* Using the "Block Preset" dropdown, the "Quarter Blocks" preset can be accessed which will change the grid to be split into quarters of blocks, allowing for the convenient setup of designs that will use stairs and slabs. There may be more presets in the future.
+
+### Edit Modes
+The Diorama Generator has a number of different edit modes, which change what the clickable regions on the page will do.
+The "Show Edit Regions" toggle will show an outline of each clickable region, for the sake of visibility.
+
+## Blocks Edit Mode 
+* Click in the texture picker to select a block texture. 
+* Block textures can be rotated, flipped, and tinted different colors.
+* Click the regions on the page to add the selected texture to the page.
+* Multiple textures can be added to the same block face.
+* Click the erase button in the texture picker to clear the selected texture. Clicking a face without a specified texture will remove the last texture placed on it.
+* Textures from different versions can be selected from the "Versions" dropdown menu. Custom textures can also be added from files.
+
+## Tabs Edit Mode
+* Click the regions on the page to place a tab.
+* Clicking the tab will cycle through different types of tabs, enabling the creation of tabs that are wider than one block face.
+
+## Folds Edit Mode
+* Click the regions on the page to place a fold.
+* When "Show Edit Regions" is enabled, the folds will temporarily appear red, for the sake of visibility.
+
+## Source Edit Mode
+* Source Mode allows for the changing of which part of the selected texture will be drawn on the face.
+* The source x, y, width and height can be changed using the range inputs.
+* Click the regions on the page to change the source of a chosen face.
+* For example, by setting y to 8 and height to 8, and clicking on a face, then whatever texture is placed on that face will draw only the bottom half of the texture on the face.
+* In Source Mode, there are additional regions on the top and left side of every row and column. Clicking them will set the source of every face in the chosen row or column.
+
+## Destination Edit Mode
+* Destination Mode allows for changing width and height of faces. In combination with the Source Mode, it can be used to make faces of custom models.
+* The destination width and height can be changed using the range inputs.
+* Click the regions on the page to change the destination of a chosen face's row and column. Every face in the same row as the chosen face will have its height changed, and every face in the same column will have its width changed.
+* For example, by setting the destination height to 8, and clicking on a face, that row of faces will become half the height of a usual row. In combination with the example given in the Source Edit Mode section, this can be used to create the side faces of slabs.
+* In Destination Mode, there are additional regions on the top and left side of every row and column. Clicking them will set the destination of every face in the chosen row or column.
+
+## Transform Edit Mode
+* Transform Mode allows for rotating and flipping faces. This is useful in combination with the other modes for some block models, and for creating accurate exported templates using the diorama generator.
+* The rotation and flip can be changed using the select inputs.
+* Click the regions on the page to change the rotation and flip of a chosen face.
+
+### Saving and Loading
+* Using the "Export JSON" button, the state the generator is in can be exported as a .json file.
+* Using the "Import JSON" button, a generator's state can be loaded in from a .json file.
+* This means that a large multipage diorama design can be saved, shared, and edited later, or that a template that could be useful with a number of blocks can be saved and shared around.
+* Exporting and Importing is also available for all generators now, so go crazy with it!
+`;
+
 const thumbnail: ThumbnailDef = {
   url: thumbnailImage.src,
 };
@@ -615,7 +677,7 @@ export const generator: GeneratorDef = {
   history,
   thumbnail,
   video: null,
-  instructions: null,
+  instructions,
   images,
   textures,
   script,

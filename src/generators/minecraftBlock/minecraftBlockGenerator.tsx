@@ -77,6 +77,25 @@ const history: HistoryDef = [
   "May 2026 NinjolasNJM - Changed to use new glint and tint input.",
 ];
 
+const instructions = `
+## How to use the Minecraft Block Generator?
+
+### Selecting and Adding Block Textures
+* Click in the texture picker to select a block texture. 
+* Block textures can be rotated, flipped, and tinted different colors.
+* Click in the papercraft template to add the selected texture to the block.
+* Multiple textures can be added to the same block face.
+* Click the erase button in the texture picker to clear the selected texture. Clicking a face without a specified texture will remove the last texture placed on it.
+* Textures from different versions can be selected from the "Versions" dropdown menu. Custom textures can also be added from files.
+
+### Block Types
+* Up to two blocks can be placed on a page, using the drop down "Number of Blocks" menu.
+* For each block, the shape can be selected from the "Block # Type" dropdown menu.
+* Some block types have different options to choose within them, and some block types can be used to create blocks other than the one the type is named after. 
+* For example, the Snow Layers type allows choosing how many layers it has, which lets blocks like carpets, path blocks, and enchanting tables also be created.
+
+`;
+
 const thumbnail: ThumbnailDef = {
   url: thumnbailImage.src,
 };
@@ -282,7 +301,7 @@ export const generator: GeneratorDef = {
   history,
   thumbnail,
   video: null,
-  instructions: null,
+  instructions,
   images,
   textures,
   script,
