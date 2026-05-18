@@ -41,6 +41,8 @@ export type DioramaOptions = {
   height: number;
   columns: number;
   rows: number;
+  worldColumnOffset: number;
+  worldRowOffset: number;
   editMode: EditMode | string | null;
   showEditRegions: boolean;
   document: DioramaDocument;
@@ -62,6 +64,7 @@ export const defaultDestination: DestinationSize = { width: 16, height: 16 };
 export const defaultTransform: FaceTransform = { rotate: 0, flip: "None" };
 export const defaultPreset: BlockPreset = "Full Blocks";
 export const blockPresets: BlockPreset[] = ["Full Blocks", "Quarter Blocks"];
+const maxEdgeRegionThickness = (16 * 800) / 100 / 4;
 
 export function getFaceId(column: number, row: number): string {
   return `BlockFace${column} ${row}`;
@@ -247,11 +250,23 @@ export function makeBlockRegions({
   height,
   columns,
   rows,
+  worldColumnOffset,
+  worldRowOffset,
   document,
 }: DioramaOptions): RegionDef[] {
   const regions: RegionDef[] = [];
-  const columnWidths = makeColumnWidths({ width, columns, document });
-  const rowHeights = makeRowHeights({ height, rows, document });
+  const columnWidths = makeColumnWidths({
+    width,
+    columns,
+    worldColumnOffset,
+    document,
+  });
+  const rowHeights = makeRowHeights({
+    height,
+    rows,
+    worldRowOffset,
+    document,
+  });
   const columnOffsets = makeOffsets(columnWidths);
   const rowOffsets = makeOffsets(rowHeights);
 
@@ -263,7 +278,7 @@ export function makeBlockRegions({
       const rowHeight = rowHeights[row] ?? height;
 
       regions.push({
-        id: getFaceId(column, row),
+        id: getFaceId(column + worldColumnOffset, row + worldRowOffset),
         region: [ox + columnOffset, oy + rowOffset, columnWidth, rowHeight],
         rotation: 0,
       });
@@ -279,11 +294,23 @@ export function makeEdgeRegions({
   height,
   columns,
   rows,
+  worldColumnOffset,
+  worldRowOffset,
   document,
 }: DioramaOptions): RegionDef[] {
   const regions: RegionDef[] = [];
-  const columnWidths = makeColumnWidths({ width, columns, document });
-  const rowHeights = makeRowHeights({ height, rows, document });
+  const columnWidths = makeColumnWidths({
+    width,
+    columns,
+    worldColumnOffset,
+    document,
+  });
+  const rowHeights = makeRowHeights({
+    height,
+    rows,
+    worldRowOffset,
+    document,
+  });
   const columnOffsets = makeOffsets(columnWidths);
   const rowOffsets = makeOffsets(rowHeights);
   const getColumnSize = (column: number) =>
@@ -291,9 +318,9 @@ export function makeEdgeRegions({
   const getRowSize = (row: number) =>
     rowHeights[Math.max(0, Math.min(rows - 1, row))] ?? height;
   const getTabWidth = (column: number) =>
-    Math.min(width / 4, getColumnSize(column) / 2);
+    getEdgeTabThickness(width, getColumnSize(column));
   const getTabHeight = (row: number) =>
-    Math.min(height / 4, getRowSize(row) / 2);
+    getEdgeTabThickness(height, getRowSize(row));
   const getColumnOffset = (column: number) => {
     if (column < 0) {
       return -getTabWidth(column);
@@ -314,7 +341,7 @@ export function makeEdgeRegions({
   };
 
   const makeNorth = (column: number, row: number): RegionDef => ({
-    id: `North${column} ${row}`,
+    id: `North${column + worldColumnOffset} ${row + worldRowOffset}`,
     region: [
       ox + getColumnOffset(column),
       oy + getRowOffset(row),
@@ -324,7 +351,7 @@ export function makeEdgeRegions({
     rotation: 2,
   });
   const makeSouth = (column: number, row: number): RegionDef => ({
-    id: `South${column} ${row}`,
+    id: `South${column + worldColumnOffset} ${row + worldRowOffset}`,
     region: [
       ox + getColumnOffset(column),
       row < 0
@@ -336,7 +363,7 @@ export function makeEdgeRegions({
     rotation: 0,
   });
   const makeEast = (column: number, row: number): RegionDef => ({
-    id: `East${column} ${row}`,
+    id: `East${column + worldColumnOffset} ${row + worldRowOffset}`,
     region: [
       ox + getColumnOffset(column),
       oy + getRowOffset(row),
@@ -346,7 +373,7 @@ export function makeEdgeRegions({
     rotation: 1,
   });
   const makeWest = (column: number, row: number): RegionDef => ({
-    id: `West${column} ${row}`,
+    id: `West${column + worldColumnOffset} ${row + worldRowOffset}`,
     region: [
       column < 0
         ? ox - getTabWidth(column)
@@ -389,19 +416,33 @@ export function makeEdgeControlRegions({
   height,
   columns,
   rows,
+  worldColumnOffset,
+  worldRowOffset,
   document,
 }: DioramaOptions): RegionDef[] {
   const regions: RegionDef[] = [];
-  const columnWidths = makeColumnWidths({ width, columns, document });
-  const rowHeights = makeRowHeights({ height, rows, document });
+  const columnWidths = makeColumnWidths({
+    width,
+    columns,
+    worldColumnOffset,
+    document,
+  });
+  const rowHeights = makeRowHeights({
+    height,
+    rows,
+    worldRowOffset,
+    document,
+  });
   const columnOffsets = makeOffsets(columnWidths);
   const rowOffsets = makeOffsets(rowHeights);
   const getColumnSize = (column: number) =>
     columnWidths[Math.max(0, Math.min(columns - 1, column))] ?? width;
   const getRowSize = (row: number) =>
     rowHeights[Math.max(0, Math.min(rows - 1, row))] ?? height;
-  const getTabWidth = (column: number) => getColumnSize(column) / 4;
-  const getTabHeight = (row: number) => getRowSize(row) / 4;
+  const getTabWidth = (column: number) =>
+    getEdgeControlThickness(getColumnSize(column));
+  const getTabHeight = (row: number) =>
+    getEdgeControlThickness(getRowSize(row));
   const getColumnOffset = (column: number) => {
     if (column < 0) {
       return -getTabWidth(column);
@@ -422,7 +463,7 @@ export function makeEdgeControlRegions({
   };
 
   const makeNorth = (column: number, row: number): RegionDef => ({
-    id: `North${column} ${row}`,
+    id: `North${column + worldColumnOffset} ${row + worldRowOffset}`,
     region: [
       ox + getColumnOffset(column),
       oy + getRowOffset(row),
@@ -432,7 +473,7 @@ export function makeEdgeControlRegions({
     rotation: 2,
   });
   const makeSouth = (column: number, row: number): RegionDef => ({
-    id: `South${column} ${row}`,
+    id: `South${column + worldColumnOffset} ${row + worldRowOffset}`,
     region: [
       ox + getColumnOffset(column),
       row < 0
@@ -444,7 +485,7 @@ export function makeEdgeControlRegions({
     rotation: 0,
   });
   const makeEast = (column: number, row: number): RegionDef => ({
-    id: `East${column} ${row}`,
+    id: `East${column + worldColumnOffset} ${row + worldRowOffset}`,
     region: [
       ox + getColumnOffset(column),
       oy + getRowOffset(row),
@@ -454,7 +495,7 @@ export function makeEdgeControlRegions({
     rotation: 1,
   });
   const makeWest = (column: number, row: number): RegionDef => ({
-    id: `West${column} ${row}`,
+    id: `West${column + worldColumnOffset} ${row + worldRowOffset}`,
     region: [
       column < 0
         ? ox - getTabWidth(column)
@@ -497,6 +538,14 @@ export function drawRectangleButton(generator: Generator, region: Region) {
     lineDashOffset: 3,
     width: 1,
   });
+}
+
+export function getEdgeControlThickness(faceSize: number): number {
+  return Math.min(faceSize / 4, maxEdgeRegionThickness);
+}
+
+function getEdgeTabThickness(baseSize: number, faceSize: number): number {
+  return Math.min(baseSize / 4, maxEdgeRegionThickness, faceSize / 2);
 }
 
 export function getColumnWidth(
@@ -600,20 +649,26 @@ export function getRowCountThatFits({
 function makeColumnWidths({
   width,
   columns,
+  worldColumnOffset = 0,
   document,
-}: Pick<DioramaOptions, "width" | "columns" | "document">): number[] {
+}: Pick<DioramaOptions, "width" | "columns" | "document"> & {
+  worldColumnOffset?: number;
+}): number[] {
   return Array.from({ length: columns }, (_, column) =>
-    getColumnWidth({ width, document }, column)
+    getColumnWidth({ width, document }, column + worldColumnOffset)
   );
 }
 
 function makeRowHeights({
   height,
   rows,
+  worldRowOffset = 0,
   document,
-}: Pick<DioramaOptions, "height" | "rows" | "document">): number[] {
+}: Pick<DioramaOptions, "height" | "rows" | "document"> & {
+  worldRowOffset?: number;
+}): number[] {
   return Array.from({ length: rows }, (_, row) =>
-    getRowHeight({ height, document }, row)
+    getRowHeight({ height, document }, row + worldRowOffset)
   );
 }
 

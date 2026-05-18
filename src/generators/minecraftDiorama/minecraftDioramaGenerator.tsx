@@ -70,6 +70,11 @@ const id = "minecraft-diorama";
 
 const name = "Minecraft Diorama";
 
+const maxDioramaFaces = 16384;
+const maxDioramaPages = 512;
+const pageCountInputId = "Diorama Page Count";
+const pagesAcrossInputId = "Pages Across";
+
 const history: HistoryDef = [
   "24 Jan 2024 NinjolasNJM - Initial ReScript version.",
   "May 2026 NinjolasNJM - Plug generator into the TypeScript app.",
@@ -256,6 +261,178 @@ function getDioramaDimensions(generator: Generator) {
   };
 }
 
+function getDioramaPageLayout(
+  generator: Generator,
+  document: ReturnType<typeof getDioramaDocument>,
+  columns: number,
+  rows: number
+) {
+  const facesPerPage = Math.max(1, columns * rows);
+  const maxPageCount = Math.max(
+    1,
+    Math.min(maxDioramaPages, Math.floor(maxDioramaFaces / facesPerPage))
+  );
+  const requestedPageCount = Math.max(
+    1,
+    Math.min(
+      Math.round(generator.getNumberVariable(pageCountInputId) ?? 1),
+      maxPageCount
+    )
+  );
+  generator.setNumberVariable(pageCountInputId, requestedPageCount);
+  const currentPagesAcross = Math.max(
+    1,
+    Math.min(
+      Math.round(
+        generator.getNumberVariable(pagesAcrossInputId) ?? requestedPageCount
+      ),
+      requestedPageCount
+    )
+  );
+  generator.setNumberVariable(pagesAcrossInputId, currentPagesAcross);
+
+  generator.defineText(`Pages: ${requestedPageCount} / ${maxPageCount}`);
+  const canAddPage = requestedPageCount < maxPageCount;
+  const canRemovePage = requestedPageCount > 1;
+
+  generator.defineButtonInput(
+    "Add Page",
+    () => {
+      const nextPageCount = canAddPage
+        ? Math.min(requestedPageCount + 1, maxPageCount)
+        : requestedPageCount;
+      generator.setNumberVariable(pageCountInputId, nextPageCount);
+      if (currentPagesAcross >= requestedPageCount) {
+        generator.setNumberVariable(pagesAcrossInputId, nextPageCount);
+      }
+    },
+    canAddPage ? "Green" : "Gray"
+  );
+  generator.defineButtonInput(
+    "Remove Page",
+    () => {
+      const nextPageCount = canRemovePage
+        ? Math.max(1, requestedPageCount - 1)
+        : requestedPageCount;
+      generator.setNumberVariable(pageCountInputId, nextPageCount);
+      generator.setNumberVariable(
+        pagesAcrossInputId,
+        Math.min(currentPagesAcross, nextPageCount)
+      );
+    },
+    canRemovePage ? "Red" : "Gray"
+  );
+  generator.defineButtonInput(
+    "Fit Pages to Design",
+    () => {
+      const fit = getPageLayoutForDesign(
+        generator,
+        document,
+        columns,
+        rows,
+        maxPageCount
+      );
+      generator.setNumberVariable(pageCountInputId, fit.pageCount);
+      generator.setNumberVariable(pagesAcrossInputId, fit.pageColumns);
+    },
+    "Blue"
+  );
+
+  return {
+    pageCount: requestedPageCount,
+    pageColumns: currentPagesAcross,
+  };
+}
+
+function getPageLayoutForDesign(
+  generator: Generator,
+  document: ReturnType<typeof getDioramaDocument>,
+  columns: number,
+  rows: number,
+  maxPageCount: number
+) {
+  const positions = getOccupiedFacePositions(generator, document);
+  if (positions.length === 0) {
+    return { pageCount: 1, pageColumns: 1 };
+  }
+
+  const pageColumns = Math.max(
+    1,
+    Math.max(
+      ...positions.map((position) => Math.floor(position.column / columns))
+    ) + 1
+  );
+  const lastPageIndex = Math.max(
+    ...positions.map((position) => {
+      const pageColumn = Math.max(0, Math.floor(position.column / columns));
+      const pageRow = Math.max(0, Math.floor(position.row / rows));
+      return pageRow * pageColumns + pageColumn;
+    })
+  );
+  const pageCount = Math.min(maxPageCount, lastPageIndex + 1);
+
+  return {
+    pageCount,
+    pageColumns: Math.min(pageColumns, pageCount),
+  };
+}
+
+function getOccupiedFacePositions(
+  generator: Generator,
+  document: ReturnType<typeof getDioramaDocument>
+): Array<{ column: number; row: number }> {
+  return [
+    ...Object.keys(document.sources),
+    ...Object.keys(document.transforms),
+    ...Object.keys(document.destinationColumns).map((column) => `${column} 0`),
+    ...Object.keys(document.destinationRows).map((row) => `0 ${row}`),
+    ...getOccupiedVariableFaceIds(generator),
+  ]
+    .map(getFacePositionFromId)
+    .filter(
+      (position): position is { column: number; row: number } =>
+        position !== null
+    );
+}
+
+function getOccupiedVariableFaceIds(generator: Generator): string[] {
+  return Array.from(generator.model.values.variables.entries())
+    .filter(([id, variable]) => {
+      if (/^BlockFace-?\d+ -?\d+$/.test(id)) {
+        return (
+          variable.kind === "String" &&
+          variable.value !== "" &&
+          variable.value !== "[]"
+        );
+      }
+      if (/^Tabs(?:North|South|East|West)-?\d+ -?\d+$/.test(id)) {
+        return variable.kind === "String" && variable.value !== "0";
+      }
+      if (/^Folds(?:North|South|East|West)-?\d+ -?\d+$/.test(id)) {
+        return variable.kind === "Boolean" && variable.value;
+      }
+      return false;
+    })
+    .map(([id]) => id);
+}
+
+function getFacePositionFromId(
+  id: string
+): { column: number; row: number } | null {
+  const match =
+    /^(?:BlockFace|Tabs(?:North|South|East|West)|Folds(?:North|South|East|West))?(-?\d+) (-?\d+)$/.exec(
+      id
+    );
+  if (!match) {
+    return null;
+  }
+
+  return {
+    column: parseInt(match[1] ?? "0", 10),
+    row: parseInt(match[2] ?? "0", 10),
+  };
+}
+
 const script: ScriptDef = (generator: Generator) => {
   generator.defineSelectInput("Version", versionIds);
 
@@ -298,12 +475,6 @@ const script: ScriptDef = (generator: Generator) => {
     false
   );
 
-  generator.usePage("Page", {
-    orientation: isLandscape ? "landscape" : "portrait",
-  });
-  generator.fillBackgroundColorWithWhite();
-  generator.drawImage("Background", [0, 0]);
-
   const ox = 42; //isLandscape ? 37 : 42; ( why was it like that before? did it rotate the other way or something?)
   const oy = 41;
   const baseWidth = isLandscape ? 768 : 512;
@@ -312,23 +483,48 @@ const script: ScriptDef = (generator: Generator) => {
   const height = Math.round((16 * dioramaHeight) / 100);
   const columns = getColumnCountThatFits({ baseWidth, width, document });
   const rows = getRowCountThatFits({ baseHeight, height, document });
-
-  const dioramaOptions: DioramaOptions = {
-    ox,
-    oy,
-    width,
-    height,
-    columns,
-    rows,
-    editMode,
-    showEditRegions,
+  const { pageCount, pageColumns } = getDioramaPageLayout(
+    generator,
     document,
-    currentSource,
-    currentDestination,
-    currentTransform,
-  };
+    columns,
+    rows
+  );
 
-  drawDiorama(generator, dioramaOptions);
+  for (let pageIndex = 0; pageIndex < pageCount; pageIndex += 1) {
+    const pageColumn = pageIndex % pageColumns;
+    const pageRow = Math.floor(pageIndex / pageColumns);
+    generator.usePage(pageCount === 1 ? "Page" : `Page ${pageIndex + 1}`, {
+      orientation: isLandscape ? "landscape" : "portrait",
+    });
+    generator.fillBackgroundColorWithWhite();
+    generator.drawImage("Background", [0, 0]);
+
+    const dioramaOptions: DioramaOptions = {
+      ox,
+      oy,
+      width,
+      height,
+      columns,
+      rows,
+      worldColumnOffset: pageColumn * columns,
+      worldRowOffset: pageRow * rows,
+      editMode,
+      showEditRegions,
+      document,
+      currentSource,
+      currentDestination,
+      currentTransform,
+    };
+
+    drawDiorama(generator, dioramaOptions);
+
+    generator.drawImage(
+      isLandscape ? "Title Landscape" : "Title Portrait",
+      [0, 0]
+    );
+  }
+
+  generator.defineCustomStringInput("Diorama Clear Button Break", () => <div />);
 
   generator.defineButtonInput(
     "Clear",
@@ -375,6 +571,8 @@ const script: ScriptDef = (generator: Generator) => {
         "Show Edit Regions",
         currentShowEditRegions
       );
+      generator.setNumberVariable(pageCountInputId, 1);
+      generator.setNumberVariable(pagesAcrossInputId, 1);
       if (currentSourceX !== null) {
         generator.setNumberVariable("Source X", currentSourceX);
       }
@@ -408,11 +606,6 @@ const script: ScriptDef = (generator: Generator) => {
       setDioramaDocument(generator, makeEmptyDioramaDocument(currentPreset));
     },
     "Red"
-  );
-
-  generator.drawImage(
-    isLandscape ? "Title Landscape" : "Title Portrait",
-    [0, 0]
   );
 };
 

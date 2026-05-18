@@ -4,6 +4,7 @@ import {
 } from "@genroot/builder/modules/generator";
 import {
   drawRectangleButton,
+  getEdgeControlThickness,
   getFaceId,
   makeBlockRegions,
   setDioramaDocument,
@@ -94,12 +95,15 @@ function makeColumnSourceRegions(options: DioramaOptions): SourceRegionDef[] {
   const regions: SourceRegionDef[] = [];
 
   for (let column = 0; column < options.columns; column += 1) {
-    const region = blockRegions.get(getFaceId(column, 0));
+    const worldColumn = column + options.worldColumnOffset;
+    const region = blockRegions.get(
+      getFaceId(worldColumn, options.worldRowOffset)
+    );
     if (!region) {
       continue;
     }
     const [x, y, width, height] = region;
-    const regionHeight = height / 4;
+    const regionHeight = getEdgeControlThickness(height);
 
     regions.push({
       region: [
@@ -109,7 +113,7 @@ function makeColumnSourceRegions(options: DioramaOptions): SourceRegionDef[] {
         regionHeight,
       ],
       faceIds: Array.from({ length: options.rows }, (_, row) =>
-        getFaceId(column, row)
+        getFaceId(worldColumn, row + options.worldRowOffset)
       ),
     });
   }
@@ -124,17 +128,20 @@ function makeRowSourceRegions(options: DioramaOptions): SourceRegionDef[] {
   const regions: SourceRegionDef[] = [];
 
   for (let row = 0; row < options.rows; row += 1) {
-    const region = blockRegions.get(getFaceId(0, row));
+    const worldRow = row + options.worldRowOffset;
+    const region = blockRegions.get(
+      getFaceId(options.worldColumnOffset, worldRow)
+    );
     if (!region) {
       continue;
     }
     const [x, y, width, height] = region;
-    const regionWidth = width / 4;
+    const regionWidth = getEdgeControlThickness(width);
 
     regions.push({
       region: [x >= regionWidth ? x - regionWidth : x, y, regionWidth, height],
       faceIds: Array.from({ length: options.columns }, (_, column) =>
-        getFaceId(column, row)
+        getFaceId(column + options.worldColumnOffset, worldRow)
       ),
     });
   }

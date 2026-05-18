@@ -6,6 +6,7 @@ import {
   blockPresets,
   drawRectangleButton,
   getDefaultDestinationForPreset,
+  getEdgeControlThickness,
   getFaceId,
   makeBlockRegions,
   makeEmptyDioramaDocument,
@@ -110,12 +111,15 @@ function makeColumnDestinationRegions(
   const regions: DestinationRegionDef[] = [];
 
   for (let column = 0; column < options.columns; column += 1) {
-    const region = blockRegions.get(getFaceId(column, 0));
+    const worldColumn = column + options.worldColumnOffset;
+    const region = blockRegions.get(
+      getFaceId(worldColumn, options.worldRowOffset)
+    );
     if (!region) {
       continue;
     }
     const [x, y, width, height] = region;
-    const regionHeight = height / 4;
+    const regionHeight = getEdgeControlThickness(height);
     regions.push({
       region: [
         x,
@@ -123,7 +127,7 @@ function makeColumnDestinationRegions(
         width,
         regionHeight,
       ],
-      column,
+      column: worldColumn,
       row: null,
     });
   }
@@ -140,16 +144,19 @@ function makeRowDestinationRegions(
   const regions: DestinationRegionDef[] = [];
 
   for (let row = 0; row < options.rows; row += 1) {
-    const region = blockRegions.get(getFaceId(0, row));
+    const worldRow = row + options.worldRowOffset;
+    const region = blockRegions.get(
+      getFaceId(options.worldColumnOffset, worldRow)
+    );
     if (!region) {
       continue;
     }
     const [x, y, width, height] = region;
-    const regionWidth = width / 4;
+    const regionWidth = getEdgeControlThickness(width);
     regions.push({
       region: [x >= regionWidth ? x - regionWidth : x, y, regionWidth, height],
       column: null,
-      row,
+      row: worldRow,
     });
   }
 
