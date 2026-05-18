@@ -219,9 +219,9 @@ function defineCustomTextureInput(
 function drawDiorama(generator: Generator, options: DioramaOptions) {
   drawBlocks(generator, options);
   drawTabs(generator, options);
-  drawFolds(generator, options);
   drawSourceRegions(generator, options);
   drawDestinationRegions(generator, options);
+  drawFolds(generator, options);
 }
 
 function getDioramaDimensions(generator: Generator) {
