@@ -69,7 +69,17 @@ const thumbnail: ThumbnailDef = {
 };
 
 const instructions: InstructionsDef = `
-## Item Sizes
+## How to use the Minecraft Item Generator?
+
+### Selecting and Adding Item Textures
+* Click in the texture picker to select an item texture. 
+* Item textures can be rotated, flipped, and tinted different colors.
+* Click the "Add Item" button to add the selected texture as a new item on the page.
+* Click the "Overlay Item button to add the selected texture on top of the last placed item. This can be used to create items that use multiple textures, such as potions or dyed leather armor.
+* Click the "Remove Item" button to remove the last placed texture from the page.
+* Textures from different versions can be selected from the "Versions" dropdown menu. Custom textures can also be added from files.
+
+### Item Sizes
 
 The generator supports four standard sizes:
 
@@ -79,6 +89,12 @@ The generator supports four standard sizes:
 * **Small** - Good for blocks as items (200% scale)
 
 You can also choose a custom scale from 100% to 1600%.
+Multiple items of different sizes can be added to the same page.
+
+#### Enchant Items
+  - Select either from the drop down menu or from "Choose file" to choose the enchanted glint texture.
+  - Adjust the sliders to choose the opacity, x and y offsets of the enchanted glint texture.
+  - Click on each item on the page to enable the enchanted glint effect per item.
 `;
 
 const images: ImageDef[] = [
