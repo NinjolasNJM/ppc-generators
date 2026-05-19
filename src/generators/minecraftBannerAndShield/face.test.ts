@@ -8,7 +8,14 @@ import {
   encodeSelectedBannerShieldPatterns,
   type SelectedBannerShieldPattern,
 } from "./bannerTexturePicker/types";
-import { defineInputRegion, drawFace } from "./face";
+import {
+  bannerBasePatternId,
+  defineInputRegion,
+  drawCuboid,
+  drawFace,
+  makeTemplateBaseInputId,
+  shieldBasePatternId,
+} from "./face";
 
 const versionId = "minecraft-26-1-2-banner-shield";
 
@@ -20,9 +27,22 @@ function makeSelectedPattern(patternId: string): SelectedBannerShieldPattern {
   };
 }
 
-function makeGenerator(faceId: string, faceJson: string): Generator {
+function makeGenerator(
+  faceId: string,
+  faceJson: string,
+  baseId = bannerBasePatternId
+): Generator {
   return {
     getStringInputValue: (id: string) => (id === faceId ? faceJson : null),
+    getSelectInputValue: (id: string) => {
+      if (id === "Version") {
+        return versionId;
+      }
+      if (id === makeTemplateBaseInputId("1")) {
+        return baseId;
+      }
+      return null;
+    },
     drawTexture: vi.fn(),
   } as unknown as Generator;
 }
@@ -38,10 +58,26 @@ describe("drawFace", () => {
       encodeSelectedBannerShieldPatterns([makeSelectedPattern("base")])
     );
 
-    drawFace(generator, faceId, source, destination);
+    drawFace(
+      generator,
+      faceId,
+      source,
+      destination,
+      undefined,
+      "banner",
+      makeTemplateBaseInputId("1")
+    );
 
-    expect(generator.drawTexture).toHaveBeenCalledTimes(1);
-    expect(generator.drawTexture).toHaveBeenCalledWith(
+    expect(generator.drawTexture).toHaveBeenCalledTimes(2);
+    expect(generator.drawTexture).toHaveBeenNthCalledWith(
+      1,
+      "minecraft-26.1.2-banner-patterns",
+      [0, 0, 64, 64],
+      destination,
+      {}
+    );
+    expect(generator.drawTexture).toHaveBeenNthCalledWith(
+      2,
       "minecraft-26.1.2-banner-patterns",
       [64, 0, 64, 64],
       destination,
@@ -55,13 +91,30 @@ describe("drawFace", () => {
     const faceId = "ShieldFaceTop1";
     const generator = makeGenerator(
       faceId,
-      encodeSelectedBannerShieldPatterns([makeSelectedPattern("base")])
+      encodeSelectedBannerShieldPatterns([makeSelectedPattern("base")]),
+      shieldBasePatternId
     );
 
-    drawFace(generator, faceId, source, destination);
+    drawFace(
+      generator,
+      faceId,
+      source,
+      destination,
+      undefined,
+      "shield",
+      makeTemplateBaseInputId("1")
+    );
 
-    expect(generator.drawTexture).toHaveBeenCalledTimes(1);
-    expect(generator.drawTexture).toHaveBeenCalledWith(
+    expect(generator.drawTexture).toHaveBeenCalledTimes(2);
+    expect(generator.drawTexture).toHaveBeenNthCalledWith(
+      1,
+      "minecraft-26.1.2-shield-patterns",
+      [0, 192, 64, 64],
+      destination,
+      {}
+    );
+    expect(generator.drawTexture).toHaveBeenNthCalledWith(
+      2,
       "minecraft-26.1.2-shield-patterns",
       [0, 0, 64, 64],
       destination,
@@ -78,10 +131,26 @@ describe("drawFace", () => {
       encodeSelectedBannerShieldPatterns([makeSelectedPattern("base")])
     );
 
-    drawFace(generator, faceId, [0, 8, 16, 8], destination);
+    drawFace(
+      generator,
+      faceId,
+      [0, 8, 16, 8],
+      destination,
+      undefined,
+      "shield",
+      makeTemplateBaseInputId("1")
+    );
 
-    expect(generator.drawTexture).toHaveBeenCalledTimes(1);
-    expect(generator.drawTexture).toHaveBeenCalledWith(
+    expect(generator.drawTexture).toHaveBeenCalledTimes(2);
+    expect(generator.drawTexture).toHaveBeenNthCalledWith(
+      1,
+      "minecraft-26.1.2-shield-patterns",
+      [0, 224, 64, 32],
+      destination,
+      {}
+    );
+    expect(generator.drawTexture).toHaveBeenNthCalledWith(
+      2,
       "minecraft-26.1.2-shield-patterns",
       [0, 32, 64, 32],
       destination,
@@ -105,12 +174,63 @@ describe("drawFace", () => {
 
     drawFace(generator, faceId, source, destination);
 
-    expect(generator.drawTexture).toHaveBeenCalledWith(
+    expect(generator.drawTexture).toHaveBeenNthCalledWith(
+      2,
       "minecraft-26.1.2-banner-patterns",
       [64, 0, 64, 64],
       destination,
       expect.objectContaining<DrawTextureOptions>({
         blend: { kind: "MultiplyHex", hex: "#ff0000" },
+      })
+    );
+  });
+});
+
+describe("drawCuboid", () => {
+  it("uses the existing cuboid layout while drawing pattern textures", () => {
+    const faceId = "BannerFace1";
+    const generator = makeGenerator(
+      faceId,
+      encodeSelectedBannerShieldPatterns([makeSelectedPattern("base")])
+    );
+
+    drawCuboid(
+      generator,
+      faceId,
+      "banner",
+      {
+        front: [0, 0, 16, 16],
+        back: [0, 0, 16, 16],
+        top: [0, 0, 16, 16],
+        bottom: [0, 0, 16, 16],
+        left: [0, 0, 16, 16],
+        right: [0, 0, 16, 16],
+      },
+      [10, 20],
+      [40, 50, 3]
+    );
+
+    expect(generator.drawTexture).toHaveBeenCalledTimes(12);
+    expect(generator.drawTexture).toHaveBeenNthCalledWith(
+      1,
+      "minecraft-26.1.2-banner-patterns",
+      [0, 0, 16, 16],
+      [13, 23, 40, 50],
+      expect.objectContaining<DrawTextureOptions>({
+        flip: "None",
+        rotateLegacy: 0,
+        blend: { kind: "None" },
+      })
+    );
+    expect(generator.drawTexture).toHaveBeenNthCalledWith(
+      2,
+      "minecraft-26.1.2-banner-patterns",
+      [64, 0, 16, 16],
+      [13, 23, 40, 50],
+      expect.objectContaining<DrawTextureOptions>({
+        flip: "None",
+        rotateLegacy: 0,
+        blend: { kind: "None" },
       })
     );
   });

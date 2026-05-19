@@ -34,62 +34,91 @@ export function drawShield(
   showFolds: boolean
 ) {
   const regions = makeFaces(ox, oy);
+  const patternFaceId = Face.makePatternFaceId(templateId);
+  const baseInputId = Face.makeTemplateBaseInputId(templateId);
 
-  Face.defineInputRegion(generator, "ShieldFaceTop" + templateId, regions.top);
-  Face.defineInputRegion(
-    generator,
-    "ShieldFaceBottom" + templateId,
-    regions.bottom
-  );
-  Face.defineInputRegion(
-    generator,
-    "ShieldFaceRight" + templateId,
-    regions.right
-  );
-  Face.defineInputRegion(
-    generator,
-    "ShieldFaceFront" + templateId,
-    regions.front
-  );
-  Face.defineInputRegion(generator, "ShieldFaceLeft" + templateId, regions.left);
-  Face.defineInputRegion(generator, "ShieldFaceBack" + templateId, regions.back);
+  Face.defineBaseInput(generator, templateId, "shield");
+
+  Face.defineInputRegion(generator, patternFaceId, regions.top);
+  Face.defineInputRegion(generator, patternFaceId, regions.bottom);
+  Face.defineInputRegion(generator, patternFaceId, regions.right);
+  Face.defineInputRegion(generator, patternFaceId, regions.front);
+  Face.defineInputRegion(generator, patternFaceId, regions.left);
+  Face.defineInputRegion(generator, patternFaceId, regions.back);
 
   Face.drawFace(
     generator,
-    "ShieldFaceTop" + templateId,
+    patternFaceId,
     [0, 0, 16, 16],
-    regions.top
+    regions.top,
+    undefined,
+    "shield",
+    baseInputId
   );
   Face.drawFace(
     generator,
-    "ShieldFaceBottom" + templateId,
+    patternFaceId,
     [0, 0, 16, 16],
-    regions.bottom
+    regions.bottom,
+    undefined,
+    "shield",
+    baseInputId
   );
   Face.drawFace(
     generator,
-    "ShieldFaceRight" + templateId,
+    patternFaceId,
     [0, 8, 16, 8],
-    regions.right
+    regions.right,
+    undefined,
+    "shield",
+    baseInputId
   );
   Face.drawFace(
     generator,
-    "ShieldFaceFront" + templateId,
+    patternFaceId,
     [0, 8, 16, 8],
-    regions.front
+    regions.front,
+    undefined,
+    "shield",
+    baseInputId
   );
   Face.drawFace(
     generator,
-    "ShieldFaceLeft" + templateId,
+    patternFaceId,
     [0, 8, 16, 8],
-    regions.left
+    regions.left,
+    undefined,
+    "shield",
+    baseInputId
   );
   Face.drawFace(
     generator,
-    "ShieldFaceBack" + templateId,
+    patternFaceId,
     [0, 8, 16, 8],
-    regions.back
+    regions.back,
+    undefined,
+    "shield",
+    baseInputId
   );
+
+  // Model-based shield rendering will replace the individual drawFace calls above.
+  // Example:
+  // Face.drawCuboid(
+  //   generator,
+  //   "ShieldFaceFront" + templateId,
+  //   "shield",
+  //   {
+  //     front: [2, 2, 10, 20],
+  //     back: [2, 2, 10, 20],
+  //     top: [2, 2, 10, 1],
+  //     bottom: [2, 21, 10, 1],
+  //     left: [2, 2, 1, 20],
+  //     right: [11, 2, 1, 20],
+  //   },
+  //   [regions.front[0], regions.front[1]],
+  //   [regions.front[2], regions.front[3], 3],
+  //   { center: "Front" }
+  // );
 
   generator.drawImage("Tabs-Shield", [ox - 96, oy - 3]);
 

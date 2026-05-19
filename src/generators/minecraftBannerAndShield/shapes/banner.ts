@@ -3,28 +3,24 @@ import {
   type Region,
 } from "@genroot/builder/modules/generator";
 import * as Face from "../face";
+import {
+  banner,
+  type Dimensions,
+} from "@genroot/generators/_common/minecraftEntity";
 
 type Faces = {
-  top: Region;
-  bottom: Region;
-  right: Region;
-  front: Region;
-  left: Region;
-  back: Region;
+  flag: Region;
 };
 
 const size = 384;
 
 function makeFaces(ox: number, oy: number): Faces {
+  //const [width, height, depth] = flagDimensions;
   return {
-    top: [ox + size, oy + 0, size, size],
-    bottom: [ox + size, oy + size * 2, size, size],
-    right: [ox, oy + size, size, size],
-    front: [ox + size, oy + size, size, size],
-    left: [ox + size * 2, oy + size, size, size],
-    back: [ox + size * 3, oy + size, size, size],
+    flag: [ox, oy + size / 2, 360, 720],// [ox + size + depth, oy + depth, width, height],
   };
 }
+
 
 export function drawBanner(
   generator: Generator,
@@ -34,64 +30,41 @@ export function drawBanner(
   showFolds: boolean
 ) {
   const regions = makeFaces(ox, oy);
+  const patternFaceId = Face.makePatternFaceId(templateId);
+  const baseInputId = Face.makeTemplateBaseInputId(templateId);
 
-  Face.defineInputRegion(generator, "BannerFaceTop" + templateId, regions.top);
-  Face.defineInputRegion(
-    generator,
-    "BannerFaceBottom" + templateId,
-    regions.bottom
-  );
-  Face.defineInputRegion(
-    generator,
-    "BannerFaceRight" + templateId,
-    regions.right
-  );
-  Face.defineInputRegion(
-    generator,
-    "BannerFaceFront" + templateId,
-    regions.front
-  );
-  Face.defineInputRegion(generator, "BannerFaceLeft" + templateId, regions.left);
-  Face.defineInputRegion(generator, "BannerFaceBack" + templateId, regions.back);
+  Face.defineBaseInput(generator, templateId, "banner");
 
-  Face.drawFace(
+  Face.defineInputRegion(generator, patternFaceId, regions.flag);
+
+  let dimensions: Dimensions = [360, 720, 18];
+
+  Face.drawCuboid(
     generator,
-    "BannerFaceTop" + templateId,
-    [0, 0, 16, 16],
-    regions.top
-  );
-  Face.drawFace(
-    generator,
-    "BannerFaceBottom" + templateId,
-    [0, 0, 16, 16],
-    regions.bottom
-  );
-  Face.drawFace(
-    generator,
-    "BannerFaceRight" + templateId,
-    [0, 0, 16, 16],
-    regions.right
-  );
-  Face.drawFace(
-    generator,
-    "BannerFaceFront" + templateId,
-    [0, 0, 16, 16],
-    regions.front
-  );
-  Face.drawFace(
-    generator,
-    "BannerFaceLeft" + templateId,
-    [0, 0, 16, 16],
-    regions.left
-  );
-  Face.drawFace(
-    generator,
-    "BannerFaceBack" + templateId,
-    [0, 0, 16, 16],
-    regions.back
+    patternFaceId,
+    "banner",
+    banner.flag,
+    [regions.flag[0] - dimensions[2], regions.flag[1] - dimensions[2]],
+    dimensions,
+    {},
+    baseInputId
   );
 
-  generator.drawImage("Tabs-Banner", [ox - 96, oy - 3]);
+  dimensions = [36, 126, 36];
+
+    Face.drawCuboid(
+    generator,
+    patternFaceId,
+    "banner",
+    banner.pole,
+    [regions.flag[0] - dimensions[2] + size, regions.flag[1] - dimensions[2]],
+    dimensions,
+    {},
+    baseInputId
+  );
+
+
+  //generator.drawImage("Tabs-Banner", [ox - 96, oy - 3]);
 
   if (showFolds) {
     generator.drawImage("Folds-Banner", [ox - 96, oy - 3]);
