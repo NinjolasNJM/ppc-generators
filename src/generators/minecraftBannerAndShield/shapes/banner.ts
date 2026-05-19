@@ -26,60 +26,74 @@ function makeFaces(ox: number, oy: number): Faces {
   };
 }
 
-export function drawBlock(
+export function drawBanner(
   generator: Generator,
-  blockId: string,
+  templateId: string,
   ox: number,
-  oy: number
+  oy: number,
+  showFolds: boolean
 ) {
   const regions = makeFaces(ox, oy);
 
-  Face.defineInputRegion(generator, "BlockFaceTop" + blockId, regions.top);
+  Face.defineInputRegion(generator, "BannerFaceTop" + templateId, regions.top);
   Face.defineInputRegion(
     generator,
-    "BlockFaceBottom" + blockId,
+    "BannerFaceBottom" + templateId,
     regions.bottom
   );
-  Face.defineInputRegion(generator, "BlockFaceRight" + blockId, regions.right);
-  Face.defineInputRegion(generator, "BlockFaceFront" + blockId, regions.front);
-  Face.defineInputRegion(generator, "BlockFaceLeft" + blockId, regions.left);
-  Face.defineInputRegion(generator, "BlockFaceBack" + blockId, regions.back);
+  Face.defineInputRegion(
+    generator,
+    "BannerFaceRight" + templateId,
+    regions.right
+  );
+  Face.defineInputRegion(
+    generator,
+    "BannerFaceFront" + templateId,
+    regions.front
+  );
+  Face.defineInputRegion(generator, "BannerFaceLeft" + templateId, regions.left);
+  Face.defineInputRegion(generator, "BannerFaceBack" + templateId, regions.back);
 
   Face.drawFace(
     generator,
-    "BlockFaceTop" + blockId,
+    "BannerFaceTop" + templateId,
     [0, 0, 16, 16],
     regions.top
   );
   Face.drawFace(
     generator,
-    "BlockFaceBottom" + blockId,
+    "BannerFaceBottom" + templateId,
     [0, 0, 16, 16],
     regions.bottom
   );
   Face.drawFace(
     generator,
-    "BlockFaceRight" + blockId,
+    "BannerFaceRight" + templateId,
     [0, 0, 16, 16],
     regions.right
   );
   Face.drawFace(
     generator,
-    "BlockFaceFront" + blockId,
+    "BannerFaceFront" + templateId,
     [0, 0, 16, 16],
     regions.front
   );
   Face.drawFace(
     generator,
-    "BlockFaceLeft" + blockId,
+    "BannerFaceLeft" + templateId,
     [0, 0, 16, 16],
     regions.left
   );
   Face.drawFace(
     generator,
-    "BlockFaceBack" + blockId,
+    "BannerFaceBack" + templateId,
     [0, 0, 16, 16],
     regions.back
   );
 
+  generator.drawImage("Tabs-Banner", [ox - 32, oy - 1]);
+
+  if (showFolds) {
+    generator.drawImage("Folds-Banner", [ox - 32, oy - 1]);
+  }
 }

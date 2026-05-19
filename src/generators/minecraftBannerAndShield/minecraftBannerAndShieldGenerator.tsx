@@ -25,9 +25,14 @@ import {
   versionIdsBlocksFirst,
 } from "../_common/textures/textureVersions";
 import { currentBannerAndShieldTextureId } from "./constants";
-import { drawBlock } from "./shapes/block";
+import { drawBanner } from "./shapes/banner";
+import { drawShield } from "./shapes/shield";
 
-import foregroundImage from "./images/Foreground.png";
+import backgroundImage from "./images/Background.png";
+import foldsBannerImage from "./images/Folds-Banner.png";
+import foldsShieldImage from "./images/Folds-Shield.png";
+import tabsBannerImage from "./images/Tabs-Banner.png";
+import tabsShieldImage from "./images/Tabs-Shield.png";
 import thumbnailImage from "./thumbnail/v2-thumbnail-256.jpeg";
 
 const id = "minecraft-banner-and-shield";
@@ -41,14 +46,20 @@ const history: HistoryDef = [
 const instructions = `
 ## How to use the Minecraft Banner and Shield Generator?
 
-This generator is an early work-in-progress. For now, it uses the block generator's texture picker and a single block-style test shape while the banner and shield rendering is built out.
+This generator is an early work-in-progress. For now, it uses the block generator's texture picker and placeholder banner and shield templates while the true banner and shield rendering is built out.
 `;
 
 const thumbnail: ThumbnailDef = {
   url: thumbnailImage.src,
 };
 
-const images: ImageDef[] = [{ id: "Foreground", url: foregroundImage.src }];
+const images: ImageDef[] = [
+  { id: "Background", url: backgroundImage.src },
+  { id: "Folds-Banner", url: foldsBannerImage.src },
+  { id: "Folds-Shield", url: foldsShieldImage.src },
+  { id: "Tabs-Banner", url: tabsBannerImage.src },
+  { id: "Tabs-Shield", url: tabsShieldImage.src },
+];
 
 const textures: TextureDef[] = allTextureDefs;
 
@@ -119,9 +130,38 @@ const script: ScriptDef = (generator: Generator) => {
     }
   );
 
-  generator.fillBackgroundColorWithWhite();
-  drawBlock(generator, "1", 57, 16);
-  generator.drawImage("Foreground", [0, 0]);
+  generator.defineSelectInput("Number of Templates", ["1", "2"]);
+  const numberOfTemplatesInput =
+    generator.getSelectInputValue("Number of Templates");
+  const numberOfTemplates = numberOfTemplatesInput
+    ? parseInt(numberOfTemplatesInput, 10)
+    : 1;
+
+  generator.defineBooleanInput("Show Folds", true);
+  const showFolds = generator.getBooleanInputValue("Show Folds") ?? false;
+
+  generator.drawImage("Background", [0, 0]);
+
+  for (let i = 1; i <= numberOfTemplates; i += 1) {
+    const templateId = i.toString();
+    const typeName = `Template ${templateId} Type`;
+
+    generator.defineSelectInput(typeName, ["Banner", "Shield"]);
+    const templateType = generator.getSelectInputValue(typeName);
+
+    const ox = 57;
+    const oy = 16 + 400 * (i - 1);
+
+    switch (templateType) {
+      case "Shield":
+        drawShield(generator, templateId, ox, oy, showFolds);
+        break;
+      case "Banner":
+      default:
+        drawBanner(generator, templateId, ox, oy, showFolds);
+        break;
+    }
+  }
 
   generator.defineButtonInput(
     "Clear",
