@@ -1,14 +1,24 @@
 import { describe, expect, it, vi } from "vitest";
 import { type Generator } from "@genroot/builder/modules/generator";
 import { type DrawTextureOptions } from "@genroot/builder/modules/renderers/drawTexture";
-import { makeNextFlip } from "@genroot/builder/ui/texturePicker/flip";
 import { currentBannerAndShieldTextureId } from "./constants";
 import {
-  decodeSelectedTextures,
-  encodeSelectedTexture,
-  encodeSelectedTextures,
-} from "@genroot/builder/ui/texturePicker/selectedTexture";
-import { defineInputRegion, drawFace, drawFaceWithTextureTransform } from "./face";
+  decodeSelectedBannerShieldPatterns,
+  encodeSelectedBannerShieldPattern,
+  encodeSelectedBannerShieldPatterns,
+  type SelectedBannerShieldPattern,
+} from "./bannerTexturePicker/types";
+import { defineInputRegion, drawFace } from "./face";
+
+const versionId = "minecraft-26-1-2-banner-shield";
+
+function makeSelectedPattern(patternId: string): SelectedBannerShieldPattern {
+  return {
+    versionId,
+    patternId,
+    blend: null,
+  };
+}
 
 function makeGenerator(faceId: string, faceJson: string): Generator {
   return {
@@ -17,221 +27,104 @@ function makeGenerator(faceId: string, faceJson: string): Generator {
   } as unknown as Generator;
 }
 
-function makeFaceJson({
-  rotation,
-  flip,
-  rectangle = [16, 32, 16, 16],
-}: {
-  rotation: "Rot0" | "Rot90" | "Rot180" | "Rot270";
-  flip: "None" | "Horizontal" | "Vertical";
-  rectangle?: [number, number, number, number];
-}) {
-  return encodeSelectedTextures([
-    {
-      textureDefId: "test-texture",
-      frame: {
-        id: "frame",
-        label: "frame",
-        rectangle,
-        crop: [0, 0, rectangle[2], rectangle[3]],
-      },
-      rotation,
-      flip,
-      blend: null,
-    },
-  ]);
-}
-
-function makeExpectedDestination(
-  rotation: "Rot0" | "Rot90" | "Rot180" | "Rot270",
-  destination: [number, number, number, number]
-): [number, number, number, number] {
-  const [dx, dy, dw, dh] = destination;
-  switch (rotation) {
-    case "Rot0":
-    case "Rot180":
-      return destination;
-    case "Rot90":
-    case "Rot270":
-      return [dx + (dw - dh) / 2, dy - (dw - dh) / 2, dh, dw];
-  }
-}
-
 describe("drawFace", () => {
   const source: [number, number, number, number] = [0, 0, 16, 16];
   const destination: [number, number, number, number] = [20, 30, 40, 50];
-  const faceId = "BlockFaceTop1";
 
-  const cases: Array<{
-    name: string;
-    rotation: "Rot0" | "Rot90" | "Rot180" | "Rot270";
-    flip: "None" | "Horizontal" | "Vertical";
-    expectedRotate: number;
-  }> = [
-    { name: "rot0 none", rotation: "Rot0", flip: "None", expectedRotate: 0 },
-    {
-      name: "rot0 horizontal",
-      rotation: "Rot0",
-      flip: "Horizontal",
-      expectedRotate: 0,
-    },
-    {
-      name: "rot0 vertical",
-      rotation: "Rot0",
-      flip: "Vertical",
-      expectedRotate: 0,
-    },
-    {
-      name: "rot90 none",
-      rotation: "Rot90",
-      flip: "None",
-      expectedRotate: 90,
-    },
-    {
-      name: "rot90 horizontal",
-      rotation: "Rot90",
-      flip: "Horizontal",
-      expectedRotate: 90,
-    },
-    {
-      name: "rot90 vertical",
-      rotation: "Rot90",
-      flip: "Vertical",
-      expectedRotate: 90,
-    },
-    {
-      name: "rot180 none",
-      rotation: "Rot180",
-      flip: "None",
-      expectedRotate: 180,
-    },
-    {
-      name: "rot180 horizontal",
-      rotation: "Rot180",
-      flip: "Horizontal",
-      expectedRotate: 180,
-    },
-    {
-      name: "rot180 vertical",
-      rotation: "Rot180",
-      flip: "Vertical",
-      expectedRotate: 180,
-    },
-    {
-      name: "rot270 none",
-      rotation: "Rot270",
-      flip: "None",
-      expectedRotate: 270,
-    },
-    {
-      name: "rot270 horizontal",
-      rotation: "Rot270",
-      flip: "Horizontal",
-      expectedRotate: 270,
-    },
-    {
-      name: "rot270 vertical",
-      rotation: "Rot270",
-      flip: "Vertical",
-      expectedRotate: 270,
-    },
-  ];
+  it("draws the banner frame for banner faces", () => {
+    const faceId = "BannerFaceTop1";
+    const generator = makeGenerator(
+      faceId,
+      encodeSelectedBannerShieldPatterns([makeSelectedPattern("base")])
+    );
 
-  cases.forEach(({ name, rotation, flip, expectedRotate }) => {
-    it(`forwards orientation correctly for ${name}`, () => {
-      const generator = makeGenerator(faceId, makeFaceJson({ rotation, flip }));
-      const [expectedFlip] = makeNextFlip("None", flip, rotation);
+    drawFace(generator, faceId, source, destination);
 
-      drawFace(generator, faceId, source, destination);
+    expect(generator.drawTexture).toHaveBeenCalledTimes(1);
+    expect(generator.drawTexture).toHaveBeenCalledWith(
+      "minecraft-26.1.2-banner-patterns",
+      [64, 0, 64, 64],
+      destination,
+      expect.objectContaining<DrawTextureOptions>({
+        blend: undefined,
+      })
+    );
+  });
 
-      expect(generator.drawTexture).toHaveBeenCalledTimes(1);
-      expect(generator.drawTexture).toHaveBeenCalledWith(
-        "test-texture",
-        [16, 32, 16, 16],
-        makeExpectedDestination(rotation, destination),
-        expect.objectContaining<DrawTextureOptions>({
-          rotate: expectedRotate,
-          flip: expectedFlip,
-          blend: undefined,
-        })
-      );
-    });
+  it("draws the shield frame for shield faces", () => {
+    const faceId = "ShieldFaceTop1";
+    const generator = makeGenerator(
+      faceId,
+      encodeSelectedBannerShieldPatterns([makeSelectedPattern("base")])
+    );
+
+    drawFace(generator, faceId, source, destination);
+
+    expect(generator.drawTexture).toHaveBeenCalledTimes(1);
+    expect(generator.drawTexture).toHaveBeenCalledWith(
+      "minecraft-26.1.2-shield-patterns",
+      [0, 0, 64, 64],
+      destination,
+      expect.objectContaining<DrawTextureOptions>({
+        blend: undefined,
+      })
+    );
   });
 
   it("scales partial source regions to match larger atlas frames", () => {
+    const faceId = "ShieldFaceRight1";
     const generator = makeGenerator(
       faceId,
-      makeFaceJson({
-        rotation: "Rot0",
-        flip: "None",
-        rectangle: [464, 384, 32, 32],
-      })
+      encodeSelectedBannerShieldPatterns([makeSelectedPattern("base")])
     );
 
-    drawFace(generator, faceId, [8, 3.5, 8, 1.5], destination);
+    drawFace(generator, faceId, [0, 8, 16, 8], destination);
 
     expect(generator.drawTexture).toHaveBeenCalledTimes(1);
     expect(generator.drawTexture).toHaveBeenCalledWith(
-      "test-texture",
-      [480, 391, 16, 3],
+      "minecraft-26.1.2-shield-patterns",
+      [0, 32, 64, 32],
       destination,
       expect.objectContaining<DrawTextureOptions>({
-        rotate: 0,
-        flip: "None",
         blend: undefined,
       })
     );
   });
 
-  it("applies face transforms through the texture rotation path", () => {
+  it("applies tint blends", () => {
+    const faceId = "BannerFaceTop1";
     const generator = makeGenerator(
       faceId,
-      makeFaceJson({ rotation: "Rot0", flip: "None" })
+      encodeSelectedBannerShieldPatterns([
+        {
+          ...makeSelectedPattern("base"),
+          blend: "#ff0000",
+        },
+      ])
     );
 
-    drawFaceWithTextureTransform(generator, faceId, source, destination, {
-      rotate: 90,
-      flip: "None",
-    });
+    drawFace(generator, faceId, source, destination);
 
-    expect(generator.drawTexture).toHaveBeenCalledTimes(1);
     expect(generator.drawTexture).toHaveBeenCalledWith(
-      "test-texture",
-      [16, 32, 16, 16],
-      makeExpectedDestination("Rot90", destination),
+      "minecraft-26.1.2-banner-patterns",
+      [64, 0, 64, 64],
+      destination,
       expect.objectContaining<DrawTextureOptions>({
-        rotate: 90,
-        flip: "None",
-        blend: undefined,
+        blend: { kind: "MultiplyHex", hex: "#ff0000" },
       })
     );
   });
 });
 
 describe("defineInputRegion", () => {
-  const faceId = "BlockFaceTop1";
+  const faceId = "BannerFaceTop1";
   const region: [number, number, number, number] = [0, 0, 16, 16];
 
-  function makeSelectedTextureJson(textureDefId: string): string {
-    return encodeSelectedTexture({
-      textureDefId,
-      frame: {
-        id: "frame",
-        label: "frame",
-        rectangle: [0, 0, 16, 16],
-        crop: [0, 0, 16, 16],
-      },
-      rotation: "Rot0",
-      flip: "None",
-      blend: null,
-    });
-  }
-
   function makeRegionGenerator({
-    currentTextureJson,
+    currentPatternJson,
     faceJson,
   }: {
-    currentTextureJson: string;
+    currentPatternJson: string;
     faceJson: string;
   }) {
     let onRegionClick: (() => void) | undefined;
@@ -242,7 +135,7 @@ describe("defineInputRegion", () => {
       }),
       getStringInputValue: vi.fn((id: string) => {
         if (id === currentBannerAndShieldTextureId) {
-          return currentTextureJson;
+          return currentPatternJson;
         }
         if (id === faceId) {
           return faceJson;
@@ -265,38 +158,40 @@ describe("defineInputRegion", () => {
 
     return {
       click,
-      getNextFaceTextures: () =>
-        nextFaceJson ? decodeSelectedTextures(nextFaceJson) : [],
+      getNextFacePatterns: () =>
+        nextFaceJson ? decodeSelectedBannerShieldPatterns(nextFaceJson) : [],
     };
   }
 
-  it("appends the selected texture to the face", () => {
-    const currentTextureJson = makeSelectedTextureJson("stone");
-    const { click, getNextFaceTextures } = makeRegionGenerator({
-      currentTextureJson,
+  it("appends the selected pattern to the face", () => {
+    const { click, getNextFacePatterns } = makeRegionGenerator({
+      currentPatternJson: encodeSelectedBannerShieldPattern(
+        makeSelectedPattern("base")
+      ),
       faceJson: "",
     });
 
     click();
 
-    expect(getNextFaceTextures()).toHaveLength(1);
-    expect(getNextFaceTextures()[0]?.textureDefId).toBe("stone");
+    expect(getNextFacePatterns()).toHaveLength(1);
+    expect(getNextFacePatterns()[0]?.patternId).toBe("base");
   });
 
-  it("erases the last face texture when the picker selection is empty", () => {
-    const currentTextureJson = makeSelectedTextureJson("");
-    const faceJson = encodeSelectedTextures([
-      JSON.parse(makeSelectedTextureJson("stone")),
-      JSON.parse(makeSelectedTextureJson("dirt")),
+  it("erases the last face pattern when the picker selection is empty", () => {
+    const faceJson = encodeSelectedBannerShieldPatterns([
+      makeSelectedPattern("base"),
+      makeSelectedPattern("border"),
     ]);
-    const { click, getNextFaceTextures } = makeRegionGenerator({
-      currentTextureJson,
+    const { click, getNextFacePatterns } = makeRegionGenerator({
+      currentPatternJson: encodeSelectedBannerShieldPattern(
+        makeSelectedPattern("")
+      ),
       faceJson,
     });
 
     click();
 
-    expect(getNextFaceTextures()).toHaveLength(1);
-    expect(getNextFaceTextures()[0]?.textureDefId).toBe("stone");
+    expect(getNextFacePatterns()).toHaveLength(1);
+    expect(getNextFacePatterns()[0]?.patternId).toBe("base");
   });
 });

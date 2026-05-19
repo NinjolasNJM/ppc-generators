@@ -10,23 +10,23 @@ import type {
 } from "@genroot/builder/modules/generatorDef";
 import { type Generator } from "@genroot/builder/modules/generator";
 import {
-  decodeSelectedTexture,
-  encodeSelectedTexture,
-} from "@genroot/builder/ui/texturePicker/selectedTexture";
-import { TexturePicker } from "../_common/plugins/texturePicker/texturePicker";
-import { blockTintChoiceGroups } from "../_common/tintSelector/tints";
-import {
-  parseAtlas,
-  updateCustomTextureAtlas,
-  updateCustomTextureUrl,
-} from "../_common/textures/customTextureVersion";
-import {
-  allTextureDefs,
-  versionIdsBlocksFirst,
-} from "../_common/textures/textureVersions";
+  decodeSelectedBannerShieldPattern,
+  encodeSelectedBannerShieldPattern,
+} from "./bannerTexturePicker/types";
+import { PatternTexturePicker } from "./bannerTexturePicker/patternTexturePicker";
+import { dyeTintGroup } from "../_common/tintSelector/tints";
+import { parseAtlas } from "../_common/textures/customTextureVersion";
 import { currentBannerAndShieldTextureId } from "./constants";
 import { drawBanner } from "./shapes/banner";
 import { drawShield } from "./shapes/shield";
+import {
+  updateCustomBannerTextureAtlas,
+  updateCustomShieldTextureAtlas,
+} from "./textures/customBannerShieldTextureVersion";
+import {
+  bannerShieldTextureDefs,
+  bannerShieldVersionIds,
+} from "./textures/textureVersions";
 
 import backgroundImage from "./images/Background.png";
 import foldsBannerImage from "./images/Folds-Banner.png";
@@ -46,7 +46,7 @@ const history: HistoryDef = [
 const instructions = `
 ## How to use the Minecraft Banner and Shield Generator?
 
-This generator is an early work-in-progress. For now, it uses the block generator's texture picker and placeholder banner and shield templates while the true banner and shield rendering is built out.
+This generator is an early work-in-progress. Choose a pattern, tint it, and click banner or shield regions to layer it onto the template.
 `;
 
 const thumbnail: ThumbnailDef = {
@@ -61,54 +61,69 @@ const images: ImageDef[] = [
   { id: "Tabs-Shield", url: tabsShieldImage.src },
 ];
 
-const textures: TextureDef[] = allTextureDefs;
+const textures: TextureDef[] = bannerShieldTextureDefs;
 
 const script: ScriptDef = (generator: Generator) => {
-  generator.defineSelectInput("Version", versionIdsBlocksFirst);
+  generator.defineSelectInput("Version", bannerShieldVersionIds);
 
   const versionId = generator.getSelectInputValue("Version");
 
   if (versionId === "custom") {
-    generator.defineAtlasInput("custom", {
-      label: "Custom",
-      standardWidth: 32,
-      standardHeight: 32,
+    generator.defineAtlasInput("custom-banner-patterns", {
+      label: "Custom Banner Patterns",
+      standardWidth: 64,
+      standardHeight: 64,
+      choices: [],
+    });
+    generator.defineAtlasInput("custom-shield-patterns", {
+      label: "Custom Shield Patterns",
+      standardWidth: 64,
+      standardHeight: 64,
       choices: [],
     });
 
-    const customAtlas = parseAtlas(
-      generator.getStringInputValue("custom Frames")
+    const customBannerAtlas = parseAtlas(
+      generator.getStringInputValue("custom-banner-patterns Frames")
     );
-    const customTexture = generator.getTexture("custom");
-    if (customTexture) {
-      const textureUrl = customTexture.imageWithCanvas.image.src;
-      if (customAtlas && customAtlas.frames.length > 0) {
-        updateCustomTextureAtlas(textureUrl, customAtlas);
-      } else {
-        updateCustomTextureUrl(textureUrl);
-      }
+    const customBannerTexture = generator.getTexture("custom-banner-patterns");
+    if (customBannerTexture && customBannerAtlas) {
+      updateCustomBannerTextureAtlas(
+        customBannerTexture.imageWithCanvas.image.src,
+        customBannerAtlas
+      );
+    }
+
+    const customShieldAtlas = parseAtlas(
+      generator.getStringInputValue("custom-shield-patterns Frames")
+    );
+    const customShieldTexture = generator.getTexture("custom-shield-patterns");
+    if (customShieldTexture && customShieldAtlas) {
+      updateCustomShieldTextureAtlas(
+        customShieldTexture.imageWithCanvas.image.src,
+        customShieldAtlas
+      );
     }
   }
 
-  const currentTextureJson = generator.getStringInputValue(
+  const currentPatternJson = generator.getStringInputValue(
     currentBannerAndShieldTextureId
   );
-  const currentTexture = currentTextureJson
-    ? decodeSelectedTexture(currentTextureJson)
+  const currentPattern = currentPatternJson
+    ? decodeSelectedBannerShieldPattern(currentPatternJson)
     : null;
   if (
-    currentTexture !== null &&
-    currentTexture.textureDefId !== "" &&
-    currentTexture.textureDefId !== versionId
+    currentPattern !== null &&
+    currentPattern.patternId !== "" &&
+    currentPattern.versionId !== versionId
   ) {
     generator.setStringInputValue(currentBannerAndShieldTextureId, "");
   }
 
-  const resolvedCurrentTextureJson = generator.getStringInputValue(
+  const resolvedCurrentPatternJson = generator.getStringInputValue(
     currentBannerAndShieldTextureId
   );
-  const resolvedCurrentTexture = resolvedCurrentTextureJson
-    ? decodeSelectedTexture(resolvedCurrentTextureJson)
+  const resolvedCurrentPattern = resolvedCurrentPatternJson
+    ? decodeSelectedBannerShieldPattern(resolvedCurrentPatternJson)
     : null;
 
   generator.defineCustomStringInput(
@@ -118,12 +133,12 @@ const script: ScriptDef = (generator: Generator) => {
         return null;
       }
       return (
-        <TexturePicker
+        <PatternTexturePicker
           versionId={versionId}
-          selectedTexture={resolvedCurrentTexture}
-          tintChoiceGroups={blockTintChoiceGroups}
-          onChange={(selectedTexture) => {
-            onChange(encodeSelectedTexture(selectedTexture));
+          selectedPattern={resolvedCurrentPattern}
+          tintChoiceGroups={[dyeTintGroup]}
+          onChange={(selectedPattern) => {
+            onChange(encodeSelectedBannerShieldPattern(selectedPattern));
           }}
         />
       );

@@ -6,21 +6,15 @@ import {
   type Generator,
   type Region,
 } from "@genroot/builder/modules/generator";
-import { makeNextFlip } from "@genroot/builder/ui/texturePicker/flip";
-import {
-  type SelectedTexture,
-  decodeSelectedTexture,
-  decodeSelectedTextures,
-  encodeSelectedTextures,
-} from "@genroot/builder/ui/texturePicker/selectedTexture";
-import { type Flip } from "@genroot/builder/ui/texturePicker/flip";
-import { type Rotation } from "@genroot/builder/ui/texturePicker/rotation";
 import { currentBannerAndShieldTextureId } from "./constants";
-
-export type FaceTextureTransform = {
-  rotate: 0 | 90 | 180 | 270;
-  flip: Flip;
-};
+import {
+  decodeSelectedBannerShieldPattern,
+  decodeSelectedBannerShieldPatterns,
+  encodeSelectedBannerShieldPatterns,
+  type BannerShieldTarget,
+  type SelectedBannerShieldPattern,
+} from "./bannerTexturePicker/types";
+import { findBannerShieldTextureVersion } from "./textures/textureVersions";
 
 export function defineInputRegion(
   generator: Generator,
@@ -30,119 +24,82 @@ export function defineInputRegion(
   generator.defineRegionInput(
     region,
     () => {
-      const selectedTextureJson = generator.getStringInputValue(
+      const selectedPatternJson = generator.getStringInputValue(
         currentBannerAndShieldTextureId
       );
 
-      const selectedTexture = selectedTextureJson
-        ? decodeSelectedTexture(selectedTextureJson)
+      const selectedPattern = selectedPatternJson
+        ? decodeSelectedBannerShieldPattern(selectedPatternJson)
         : null;
 
-      if (!selectedTexture) {
+      if (!selectedPattern) {
         return;
       }
 
-      const curentFaceTexturesJson = generator.getStringInputValue(faceId);
-      const currentFaceTextures = curentFaceTexturesJson
-        ? decodeSelectedTextures(curentFaceTexturesJson)
+      const currentFacePatternsJson = generator.getStringInputValue(faceId);
+      const currentFacePatterns = currentFacePatternsJson
+        ? decodeSelectedBannerShieldPatterns(currentFacePatternsJson)
         : [];
 
-      const shouldErase = selectedTexture.textureDefId === "";
-      const newFaceTextures = shouldErase
-        ? currentFaceTextures.slice(0, -1)
-        : currentFaceTextures.concat([selectedTexture]);
-      const newFaceTexturesJson = encodeSelectedTextures(newFaceTextures);
-      generator.setStringInputValue(faceId, newFaceTexturesJson);
+      const shouldErase = selectedPattern.patternId === "";
+      const newFacePatterns = shouldErase
+        ? currentFacePatterns.slice(0, -1)
+        : currentFacePatterns.concat([selectedPattern]);
+      generator.setStringInputValue(
+        faceId,
+        encodeSelectedBannerShieldPatterns(newFacePatterns)
+      );
     },
     faceId
   );
 }
 
-function drawTexture(
+function drawPattern(
   generator: Generator,
-  face: SelectedTexture,
+  pattern: SelectedBannerShieldPattern,
+  target: BannerShieldTarget,
   source: Region,
   destination: Region,
   options?: DrawTextureOptions
 ) {
-  const { textureDefId, frame, rotation, flip } = face;
-  const [dx, dy, dw, dh] = destination;
+  const textureVersion = findBannerShieldTextureVersion(pattern.versionId);
+  const texturePattern = textureVersion?.patterns.find(
+    ({ id }) => id === pattern.patternId
+  );
+  if (!textureVersion || !texturePattern) {
+    return;
+  }
+
+  const textureDef =
+    target === "banner"
+      ? textureVersion.bannerTextureDef
+      : textureVersion.shieldTextureDef;
+  const frame =
+    target === "banner"
+      ? texturePattern.bannerFrame
+      : texturePattern.shieldFrame;
+  if (!frame) {
+    return;
+  }
 
   const [sx, sy, sw, sh] = source;
   const [fx, fy, fw, fh] = frame.rectangle;
-
-  const flipOption = options?.flip ?? "None";
-  const [nextFlip, nextRotation] = makeNextFlip(flipOption, flip, rotation);
-
   const scale =
     fw === fh && fw > 0 && fw % 16 === 0 && fh % 16 === 0 ? fw / 16 : 1;
-  const scaledSource = [
-    sx * scale,
-    sy * scale,
+  const sourceRegion: Region = [
+    fx + sx * scale,
+    fy + sy * scale,
     sw * scale,
     sh * scale,
-  ] as const;
-  const [ssx, ssy, ssw, ssh] = scaledSource;
-
-  const sourceRegion: Region = (() => {
-    switch (nextRotation) {
-      case "Rot0":
-        return [fx + ssx, fy + ssy, ssw, ssh];
-      case "Rot90":
-        return [fx + ssy, fy + fw - (ssw + ssx), ssh, ssw];
-      case "Rot180":
-        return [fx + fw - (ssw + ssx), fy + fh - (ssh + ssy), ssw, ssh];
-      case "Rot270":
-        return [fx + fh - (ssh + ssy), fy + ssx, ssh, ssw];
-    }
-  })();
-
-  const destinationRegion: Region = (() => {
-    switch (nextRotation) {
-      case "Rot0":
-        return [dx, dy, dw, dh];
-      case "Rot90":
-        return [dx + (dw - dh) / 2, dy - (dw - dh) / 2, dh, dw];
-      case "Rot180":
-        return [dx, dy, dw, dh];
-      case "Rot270":
-        return [dx + (dw - dh) / 2, dy - (dw - dh) / 2, dh, dw];
-      default:
-        return [dx, dy, dw, dh];
-    }
-  })();
-
-  const rotate: number = ((): number => {
-    const currRotate = options ? options.rotate ?? 0 : 0;
-    switch (nextRotation) {
-      case "Rot0":
-        return currRotate;
-      case "Rot90":
-        return currRotate + 90;
-      case "Rot180":
-        return currRotate + 180;
-      case "Rot270":
-        return currRotate + 270;
-    }
-  })();
-
-  const blend: Blend | undefined = face.blend
-    ? { kind: "MultiplyHex", hex: face.blend }
+  ];
+  const blend: Blend | undefined = pattern.blend
+    ? { kind: "MultiplyHex", hex: pattern.blend }
     : undefined;
 
-  const optionsWithRotate: DrawTextureOptions = {
+  generator.drawTexture(textureDef.id, sourceRegion, destination, {
     ...options,
-    rotate,
-    flip: nextFlip,
     blend,
-  };
-
-  generator.drawTexture(
-    textureDefId,
-    sourceRegion,
-    destinationRegion,
-    optionsWithRotate
-  );
+  });
 }
 
 export function drawFace(
@@ -152,49 +109,16 @@ export function drawFace(
   destination: Region,
   options?: DrawTextureOptions
 ) {
-  const faceTexturesJson = generator.getStringInputValue(faceId);
-  if (faceTexturesJson) {
-    const faceTextures = decodeSelectedTextures(faceTexturesJson);
-    faceTextures.forEach((selectedTexture: SelectedTexture) => {
-      drawTexture(generator, selectedTexture, source, destination, options);
+  const target = getFaceTarget(faceId);
+  const facePatternsJson = generator.getStringInputValue(faceId);
+  if (facePatternsJson) {
+    const facePatterns = decodeSelectedBannerShieldPatterns(facePatternsJson);
+    facePatterns.forEach((selectedPattern) => {
+      drawPattern(generator, selectedPattern, target, source, destination, options);
     });
   }
 }
 
-export function drawFaceWithTextureTransform(
-  generator: Generator,
-  faceId: string,
-  source: Region,
-  destination: Region,
-  transform: FaceTextureTransform
-) {
-  const faceTexturesJson = generator.getStringInputValue(faceId);
-  if (faceTexturesJson) {
-    const faceTextures = decodeSelectedTextures(faceTexturesJson);
-    faceTextures.forEach((selectedTexture: SelectedTexture) => {
-      drawTexture(
-        generator,
-        {
-          ...selectedTexture,
-          rotation: rotateTextureRotation(
-            selectedTexture.rotation,
-            transform.rotate
-          ),
-        },
-        source,
-        destination,
-        { flip: transform.flip }
-      );
-    });
-  }
-}
-
-function rotateTextureRotation(
-  rotation: Rotation,
-  degrees: FaceTextureTransform["rotate"]
-): Rotation {
-  const rotations: Rotation[] = ["Rot0", "Rot90", "Rot180", "Rot270"];
-  const currentIndex = rotations.indexOf(rotation);
-  const addIndex = degrees / 90;
-  return rotations[(currentIndex + addIndex) % rotations.length] ?? "Rot0";
+function getFaceTarget(faceId: string): BannerShieldTarget {
+  return faceId.startsWith("Shield") ? "shield" : "banner";
 }
