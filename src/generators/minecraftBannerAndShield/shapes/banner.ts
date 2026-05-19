@@ -17,7 +17,7 @@ const size = 384;
 function makeFaces(ox: number, oy: number): Faces {
   //const [width, height, depth] = flagDimensions;
   return {
-    flag: [ox, oy + size / 2, 360, 720],// [ox + size + depth, oy + depth, width, height],
+    flag: [ox, oy + size / 4, 360, 720],// [ox + size + depth, oy + depth, width, height],
   };
 }
 
@@ -50,14 +50,27 @@ export function drawBanner(
     baseInputId
   );
 
-  dimensions = [36, 126, 36];
+  dimensions = [36, 756, 36];
 
     Face.drawCuboid(
     generator,
     patternFaceId,
     "banner",
     banner.pole,
-    [regions.flag[0] - dimensions[2] + size, regions.flag[1] - dimensions[2]],
+    [regions.flag[0] - dimensions[2] + size * 2.5, regions.flag[1] - dimensions[2]],
+    dimensions,
+    {},
+    baseInputId
+  );
+
+    dimensions = [360, 36, 36];
+
+    Face.drawCuboid(
+    generator,
+    patternFaceId,
+    "banner",
+    banner.bar,
+    [regions.flag[0] - dimensions[2], regions.flag[1] - dimensions[2] + size * 2.25],
     dimensions,
     {},
     baseInputId
