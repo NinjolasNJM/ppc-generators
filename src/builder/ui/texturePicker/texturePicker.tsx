@@ -83,6 +83,46 @@ function makeTileStyle(
   return { ...baseStyle, ...backgroundStyle };
 }
 
+function makeTextureTintMaskStyle(
+  textureDef: TextureDef,
+  frame: TextureFrame,
+  tileSize: number,
+  blend: string | null
+): React.CSSProperties | undefined {
+  if (!blend) {
+    return undefined;
+  }
+
+  const [x, y, width, height] = frame.rectangle;
+  const widthScale = tileSize / width;
+  const heightScale = tileSize / height;
+  const maskImage = makeBackgroundImage(textureDef.url);
+  const maskPosition = makeBackgroundPosition(
+    -x * widthScale,
+    -y * heightScale
+  );
+  const maskSize = makeBackgroundSize(
+    textureDef.standardWidth * widthScale,
+    textureDef.standardHeight * heightScale
+  );
+
+  return {
+    position: "absolute",
+    inset: 0,
+    pointerEvents: "none",
+    backgroundColor: blend,
+    mixBlendMode: "multiply",
+    WebkitMaskImage: maskImage,
+    maskImage,
+    WebkitMaskPosition: maskPosition,
+    maskPosition,
+    WebkitMaskRepeat: "no-repeat",
+    maskRepeat: "no-repeat",
+    WebkitMaskSize: maskSize,
+    maskSize,
+  };
+}
+
 function TileButton({
   textureDef,
   frame,
@@ -163,18 +203,20 @@ export function Preview({
   const rotationDegrees = rotationToDegrees(rotation);
   const flipTransform = flipToTransform(flip);
   const tileStyle = makeTileStyle(textureDef, frame, false, false, 128);
-  const tintStyle = blend
-    ? {
-        backgroundColor: blend,
-        backgroundBlendMode: "multiply" as const,
-      }
-    : undefined;
   const transform = `rotate(${deg(rotationDegrees)}) ${flipTransform}`.trim();
-  const style = { ...tileStyle, ...tintStyle, transform };
+  const tintMaskStyle = makeTextureTintMaskStyle(textureDef, frame, 128, blend);
+  const style: React.CSSProperties = {
+    ...tileStyle,
+    position: "relative",
+    overflow: "hidden",
+    transform,
+  };
 
   return (
     <div className="flex flex-col items-center" style={{ width: "148px" }}>
-      <div style={style}></div>
+      <div style={style}>
+        {tintMaskStyle ? <div style={tintMaskStyle} /> : null}
+      </div>
       <div className="text-center text-gray-500 p-2 pt-0">{frame.label}</div>
     </div>
   );

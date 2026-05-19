@@ -1,8 +1,10 @@
 import React from "react";
 import { type TextureDef } from "@genroot/builder/modules/generatorDef";
 import { type TextureFrame } from "@genroot/builder/modules/textureData";
-import { Button } from "@genroot/builder/ui/button/button";
-import { EraseButton } from "@genroot/builder/ui/texturePicker/texturePicker";
+import {
+  EraseButton,
+  Search,
+} from "@genroot/builder/ui/texturePicker/texturePicker";
 import { TintSelector } from "@genroot/generators/_common/tintSelector/tintSelector";
 import { type TintChoiceGroup } from "@genroot/generators/_common/tintSelector/tints";
 import { findBannerShieldTextureVersion } from "../textures/textureVersions";
@@ -18,6 +20,9 @@ type PreviewPattern = {
 };
 
 const bannerFrontSource = [1, 1, 20, 40] as const;
+const bgGray200 = "rgb(229 231 235)";
+const bgGray400 = "rgb(156 163 175)";
+const borderSize = 4;
 
 export function PatternTexturePicker({
   versionId,
@@ -80,42 +85,24 @@ export function PatternTexturePicker({
 
   return (
     <div>
-      <div className="mb-4 flex gap-2">
-        <input
-          className="w-full border border-gray-300 p-2"
-          type="search"
-          placeholder="Search banner patterns"
-          value={search}
-          onChange={(event) => {
-            setSearch(event.target.value);
-          }}
-        />
-        {search ? (
-          <Button
-            title="Clear search"
-            size="Small"
-            color="Gray"
-            onClick={() => {
-              setSearch("");
-            }}
-          >
-            Clear
-          </Button>
-        ) : null}
-      </div>
+      <Search
+        value={search}
+        onChange={(value) => {
+          setSearch(value);
+        }}
+        onClear={() => {
+          setSearch("");
+        }}
+      />
       <div className="mb-8 flex">
         <div className="h-60 w-full overflow-y-auto">
           {filteredPatterns.map(({ pattern, textureDef, frame }) => (
-            <button
+            <PatternTileButton
               key={pattern.id}
-              type="button"
-              className={
-                "mb-2 mr-2 inline-flex h-20 w-12 items-center justify-center border bg-white p-1 " +
-                (selectedId === pattern.id
-                  ? "border-blue-500"
-                  : "border-gray-300")
-              }
-              title={pattern.label}
+              pattern={pattern}
+              textureDef={textureDef}
+              frame={frame}
+              isSelected={selectedId === pattern.id}
               onClick={() => {
                 setSelectedId(pattern.id);
                 onChange({
@@ -124,14 +111,7 @@ export function PatternTexturePicker({
                   blend,
                 });
               }}
-            >
-              <PatternPreview
-                textureDef={textureDef}
-                frame={frame}
-                size={64}
-                blend={null}
-              />
-            </button>
+            />
           ))}
         </div>
         <div className="w-24 shrink-0">
@@ -189,6 +169,55 @@ function makePreviewPattern(
   return null;
 }
 
+function PatternTileButton({
+  pattern,
+  textureDef,
+  frame,
+  isSelected,
+  onClick,
+}: {
+  pattern: BannerShieldPattern;
+  textureDef: TextureDef;
+  frame: TextureFrame;
+  isSelected: boolean;
+  onClick: () => void;
+}) {
+  const [isHover, setIsHover] = React.useState(false);
+  const width = getPreviewWidth(64);
+  const height = 64;
+  const borderColor = isSelected || isHover ? bgGray400 : bgGray200;
+
+  return (
+    <button
+      title={pattern.label}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: width + borderSize * 2,
+        height: height + borderSize * 2,
+        margin: `0 ${borderSize}px ${borderSize}px 0`,
+        border: `${borderSize}px solid ${borderColor}`,
+        backgroundColor: "white",
+      }}
+      onClick={onClick}
+      onMouseEnter={() => {
+        setIsHover(true);
+      }}
+      onMouseLeave={() => {
+        setIsHover(false);
+      }}
+    >
+      <PatternPreview
+        textureDef={textureDef}
+        frame={frame}
+        size={64}
+        blend={null}
+      />
+    </button>
+  );
+}
+
 function PatternPreview({
   textureDef,
   frame,
@@ -203,14 +232,16 @@ function PatternPreview({
   const [frameX, frameY] = frame.rectangle;
   const [sourceX, sourceY, sourceWidth, sourceHeight] = bannerFrontSource;
   const scale = size / sourceHeight;
-  const width = sourceWidth * scale;
-  const height = sourceHeight * scale;
-  const tintStyle = blend
-    ? {
-        backgroundColor: blend,
-        backgroundBlendMode: "multiply" as const,
-      }
-    : undefined;
+  const width = getPreviewWidth(size);
+  const height = size;
+  const imagePosition = `${-(frameX + sourceX)}px ${-(frameY + sourceY)}px`;
+  const imageSize = `${textureDef.standardWidth}px ${textureDef.standardHeight}px`;
+  const tintMaskStyle = makeTintMaskStyle({
+    textureDef,
+    imagePosition,
+    imageSize,
+    blend,
+  });
 
   return (
     <div
@@ -222,16 +253,20 @@ function PatternPreview({
     >
       <div
         style={{
+          position: "relative",
           width: sourceWidth,
           height: sourceHeight,
+          overflow: "hidden",
           imageRendering: "pixelated",
           transform: `scale(${scale})`,
           backgroundImage: `url(${textureDef.url})`,
-          backgroundPosition: `${-(frameX + sourceX)}px ${-(frameY + sourceY)}px`,
-          backgroundSize: `${textureDef.standardWidth}px ${textureDef.standardHeight}px`,
-          ...tintStyle,
+          backgroundPosition: imagePosition,
+          backgroundRepeat: "no-repeat",
+          backgroundSize: imageSize,
         }}
-      />
+      >
+        {tintMaskStyle ? <div style={tintMaskStyle} /> : null}
+      </div>
     </div>
   );
 }
@@ -245,7 +280,14 @@ function SelectedPatternPreview({
 }) {
   return (
     <div className="flex flex-col items-center" style={{ width: "96px" }}>
-      <div className="flex h-36 w-20 items-center justify-center border-4 border-gray-200 bg-white">
+      <div
+        className="flex items-center justify-center bg-white"
+        style={{
+          width: getPreviewWidth(128) + borderSize * 2,
+          height: 128 + borderSize * 2,
+          border: `${borderSize}px solid ${bgGray200}`,
+        }}
+      >
         {selectedPreview ? (
           <PatternPreview
             textureDef={selectedPreview.textureDef}
@@ -260,4 +302,42 @@ function SelectedPatternPreview({
       </div>
     </div>
   );
+}
+
+function getPreviewWidth(height: number): number {
+  const [, , sourceWidth, sourceHeight] = bannerFrontSource;
+  return (sourceWidth / sourceHeight) * height;
+}
+
+function makeTintMaskStyle({
+  textureDef,
+  imagePosition,
+  imageSize,
+  blend,
+}: {
+  textureDef: TextureDef;
+  imagePosition: string;
+  imageSize: string;
+  blend: string | null;
+}): React.CSSProperties | undefined {
+  if (!blend) {
+    return undefined;
+  }
+
+  const image = `url(${textureDef.url})`;
+  return {
+    position: "absolute",
+    inset: 0,
+    pointerEvents: "none",
+    backgroundColor: blend,
+    mixBlendMode: "multiply",
+    WebkitMaskImage: image,
+    maskImage: image,
+    WebkitMaskPosition: imagePosition,
+    maskPosition: imagePosition,
+    WebkitMaskRepeat: "no-repeat",
+    maskRepeat: "no-repeat",
+    WebkitMaskSize: imageSize,
+    maskSize: imageSize,
+  };
 }
