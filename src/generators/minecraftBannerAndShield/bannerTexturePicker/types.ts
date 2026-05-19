@@ -10,10 +10,16 @@ export type BannerShieldPattern = {
   shieldFrame: TextureFrame | null;
 };
 
+export type BannerShieldBaseOption = TextureFrame & {
+  textureDef?: TextureDef;
+};
+
 export type BannerShieldBases = {
-  bannerBase: TextureFrame | null;
-  shieldBase: TextureFrame | null;
-  shieldBaseNoPattern: TextureFrame | null;
+  bannerBase: BannerShieldBaseOption | null;
+  shieldBase: BannerShieldBaseOption | null;
+  shieldBaseNoPattern: BannerShieldBaseOption | null;
+  bannerOptions: BannerShieldBaseOption[];
+  shieldOptions: BannerShieldBaseOption[];
 };
 
 export type BannerShieldTextureVersion = {

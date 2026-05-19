@@ -7,6 +7,9 @@ import { pairBannerShieldPatterns } from "../bannerTexturePicker/pairPatterns";
 import { type BannerShieldTextureVersion } from "../bannerTexturePicker/types";
 import {
   customBannerTextureDef,
+  defaultBannerBaseTextureDef,
+  defaultShieldBaseNoPatternTextureDef,
+  defaultShieldBaseTextureDef,
   customShieldTextureDef,
   makeCustomBannerShieldTextureVersion,
 } from "./customBannerShieldTextureVersion";
@@ -81,4 +84,7 @@ export const bannerShieldTextureDefs: TextureDef[] = [
   ),
   customBannerTextureDef,
   customShieldTextureDef,
+  defaultBannerBaseTextureDef,
+  defaultShieldBaseTextureDef,
+  defaultShieldBaseNoPatternTextureDef,
 ];

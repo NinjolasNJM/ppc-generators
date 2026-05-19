@@ -22,6 +22,8 @@ export function pairBannerShieldPatterns({
     bannerBase: findFrame(bannerFrames, bannerBaseId),
     shieldBase: findFrame(shieldFrames, shieldBaseId),
     shieldBaseNoPattern: findFrame(shieldFrames, shieldBaseNoPatternId),
+    bannerOptions: [],
+    shieldOptions: [],
   };
   const bannerPatternFrames = bannerFrames.filter(
     (frame) => frame.id !== bannerBaseId
@@ -31,6 +33,17 @@ export function pairBannerShieldPatterns({
   );
   const bannerFramesById = makeFrameMap(bannerPatternFrames);
   const shieldFramesById = makeFrameMap(shieldPatternFrames);
+  const sharedPatternIds = new Set(
+    Array.from(bannerFramesById.keys()).filter((id) =>
+      shieldFramesById.has(id)
+    )
+  );
+  bases.bannerOptions = bannerFrames.filter(
+    (frame) => !sharedPatternIds.has(frame.id)
+  );
+  bases.shieldOptions = shieldFrames.filter(
+    (frame) => !sharedPatternIds.has(frame.id)
+  );
   const patternIds = Array.from(
     new Set([
       ...Array.from(bannerFramesById.keys()),

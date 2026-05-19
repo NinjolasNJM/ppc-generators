@@ -14,6 +14,7 @@ import {
   decodeSelectedTextures,
   encodeSelectedTextures,
 } from "@genroot/builder/ui/texturePicker/selectedTexture";
+import { scaleTextureSource } from "./sourceRegion";
 
 export type FaceTextureTransform = {
   rotate: 0 | 90 | 180 | 270;
@@ -69,21 +70,12 @@ export function drawSelectedTexture(
   const { textureDefId, frame, rotation, flip } = face;
   const [dx, dy, dw, dh] = destination;
 
-  const [sx, sy, sw, sh] = source;
   const [fx, fy, fw, fh] = frame.rectangle;
 
   const flipOption = options?.flip ?? "None";
   const [nextFlip, nextRotation] = makeNextFlip(flipOption, flip, rotation);
 
-  const scale =
-    fw === fh && fw > 0 && fw % 16 === 0 && fh % 16 === 0 ? fw / 16 : 1;
-  const scaledSource = [
-    sx * scale,
-    sy * scale,
-    sw * scale,
-    sh * scale,
-  ] as const;
-  const [ssx, ssy, ssw, ssh] = scaledSource;
+  const [ssx, ssy, ssw, ssh] = scaleTextureSource(source, frame, 16);
 
   const sourceRegion: Region = (() => {
     switch (nextRotation) {

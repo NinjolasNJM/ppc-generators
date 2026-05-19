@@ -10,18 +10,23 @@ import {
 } from "./bannerTexturePicker/types";
 import {
   bannerBasePatternId,
+  defineBaseInput,
   defineInputRegion,
   drawCuboid,
   drawFace,
   makeTemplateBaseInputId,
   shieldBasePatternId,
+  shieldBaseNoPatternId,
 } from "./face";
 
 const versionId = "minecraft-26-1-2-banner-shield";
 
-function makeSelectedPattern(patternId: string): SelectedBannerShieldPattern {
+function makeSelectedPattern(
+  patternId: string,
+  patternVersionId = versionId
+): SelectedBannerShieldPattern {
   return {
-    versionId,
+    versionId: patternVersionId,
     patternId,
     blend: null,
   };
@@ -30,15 +35,17 @@ function makeSelectedPattern(patternId: string): SelectedBannerShieldPattern {
 function makeGenerator(
   faceId: string,
   faceJson: string,
-  baseId = bannerBasePatternId
+  baseId = bannerBasePatternId,
+  baseTarget: "banner" | "shield" = "banner",
+  selectedVersionId = versionId
 ): Generator {
   return {
     getStringInputValue: (id: string) => (id === faceId ? faceJson : null),
     getSelectInputValue: (id: string) => {
       if (id === "Version") {
-        return versionId;
+        return selectedVersionId;
       }
-      if (id === makeTemplateBaseInputId("1")) {
+      if (id === makeTemplateBaseInputId("1", baseTarget)) {
         return baseId;
       }
       return null;
@@ -48,7 +55,7 @@ function makeGenerator(
 }
 
 describe("drawFace", () => {
-  const source: [number, number, number, number] = [0, 0, 16, 16];
+  const source: [number, number, number, number] = [0, 0, 64, 64];
   const destination: [number, number, number, number] = [20, 30, 40, 50];
 
   it("draws the banner frame for banner faces", () => {
@@ -65,7 +72,7 @@ describe("drawFace", () => {
       destination,
       undefined,
       "banner",
-      makeTemplateBaseInputId("1")
+      makeTemplateBaseInputId("1", "banner")
     );
 
     expect(generator.drawTexture).toHaveBeenCalledTimes(2);
@@ -92,7 +99,8 @@ describe("drawFace", () => {
     const generator = makeGenerator(
       faceId,
       encodeSelectedBannerShieldPatterns([makeSelectedPattern("base")]),
-      shieldBasePatternId
+      shieldBasePatternId,
+      "shield"
     );
 
     drawFace(
@@ -102,7 +110,7 @@ describe("drawFace", () => {
       destination,
       undefined,
       "shield",
-      makeTemplateBaseInputId("1")
+      makeTemplateBaseInputId("1", "shield")
     );
 
     expect(generator.drawTexture).toHaveBeenCalledTimes(2);
@@ -124,21 +132,23 @@ describe("drawFace", () => {
     );
   });
 
-  it("scales partial source regions to match larger atlas frames", () => {
+  it("draws partial source regions inside the selected pattern frame", () => {
     const faceId = "ShieldFaceRight1";
     const generator = makeGenerator(
       faceId,
-      encodeSelectedBannerShieldPatterns([makeSelectedPattern("base")])
+      encodeSelectedBannerShieldPatterns([makeSelectedPattern("base")]),
+      shieldBasePatternId,
+      "shield"
     );
 
     drawFace(
       generator,
       faceId,
-      [0, 8, 16, 8],
+      [0, 32, 64, 32],
       destination,
       undefined,
       "shield",
-      makeTemplateBaseInputId("1")
+      makeTemplateBaseInputId("1", "shield")
     );
 
     expect(generator.drawTexture).toHaveBeenCalledTimes(2);
@@ -182,6 +192,69 @@ describe("drawFace", () => {
       expect.objectContaining<DrawTextureOptions>({
         blend: { kind: "MultiplyHex", hex: "#ff0000" },
       })
+    );
+  });
+
+  it("draws the default standalone banner base for custom versions without custom base frames", () => {
+    const faceId = "BannerFaceTop1";
+    const generator = makeGenerator(
+      faceId,
+      "",
+      bannerBasePatternId,
+      "banner",
+      "custom"
+    );
+
+    drawFace(
+      generator,
+      faceId,
+      source,
+      destination,
+      undefined,
+      "banner",
+      makeTemplateBaseInputId("1", "banner")
+    );
+
+    expect(generator.drawTexture).toHaveBeenCalledTimes(1);
+    expect(generator.drawTexture).toHaveBeenCalledWith(
+      "default-banner-base",
+      [0, 0, 64, 64],
+      destination,
+      {}
+    );
+  });
+});
+
+describe("defineBaseInput", () => {
+  it("keeps the default banner base available for custom textures", () => {
+    const generator = {
+      getSelectInputValue: vi.fn((id: string) =>
+        id === "Version" ? "custom" : null
+      ),
+      defineSelectInput: vi.fn(),
+    } as unknown as Generator;
+
+    defineBaseInput(generator, "1", "banner");
+
+    expect(generator.defineSelectInput).toHaveBeenCalledWith(
+      makeTemplateBaseInputId("1", "banner"),
+      [bannerBasePatternId]
+    );
+  });
+
+  it("keeps both default shield bases available for custom textures", () => {
+    const generator = {
+      getSelectInputValue: vi.fn((id: string) =>
+        id === "Version" ? "custom" : null
+      ),
+      defineSelectInput: vi.fn(),
+    } as unknown as Generator;
+
+    defineBaseInput(generator, "1", "shield");
+
+    expect(generator.defineSelectInput).toHaveBeenCalledWith(
+      makeTemplateBaseInputId("1", "shield"),
+      [shieldBasePatternId, shieldBaseNoPatternId]
     );
   });
 });

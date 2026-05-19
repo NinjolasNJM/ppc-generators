@@ -15,6 +15,7 @@ import {
   type Position,
   type Rectangle,
 } from "../_common/minecraft";
+import { makeTextureFrameSourceRegion } from "../_common/plugins/texturePicker/sourceRegion";
 import { currentBannerAndShieldTextureId } from "./constants";
 import {
   decodeSelectedBannerShieldPattern,
@@ -28,13 +29,18 @@ import { findBannerShieldTextureVersion } from "./textures/textureVersions";
 export const bannerBasePatternId = "banner_base";
 export const shieldBasePatternId = "shield_base";
 export const shieldBaseNoPatternId = "shield_base_nopattern";
+const bannerShieldTextureFrameSize = 64;
 
 export function makePatternFaceId(templateId: string): string {
   return "PatternFace" + templateId;
 }
 
-export function makeTemplateBaseInputId(templateId: string): string {
-  return `Template ${templateId} Base`;
+export function makeTemplateBaseInputId(
+  templateId: string,
+  target: BannerShieldTarget
+): string {
+  const targetLabel = target === "banner" ? "Banner" : "Shield";
+  return `Template ${templateId} ${targetLabel} Base`;
 }
 
 export function defineBaseInput(
@@ -48,18 +54,14 @@ export function defineBaseInput(
     : null;
   const options =
     target === "banner"
-      ? textureVersion?.bases.bannerBase
-        ? [bannerBasePatternId]
-        : []
-      : [
-          textureVersion?.bases.shieldBase ? shieldBasePatternId : null,
-          textureVersion?.bases.shieldBaseNoPattern
-            ? shieldBaseNoPatternId
-            : null,
-        ].filter((value): value is string => value !== null);
+      ? textureVersion?.bases.bannerOptions.map((frame) => frame.id) ?? []
+      : textureVersion?.bases.shieldOptions.map((frame) => frame.id) ?? [];
 
   if (options.length > 0) {
-    generator.defineSelectInput(makeTemplateBaseInputId(templateId), options);
+    generator.defineSelectInput(
+      makeTemplateBaseInputId(templateId, target),
+      options
+    );
   }
 }
 
@@ -108,7 +110,7 @@ function drawPattern(
   source: Region,
   destination: Region,
   options?: DrawTextureOptions,
-  sourceScale: "Block16" | "Frame" = "Block16"
+  logicalFrameSize = bannerShieldTextureFrameSize
 ) {
   const textureVersion = findBannerShieldTextureVersion(pattern.versionId);
   const texturePattern = textureVersion?.patterns.find(
@@ -130,22 +132,11 @@ function drawPattern(
     return;
   }
 
-  const [sx, sy, sw, sh] = source;
-  const [fx, fy, fw, fh] = frame.rectangle;
-  const scale =
-    sourceScale === "Block16" &&
-    fw === fh &&
-    fw > 0 &&
-    fw % 16 === 0 &&
-    fh % 16 === 0
-      ? fw / 16
-      : 1;
-  const sourceRegion: Region = [
-    fx + sx * scale,
-    fy + sy * scale,
-    sw * scale,
-    sh * scale,
-  ];
+  const sourceRegion = makeTextureFrameSourceRegion(
+    frame,
+    source,
+    logicalFrameSize
+  );
   const blend: Blend | undefined = pattern.blend
     ? { kind: "MultiplyHex", hex: pattern.blend }
     : options?.blend;
@@ -162,7 +153,7 @@ function drawBasePattern(
   source: Region,
   destination: Region,
   options?: DrawTextureOptions,
-  sourceScale: "Block16" | "Frame" = "Block16",
+  logicalFrameSize = bannerShieldTextureFrameSize,
   baseInputId?: string
 ) {
   const versionId = generator.getSelectInputValue("Version");
@@ -180,36 +171,28 @@ function drawBasePattern(
       ? textureVersion.bannerTextureDef
       : textureVersion.shieldTextureDef;
   const baseId = getSelectedBaseId(generator, target, baseInputId);
-  const frame =
+  const baseOption = (
     target === "banner"
-      ? baseId === bannerBasePatternId
-        ? textureVersion.bases.bannerBase
-        : null
-      : baseId === shieldBaseNoPatternId
-        ? textureVersion.bases.shieldBaseNoPattern
-        : textureVersion.bases.shieldBase;
-  if (!frame) {
+      ? textureVersion.bases.bannerOptions
+      : textureVersion.bases.shieldOptions
+  ).find(({ id }) => id === baseId);
+  if (!baseOption) {
     return;
   }
+  const baseTextureDef = baseOption.textureDef ?? textureDef;
 
-  const [sx, sy, sw, sh] = source;
-  const [fx, fy, fw, fh] = frame.rectangle;
-  const scale =
-    sourceScale === "Block16" &&
-    fw === fh &&
-    fw > 0 &&
-    fw % 16 === 0 &&
-    fh % 16 === 0
-      ? fw / 16
-      : 1;
-  const sourceRegion: Region = [
-    fx + sx * scale,
-    fy + sy * scale,
-    sw * scale,
-    sh * scale,
-  ];
+  const sourceRegion = makeTextureFrameSourceRegion(
+    baseOption,
+    source,
+    logicalFrameSize
+  );
 
-  generator.drawTexture(textureDef.id, sourceRegion, destination, options ?? {});
+  generator.drawTexture(
+    baseTextureDef.id,
+    sourceRegion,
+    destination,
+    options ?? {}
+  );
 }
 
 function getSelectedBaseId(
@@ -235,7 +218,7 @@ function drawPatternFace(
   source: Region,
   destination: Region,
   options?: DrawTextureOptions,
-  sourceScale?: "Block16" | "Frame",
+  logicalFrameSize?: number,
   baseInputId?: string
 ) {
   drawBasePattern(
@@ -244,7 +227,7 @@ function drawPatternFace(
     source,
     destination,
     options,
-    sourceScale,
+    logicalFrameSize,
     baseInputId
   );
 
@@ -259,7 +242,7 @@ function drawPatternFace(
         source,
         destination,
         options,
-        sourceScale
+        logicalFrameSize
       );
     });
   }
@@ -281,7 +264,7 @@ export function drawFace(
     source,
     destination,
     options,
-    "Block16",
+    bannerShieldTextureFrameSize,
     baseInputId
   );
 }
@@ -312,7 +295,7 @@ class PatternMinecraft extends Minecraft {
         blend: dest.blend,
         plugin: dest.plugin ?? undefined,
       },
-      "Frame",
+      bannerShieldTextureFrameSize,
       this.baseInputId
     );
   }

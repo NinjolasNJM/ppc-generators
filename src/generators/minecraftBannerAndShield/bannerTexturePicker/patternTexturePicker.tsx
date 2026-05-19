@@ -5,6 +5,7 @@ import {
   EraseButton,
   Search,
 } from "@genroot/builder/ui/texturePicker/texturePicker";
+import { makeTextureFrameSourceRegion } from "@genroot/generators/_common/plugins/texturePicker/sourceRegion";
 import { TintSelector } from "@genroot/generators/_common/tintSelector/tintSelector";
 import { type TintChoiceGroup } from "@genroot/generators/_common/tintSelector/tints";
 import { findBannerShieldTextureVersion } from "../textures/textureVersions";
@@ -20,6 +21,7 @@ type PreviewPattern = {
 };
 
 const bannerFrontSource = [1, 1, 20, 40] as const;
+const bannerPatternFrameSize = 64;
 const bgGray200 = "rgb(229 231 235)";
 const bgGray400 = "rgb(156 163 175)";
 const borderSize = 4;
@@ -229,12 +231,20 @@ function PatternPreview({
   size: number;
   blend: string | null;
 }) {
-  const [frameX, frameY] = frame.rectangle;
-  const [sourceX, sourceY, sourceWidth, sourceHeight] = bannerFrontSource;
-  const scale = size / sourceHeight;
+  const [
+    sourceRegionX,
+    sourceRegionY,
+    sourceRegionWidth,
+    sourceRegionHeight,
+  ] = makeTextureFrameSourceRegion(
+    frame,
+    bannerFrontSource,
+    bannerPatternFrameSize
+  );
+  const scale = size / sourceRegionHeight;
   const width = getPreviewWidth(size);
   const height = size;
-  const imagePosition = `${-(frameX + sourceX)}px ${-(frameY + sourceY)}px`;
+  const imagePosition = `${-sourceRegionX}px ${-sourceRegionY}px`;
   const imageSize = `${textureDef.standardWidth}px ${textureDef.standardHeight}px`;
   const tintMaskStyle = makeTintMaskStyle({
     textureDef,
@@ -254,8 +264,8 @@ function PatternPreview({
       <div
         style={{
           position: "relative",
-          width: sourceWidth,
-          height: sourceHeight,
+          width: sourceRegionWidth,
+          height: sourceRegionHeight,
           overflow: "hidden",
           imageRendering: "pixelated",
           transform: `scale(${scale})`,

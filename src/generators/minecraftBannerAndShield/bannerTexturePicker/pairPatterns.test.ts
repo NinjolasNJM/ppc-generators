@@ -32,6 +32,15 @@ describe("pairBannerShieldPatterns", () => {
     expect(result.bases.shieldBaseNoPattern?.id).toBe(
       "shield_base_nopattern"
     );
+    expect(result.bases.bannerOptions.map(({ id }) => id)).toEqual([
+      "banner_base",
+      "banner_only",
+    ]);
+    expect(result.bases.shieldOptions.map(({ id }) => id)).toEqual([
+      "shield_base",
+      "shield_base_nopattern",
+      "shield_only",
+    ]);
     expect(result.patterns).toEqual([
       {
         id: "stripe_bottom",
