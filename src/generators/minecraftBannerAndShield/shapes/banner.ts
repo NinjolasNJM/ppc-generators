@@ -17,7 +17,7 @@ const size = 384;
 function makeFaces(ox: number, oy: number): Faces {
   //const [width, height, depth] = flagDimensions;
   return {
-    flag: [ox, oy + size / 4, 360, 720],// [ox + size + depth, oy + depth, width, height],
+    flag: [ox, oy + size / 4, 320, 640],// [ox + size + depth, oy + depth, width, height],
   };
 }
 
@@ -37,7 +37,7 @@ export function drawBanner(
 
   Face.defineInputRegion(generator, patternFaceId, regions.flag);
 
-  let dimensions: Dimensions = [360, 720, 18];
+  let dimensions: Dimensions = [320, 640, 16];
 
   Face.drawCuboid(
     generator,
@@ -50,7 +50,7 @@ export function drawBanner(
     baseInputId
   );
 
-  dimensions = [36, 756, 36];
+  dimensions = [32, 704, 32];
 
     Face.drawCuboid(
     generator,
@@ -63,7 +63,7 @@ export function drawBanner(
     baseInputId
   );
 
-    dimensions = [360, 36, 36];
+    dimensions = [320, 32, 32];
 
     Face.drawCuboid(
     generator,

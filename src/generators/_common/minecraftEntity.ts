@@ -81,3 +81,14 @@ export const banner: Banner = {
   pole: translate(cuboid([2, 42, 2]), [44, 0]),
   bar: translate(cuboid([20, 2, 2]), [0, 42]),
 };
+
+export type Shield = {
+  shield: Cuboid;
+  handle: Cuboid;
+};
+
+export const shield: Shield = {
+  shield: translate(cuboid([12, 22, 1]), [0, 0]),
+  handle: translate(cuboid([2, 6, 6]), [26, 0]),
+};
+
