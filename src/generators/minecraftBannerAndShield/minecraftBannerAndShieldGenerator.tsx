@@ -28,7 +28,7 @@ import {
   bannerShieldVersionIds,
 } from "./textures/textureVersions";
 
-import backgroundImage from "./images/Background.png";
+import titleImage from "./images/Title.png";
 import foldsBannerImage from "./images/Folds-Banner.png";
 import foldsShieldImage from "./images/Folds-Shield.png";
 import tabsBannerImage from "./images/Tabs-Banner.png";
@@ -54,7 +54,7 @@ const thumbnail: ThumbnailDef = {
 };
 
 const images: ImageDef[] = [
-  { id: "Background", url: backgroundImage.src },
+  { id: "Title", url: titleImage.src },
   { id: "Folds-Banner", url: foldsBannerImage.src },
   { id: "Folds-Shield", url: foldsShieldImage.src },
   { id: "Tabs-Banner", url: tabsBannerImage.src },
@@ -64,6 +64,8 @@ const images: ImageDef[] = [
 const textures: TextureDef[] = bannerShieldTextureDefs;
 
 const script: ScriptDef = (generator: Generator) => {
+  generator.usePage("Page", { size: "A4_Large" });
+
   generator.defineSelectInput("Version", bannerShieldVersionIds);
 
   const versionId = generator.getSelectInputValue("Version");
@@ -155,8 +157,6 @@ const script: ScriptDef = (generator: Generator) => {
   generator.defineBooleanInput("Show Folds", true);
   const showFolds = generator.getBooleanInputValue("Show Folds") ?? false;
 
-  generator.drawImage("Background", [0, 0]);
-
   for (let i = 1; i <= numberOfTemplates; i += 1) {
     const templateId = i.toString();
     const typeName = `Template ${templateId} Type`;
@@ -164,8 +164,8 @@ const script: ScriptDef = (generator: Generator) => {
     generator.defineSelectInput(typeName, ["Banner", "Shield"]);
     const templateType = generator.getSelectInputValue(typeName);
 
-    const ox = 57;
-    const oy = 16 + 400 * (i - 1);
+    const ox = 171;
+    const oy = 48 + 1200 * (i - 1);
 
     switch (templateType) {
       case "Shield":
@@ -177,6 +177,9 @@ const script: ScriptDef = (generator: Generator) => {
         break;
     }
   }
+
+  generator.fillBackgroundColorWithWhite();
+  generator.drawImage("Title", [0, 0]);
 
   generator.defineButtonInput(
     "Clear",

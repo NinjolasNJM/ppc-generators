@@ -13,7 +13,7 @@ type Faces = {
   back: Region;
 };
 
-const size = 128;
+const size = 384;
 
 function makeFaces(ox: number, oy: number): Faces {
   return {
@@ -91,9 +91,9 @@ export function drawShield(
     regions.back
   );
 
-  generator.drawImage("Tabs-Shield", [ox - 32, oy - 1]);
+  generator.drawImage("Tabs-Shield", [ox - 96, oy - 3]);
 
   if (showFolds) {
-    generator.drawImage("Folds-Shield", [ox - 32, oy - 1]);
+    generator.drawImage("Folds-Shield", [ox - 96, oy - 3]);
   }
 }

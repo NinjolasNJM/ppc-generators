@@ -45,4 +45,16 @@ describe("Model", () => {
     expect(model.pages).toHaveLength(1);
     expect(model.getCurrentPage()).toBe(firstPage);
   });
+
+  it("supports the large A4 page size", () => {
+    stubDocument();
+
+    const model = new Model(new Values());
+    model.usePage("Page", { size: "A4_Large" });
+    const page = model.getCurrentPage();
+
+    expect(page.size).toBe("A4_Large");
+    expect(page.sizes.px).toEqual({ width: 1785, height: 2526 });
+    expect(page.sizes.mm).toEqual({ width: 630, height: 891 });
+  });
 });
