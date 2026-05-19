@@ -29,7 +29,7 @@ export function drawShield(
 ) {
   const regions = makeFaces(ox, oy);
   const patternFaceId = Face.makePatternFaceId(templateId);
-  const baseInputId = Face.makeTemplateBaseInputId(templateId);
+  const baseInputId = Face.makeTemplateBaseInputId(templateId, "shield");
 
   Face.defineBaseInput(generator, templateId, "shield");
 
