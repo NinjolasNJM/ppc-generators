@@ -13,7 +13,6 @@ type Faces = {
 };
 
 function makeFaces(ox: number, oy: number): Faces {
-  //const [width, height, depth] = flagDimensions;
   return {
     flag: [ox + 209, oy + 336, 320, 640], // [ox + size + depth, oy + depth, width, height],
   };

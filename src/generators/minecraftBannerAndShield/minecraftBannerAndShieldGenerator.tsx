@@ -53,7 +53,17 @@ const history: HistoryDef = [
 const instructions = `
 ## How to use the Minecraft Banner and Shield Generator?
 
-This generator is an early work-in-progress. Choose a pattern, tint it, and click banner or shield regions to layer it onto the template.
+### Selecting and Adding Banner Patterns
+* Click in the texture picker to select a banner pattern. 
+* Usint the Tint Selector, A dye color can be applied to the pattern.
+* Click on the banner or shield to add the selected pattern.
+* Click the erase button in the texture picker to clear the selected pattern. Clicking a banner or shield without a specified pattern will remove the last pattern placed on it.
+* Vanilla Tweaks' HD Shields textures can be selected from the "Versions" dropdown menu. Custom textures can also be added from files.
+
+* Up to two templates can be placed on a page, using the drop down "Number of Templates" menu.
+* For each template, either a banner or a shield can be selected from the "Template # Type" dropdown menu.
+* If a template is switched from a banner to a shield or vice versa, the patterns will be kept.
+* The shield can have an enchantment glint effect applied to it, by clicking on the back of the shield on the page.
 `;
 
 const thumbnail: ThumbnailDef = {
@@ -218,7 +228,7 @@ const script: ScriptDef = (generator: Generator) => {
     }
   }
 
-    if (hasShieldTemplate) {
+  if (hasShieldTemplate) {
     defineGlintControlInputs(generator);
   }
 
