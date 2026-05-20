@@ -447,4 +447,23 @@ describe("defineInputRegion", () => {
     expect(getNextFacePatterns()).toHaveLength(1);
     expect(getNextFacePatterns()[0]?.patternId).toBe("base");
   });
+
+  it("ignores pending tint selections without erasing the face", () => {
+    const faceJson = encodeSelectedBannerShieldPatterns([
+      makeSelectedPattern("base"),
+      makeSelectedPattern("border"),
+    ]);
+    const { click, getNextFacePatterns } = makeRegionGenerator({
+      currentPatternJson: encodeSelectedBannerShieldPattern({
+        ...makeSelectedPattern(""),
+        blend: "#ff0000",
+      }),
+      faceJson,
+    });
+
+    click();
+
+    expect(getNextFacePatterns()).toHaveLength(2);
+    expect(getNextFacePatterns()[1]?.patternId).toBe("border");
+  });
 });

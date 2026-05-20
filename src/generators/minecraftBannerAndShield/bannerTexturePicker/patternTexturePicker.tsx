@@ -77,13 +77,9 @@ export function PatternTexturePicker({
     patternId?: string | null;
     nextBlend?: string | null;
   }) => {
-    if (!patternId) {
-      return;
-    }
-
     onChange({
       versionId,
-      patternId,
+      patternId: patternId ?? "",
       blend: nextBlend,
     });
   };

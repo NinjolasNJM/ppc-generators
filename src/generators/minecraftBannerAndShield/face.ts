@@ -93,10 +93,13 @@ export function defineInputRegion(
         ? decodeSelectedBannerShieldPatterns(currentFacePatternsJson)
         : [];
 
-      const shouldErase = selectedPattern.patternId === "";
+      const shouldErase =
+        selectedPattern.patternId === "" && selectedPattern.blend === null;
       const newFacePatterns = shouldErase
         ? currentFacePatterns.slice(0, -1)
-        : currentFacePatterns.concat([selectedPattern]);
+        : selectedPattern.patternId === ""
+          ? currentFacePatterns
+          : currentFacePatterns.concat([selectedPattern]);
       generator.setStringInputValue(
         faceId,
         encodeSelectedBannerShieldPatterns(newFacePatterns)

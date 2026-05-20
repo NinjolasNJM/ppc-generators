@@ -514,7 +514,11 @@ const script: ScriptDef = (generator: Generator) => {
   const currentTexture: SelectedTexture | null = currentTextureJson
     ? decodeSelectedTexture(currentTextureJson)
     : null;
-  if (currentTexture !== null && currentTexture.textureDefId !== versionId) {
+  if (
+    currentTexture !== null &&
+    currentTexture.textureDefId !== "" &&
+    currentTexture.textureDefId !== versionId
+  ) {
     // Clear stale selections when the active texture version changes.
     generator.setStringInputValue("SelectedTextureFrame", "");
   }
@@ -597,7 +601,7 @@ const script: ScriptDef = (generator: Generator) => {
   generator.defineButtonInput(
     "Add Item",
     () => {
-      if (selectedTextureFrame) {
+      if (selectedTextureFrame && selectedTextureFrame.textureDefId !== "") {
         const newSelectedTextureFrame: SelectedTexture = {
           ...selectedTextureFrame,
           itemScale: selectedItemScale,
@@ -620,7 +624,7 @@ const script: ScriptDef = (generator: Generator) => {
   generator.defineButtonInput(
     "Overlay Item",
     () => {
-      if (selectedTextureFrame) {
+      if (selectedTextureFrame && selectedTextureFrame.textureDefId !== "") {
         const previousItem = selectedTextureFrames.at(-1);
         const overlayItemScale = previousItem?.itemScale ?? selectedItemScale;
         const newLayer: SelectedTexture = {
