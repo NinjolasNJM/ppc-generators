@@ -4,8 +4,11 @@ import { type TextureFrame } from "@genroot/builder/modules/textureData";
 import {
   EraseButton,
   Search,
+  TileButton,
+  TextureFramePreview,
+  type TexturePreviewSourceFrame,
+  makeTileBaseStyle,
 } from "@genroot/builder/ui/texturePicker/texturePicker";
-import { makeTextureFrameSourceRegion } from "@genroot/generators/_common/plugins/texturePicker/sourceRegion";
 import { TintSelector } from "@genroot/generators/_common/tintSelector/tintSelector";
 import { type TintChoiceGroup } from "@genroot/generators/_common/tintSelector/tints";
 import { findBannerShieldTextureVersion } from "../textures/textureVersions";
@@ -21,10 +24,10 @@ type PreviewPattern = {
 };
 
 const bannerFrontSource = [1, 1, 20, 40] as const;
-const bannerPatternFrameSize = 64;
-const bgGray200 = "rgb(229 231 235)";
-const bgGray400 = "rgb(156 163 175)";
-const borderSize = 4;
+const bannerFrontPreviewSource: TexturePreviewSourceFrame = {
+  rectangle: bannerFrontSource,
+  logicalFrameSize: 64,
+};
 
 export function PatternTexturePicker({
   versionId,
@@ -99,12 +102,14 @@ export function PatternTexturePicker({
       <div className="mb-8 flex">
         <div className="h-60 w-full overflow-y-auto">
           {filteredPatterns.map(({ pattern, textureDef, frame }) => (
-            <PatternTileButton
+            <TileButton
               key={pattern.id}
-              pattern={pattern}
+              title={pattern.label}
               textureDef={textureDef}
               frame={frame}
               isSelected={selectedId === pattern.id}
+              previewSize={64}
+              sourceFrame={bannerFrontPreviewSource}
               onClick={() => {
                 setSelectedId(pattern.id);
                 onChange({
@@ -171,116 +176,6 @@ function makePreviewPattern(
   return null;
 }
 
-function PatternTileButton({
-  pattern,
-  textureDef,
-  frame,
-  isSelected,
-  onClick,
-}: {
-  pattern: BannerShieldPattern;
-  textureDef: TextureDef;
-  frame: TextureFrame;
-  isSelected: boolean;
-  onClick: () => void;
-}) {
-  const [isHover, setIsHover] = React.useState(false);
-  const width = getPreviewWidth(64);
-  const height = 64;
-  const borderColor = isSelected || isHover ? bgGray400 : bgGray200;
-
-  return (
-    <button
-      title={pattern.label}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        width: width + borderSize * 2,
-        height: height + borderSize * 2,
-        margin: `0 ${borderSize}px ${borderSize}px 0`,
-        border: `${borderSize}px solid ${borderColor}`,
-        backgroundColor: "white",
-      }}
-      onClick={onClick}
-      onMouseEnter={() => {
-        setIsHover(true);
-      }}
-      onMouseLeave={() => {
-        setIsHover(false);
-      }}
-    >
-      <PatternPreview
-        textureDef={textureDef}
-        frame={frame}
-        size={64}
-        blend={null}
-      />
-    </button>
-  );
-}
-
-function PatternPreview({
-  textureDef,
-  frame,
-  size,
-  blend,
-}: {
-  textureDef: TextureDef;
-  frame: TextureFrame;
-  size: number;
-  blend: string | null;
-}) {
-  const [
-    sourceRegionX,
-    sourceRegionY,
-    sourceRegionWidth,
-    sourceRegionHeight,
-  ] = makeTextureFrameSourceRegion(
-    frame,
-    bannerFrontSource,
-    bannerPatternFrameSize
-  );
-  const scale = size / sourceRegionHeight;
-  const width = getPreviewWidth(size);
-  const height = size;
-  const imagePosition = `${-sourceRegionX}px ${-sourceRegionY}px`;
-  const imageSize = `${textureDef.standardWidth}px ${textureDef.standardHeight}px`;
-  const tintMaskStyle = makeTintMaskStyle({
-    textureDef,
-    imagePosition,
-    imageSize,
-    blend,
-  });
-
-  return (
-    <div
-      className="flex items-center justify-center overflow-hidden"
-      style={{
-        width,
-        height,
-      }}
-    >
-      <div
-        style={{
-          position: "relative",
-          width: sourceRegionWidth,
-          height: sourceRegionHeight,
-          overflow: "hidden",
-          imageRendering: "pixelated",
-          transform: `scale(${scale})`,
-          backgroundImage: `url(${textureDef.url})`,
-          backgroundPosition: imagePosition,
-          backgroundRepeat: "no-repeat",
-          backgroundSize: imageSize,
-        }}
-      >
-        {tintMaskStyle ? <div style={tintMaskStyle} /> : null}
-      </div>
-    </div>
-  );
-}
-
 function SelectedPatternPreview({
   selectedPreview,
   blend,
@@ -293,17 +188,16 @@ function SelectedPatternPreview({
       <div
         className="flex items-center justify-center bg-white"
         style={{
-          width: getPreviewWidth(128) + borderSize * 2,
-          height: 128 + borderSize * 2,
-          border: `${borderSize}px solid ${bgGray200}`,
+          ...makeTileBaseStyle(false, getPreviewWidth(128), 128),
         }}
       >
         {selectedPreview ? (
-          <PatternPreview
+          <TextureFramePreview
             textureDef={selectedPreview.textureDef}
             frame={selectedPreview.frame}
             size={128}
             blend={blend}
+            sourceFrame={bannerFrontPreviewSource}
           />
         ) : null}
       </div>
@@ -317,37 +211,4 @@ function SelectedPatternPreview({
 function getPreviewWidth(height: number): number {
   const [, , sourceWidth, sourceHeight] = bannerFrontSource;
   return (sourceWidth / sourceHeight) * height;
-}
-
-function makeTintMaskStyle({
-  textureDef,
-  imagePosition,
-  imageSize,
-  blend,
-}: {
-  textureDef: TextureDef;
-  imagePosition: string;
-  imageSize: string;
-  blend: string | null;
-}): React.CSSProperties | undefined {
-  if (!blend) {
-    return undefined;
-  }
-
-  const image = `url(${textureDef.url})`;
-  return {
-    position: "absolute",
-    inset: 0,
-    pointerEvents: "none",
-    backgroundColor: blend,
-    mixBlendMode: "multiply",
-    WebkitMaskImage: image,
-    maskImage: image,
-    WebkitMaskPosition: imagePosition,
-    maskPosition: imagePosition,
-    WebkitMaskRepeat: "no-repeat",
-    maskRepeat: "no-repeat",
-    WebkitMaskSize: imageSize,
-    maskSize: imageSize,
-  };
 }
