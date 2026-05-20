@@ -15,6 +15,7 @@ import {
 } from "./customBannerShieldTextureVersion";
 import * as Texture_26_1_2_Banner from "./texture_minecraft_26_1_2_banner_patterns";
 import * as Texture_26_1_2_Shield from "./texture_minecraft_26_1_2_shield_patterns";
+import * as Texture_26_1_2_HD_Shield from "./texture_vanilla_tweaks_26_1_2_shield_patterns";
 
 type BannerShieldTextureDefinition = {
   id: string;
@@ -30,6 +31,13 @@ const generatedBannerShieldDefinitions: BannerShieldTextureDefinition[] = [
     label: "Minecraft 26.1.2",
     bannerData: Texture_26_1_2_Banner.data,
     shieldData: Texture_26_1_2_Shield.data,
+    frameSize: 64,
+  },
+  {
+    id: "vanilla-tweaks-26-1-2-banner-shield",
+    label: "Vanilla Tweaks 26.1.2- HD Shields",
+    bannerData: Texture_26_1_2_Banner.data,
+    shieldData: Texture_26_1_2_HD_Shield.data,
     frameSize: 64,
   },
 ];
@@ -67,6 +75,25 @@ export function findBannerShieldTextureVersion(
 ): BannerShieldTextureVersion | null {
   return (
     getBannerShieldTextureVersions().find(({ id }) => id === versionId) ?? null
+  );
+}
+
+export function findPatternVersionId(
+  preferredVersionId: string | null,
+  patternId: string
+): string | null {
+  if (preferredVersionId) {
+    const preferredVersion = findBannerShieldTextureVersion(preferredVersionId);
+    const hasPreferredPattern = preferredVersion?.patterns.some(
+      ({ id }) => id === patternId
+    );
+    return hasPreferredPattern ? preferredVersionId : null;
+  }
+
+  return (
+    getBannerShieldTextureVersions().find(({ patterns }) =>
+      patterns.some(({ id }) => id === patternId)
+    )?.id ?? null
   );
 }
 

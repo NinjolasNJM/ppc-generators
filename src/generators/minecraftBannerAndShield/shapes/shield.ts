@@ -1,23 +1,49 @@
 import {
   type Generator,
   type Region,
+  type TexturePlugin,
 } from "@genroot/builder/modules/generator";
 import * as Face from "../face";
 import {
   shield,
   type Dimensions,
 } from "@genroot/generators/_common/minecraftEntity";
+import { type GlintControls } from "@genroot/generators/_common/plugins/glint";
 
 type Faces = {
   shield: Region;
 };
 
-const size = 384;
+const a4LargeScale = 3;
 
 function makeFaces(ox: number, oy: number): Faces {
   return {
-    shield: [ox + 94, oy + 312, 288, 528],
+    shield: [ox + 96, oy + 312, 288, 528],
   };
+}
+
+function makeGlintInputId(templateId: string): string {
+  return `Template ${templateId} Shield Glint`;
+}
+
+function scaleGlintPlugin(
+  plugin: TexturePlugin | undefined
+): TexturePlugin | undefined {
+  if (!plugin) {
+    return undefined;
+  }
+
+  return (coordinates, context) =>
+    plugin(
+      {
+        ...coordinates,
+        sx: coordinates.sx / a4LargeScale,
+        sy: coordinates.sy / a4LargeScale,
+        sw: coordinates.sw / a4LargeScale,
+        sh: coordinates.sh / a4LargeScale,
+      },
+      context
+    );
 }
 
 export function drawShield(
@@ -25,15 +51,25 @@ export function drawShield(
   templateId: string,
   ox: number,
   oy: number,
-  showFolds: boolean
+  showFolds: boolean,
+  glint: GlintControls
 ) {
   const regions = makeFaces(ox, oy);
   const patternFaceId = Face.makePatternFaceId(templateId);
   const baseInputId = Face.makeTemplateBaseInputId(templateId, "shield");
+  const glintInputId = makeGlintInputId(templateId);
+  const glintEnabled = generator.getBooleanInputValueWithDefault(
+    glintInputId,
+    false
+  );
+  const glintPlugin = scaleGlintPlugin(glint.getPlugin(glintEnabled));
 
   Face.defineBaseInput(generator, templateId, "shield");
 
   Face.defineInputRegion(generator, patternFaceId, regions.shield);
+  generator.defineRegionInput([ox + 408, oy + 312, 288, 528], () => {
+    generator.setBooleanInputValue(glintInputId, !glintEnabled);
+  });
 
   let dimensions: Dimensions = [288, 528, 24];
 
@@ -44,7 +80,7 @@ export function drawShield(
     shield.shield,
     [ox + 72, oy + 288],
     dimensions,
-    {},
+    { plugin: glintPlugin ?? null },
     baseInputId
   );
 
@@ -55,12 +91,9 @@ export function drawShield(
     patternFaceId,
     "shield",
     shield.handle,
-    [
-      ox + 986,
-      oy + 360,
-    ],
+    [ox + 986, oy + 360],
     dimensions,
-    {center: "Right"},
+    { center: "Right", plugin: glintPlugin ?? null },
     baseInputId
   );
 
@@ -68,10 +101,38 @@ export function drawShield(
 
   const [hx, hy] = [ox + 1010, oy + 720];
 
-  Face.drawFace( generator, patternFaceId, [32, 7, 2, 4], [hx, hy, 48, 96], {rotate: 270}, baseInputId);
-  Face.drawFace( generator, patternFaceId, [34, 1, 2, 4], [hx + 96, hy, 48, 96], {rotate: 90}, baseInputId);
-  Face.drawFace( generator, patternFaceId, [40, 7, 2, 4], [hx + 96 * 2, hy, 48, 96], {rotate: 270},baseInputId);
-  Face.drawFace( generator, patternFaceId, [32, 1, 2, 4], [hx + 96 * 3, hy, 48, 96],  {rotate: 270}, baseInputId);
+  Face.drawFace(
+    generator,
+    patternFaceId,
+    [32, 7, 2, 4],
+    [hx, hy, 48, 96],
+    { rotate: 270, plugin: glintPlugin },
+    baseInputId
+  );
+  Face.drawFace(
+    generator,
+    patternFaceId,
+    [34, 1, 2, 4],
+    [hx + 96, hy, 48, 96],
+    { rotate: 90, plugin: glintPlugin },
+    baseInputId
+  );
+  Face.drawFace(
+    generator,
+    patternFaceId,
+    [40, 7, 2, 4],
+    [hx + 96 * 2, hy, 48, 96],
+    { rotate: 270, plugin: glintPlugin },
+    baseInputId
+  );
+  Face.drawFace(
+    generator,
+    patternFaceId,
+    [32, 1, 2, 4],
+    [hx + 96 * 3, hy, 48, 96],
+    { rotate: 270, plugin: glintPlugin },
+    baseInputId
+  );
 
   generator.drawImage("Tabs-Shield", [ox - 96, oy - 3]);
 

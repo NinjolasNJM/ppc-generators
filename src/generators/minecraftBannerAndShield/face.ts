@@ -24,7 +24,10 @@ import {
   type BannerShieldTarget,
   type SelectedBannerShieldPattern,
 } from "./bannerTexturePicker/types";
-import { findBannerShieldTextureVersion } from "./textures/textureVersions";
+import {
+  findBannerShieldTextureVersion,
+  findPatternVersionId,
+} from "./textures/textureVersions";
 
 export const bannerBasePatternId = "banner_base";
 export const shieldBasePatternId = "shield_base";
@@ -112,7 +115,15 @@ function drawPattern(
   options?: DrawTextureOptions,
   logicalFrameSize = bannerShieldTextureFrameSize
 ) {
-  const textureVersion = findBannerShieldTextureVersion(pattern.versionId);
+  const currentVersionId = generator.getSelectInputValue("Version");
+  const versionId = currentVersionId
+    ? findPatternVersionId(currentVersionId, pattern.patternId)
+    : pattern.versionId;
+  if (!versionId) {
+    return;
+  }
+
+  const textureVersion = findBannerShieldTextureVersion(versionId);
   const texturePattern = textureVersion?.patterns.find(
     ({ id }) => id === pattern.patternId
   );

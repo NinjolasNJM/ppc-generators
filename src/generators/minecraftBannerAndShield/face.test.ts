@@ -191,6 +191,45 @@ describe("drawFace", () => {
     );
   });
 
+  it("draws matching pattern ids from the currently selected texture version", () => {
+    const faceId = "ShieldFaceTop1";
+    const generator = makeGenerator(
+      faceId,
+      encodeSelectedBannerShieldPatterns([makeSelectedPattern("base")]),
+      shieldBasePatternId,
+      "shield",
+      "vanilla-tweaks-26-1-2-banner-shield"
+    );
+
+    drawFace(
+      generator,
+      faceId,
+      source,
+      destination,
+      undefined,
+      "shield",
+      makeTemplateBaseInputId("1", "shield")
+    );
+
+    expect(generator.drawTexture).toHaveBeenCalledTimes(2);
+    expect(generator.drawTexture).toHaveBeenNthCalledWith(
+      1,
+      "vanilla-tweaks-26.1.2-shield-patterns",
+      [0, 0, 64, 64],
+      destination,
+      {}
+    );
+    expect(generator.drawTexture).toHaveBeenNthCalledWith(
+      2,
+      "vanilla-tweaks-26.1.2-shield-patterns",
+      [128, 0, 128, 128],
+      destination,
+      expect.objectContaining<DrawTextureOptions>({
+        blend: undefined,
+      })
+    );
+  });
+
   it("applies tint blends", () => {
     const faceId = "BannerFaceTop1";
     const generator = makeGenerator(

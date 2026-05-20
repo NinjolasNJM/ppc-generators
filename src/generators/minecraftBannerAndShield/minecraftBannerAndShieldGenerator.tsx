@@ -12,11 +12,15 @@ import { type Generator } from "@genroot/builder/modules/generator";
 import {
   decodeSelectedBannerShieldPattern,
   encodeSelectedBannerShieldPattern,
+  type SelectedBannerShieldPattern,
 } from "./bannerTexturePicker/types";
 import { PatternTexturePicker } from "./bannerTexturePicker/patternTexturePicker";
+import { dyeTintGroup } from "../_common/tintSelector/tints";
 import {
-  dyeTintGroup
-} from "../_common/tintSelector/tints";
+  defineGlintControlInputs,
+  entityGlintTextureDefs,
+  getGlintControls,
+} from "../_common/plugins/glint";
 import { parseAtlas } from "../_common/textures/customTextureVersion";
 import { currentBannerAndShieldTextureId } from "./constants";
 import { drawBanner } from "./shapes/banner";
@@ -28,6 +32,7 @@ import {
 import {
   bannerShieldTextureDefs,
   bannerShieldVersionIds,
+  findPatternVersionId,
 } from "./textures/textureVersions";
 
 import titleImage from "./images/Title.png";
@@ -63,7 +68,28 @@ const images: ImageDef[] = [
   { id: "Tabs-Shield", url: tabsShieldImage.src },
 ];
 
-const textures: TextureDef[] = bannerShieldTextureDefs;
+const textures: TextureDef[] = [
+  ...bannerShieldTextureDefs,
+  ...entityGlintTextureDefs,
+];
+
+function portSelectedPatternToVersion(
+  pattern: SelectedBannerShieldPattern | null,
+  versionId: string | null
+): SelectedBannerShieldPattern | null {
+  if (!pattern || !versionId || pattern.patternId === "") {
+    return pattern;
+  }
+
+  const matchingVersionId = findPatternVersionId(versionId, pattern.patternId);
+  if (matchingVersionId === pattern.versionId) {
+    return pattern;
+  }
+
+  return matchingVersionId
+    ? { ...pattern, versionId: matchingVersionId }
+    : null;
+}
 
 const script: ScriptDef = (generator: Generator) => {
   generator.usePage("Page", { size: "A4_Large" });
@@ -115,12 +141,17 @@ const script: ScriptDef = (generator: Generator) => {
   const currentPattern = currentPatternJson
     ? decodeSelectedBannerShieldPattern(currentPatternJson)
     : null;
-  if (
-    currentPattern !== null &&
-    currentPattern.patternId !== "" &&
-    currentPattern.versionId !== versionId
-  ) {
-    generator.setStringInputValue(currentBannerAndShieldTextureId, "");
+  const portedCurrentPattern = portSelectedPatternToVersion(
+    currentPattern,
+    versionId
+  );
+  if (currentPattern !== portedCurrentPattern) {
+    generator.setStringInputValue(
+      currentBannerAndShieldTextureId,
+      portedCurrentPattern
+        ? encodeSelectedBannerShieldPattern(portedCurrentPattern)
+        : ""
+    );
   }
 
   const resolvedCurrentPatternJson = generator.getStringInputValue(
@@ -158,7 +189,12 @@ const script: ScriptDef = (generator: Generator) => {
     : 1;
 
   generator.defineBooleanInput("Show Folds", true);
-  const showFolds = generator.getBooleanInputValueWithDefault("Show Folds", true);
+  const showFolds = generator.getBooleanInputValueWithDefault(
+    "Show Folds",
+    true
+  );
+  const glint = getGlintControls(generator);
+  let hasShieldTemplate = false;
 
   for (let i = 1; i <= numberOfTemplates; i += 1) {
     const templateId = i.toString();
@@ -172,13 +208,18 @@ const script: ScriptDef = (generator: Generator) => {
 
     switch (templateType) {
       case "Shield":
-        drawShield(generator, templateId, ox, oy, showFolds);
+        hasShieldTemplate = true;
+        drawShield(generator, templateId, ox, oy, showFolds, glint);
         break;
       case "Banner":
       default:
         drawBanner(generator, templateId, ox, oy, showFolds);
         break;
     }
+  }
+
+    if (hasShieldTemplate) {
+    defineGlintControlInputs(generator);
   }
 
   generator.fillBackgroundColorWithWhite();

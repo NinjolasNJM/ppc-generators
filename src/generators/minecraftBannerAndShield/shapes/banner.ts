@@ -12,15 +12,12 @@ type Faces = {
   flag: Region;
 };
 
-const size = 384;
-
 function makeFaces(ox: number, oy: number): Faces {
   //const [width, height, depth] = flagDimensions;
   return {
-    flag: [ox + 209, oy + 336, 320, 640],// [ox + size + depth, oy + depth, width, height],
+    flag: [ox + 209, oy + 336, 320, 640], // [ox + size + depth, oy + depth, width, height],
   };
 }
-
 
 export function drawBanner(
   generator: Generator,
@@ -52,31 +49,29 @@ export function drawBanner(
 
   dimensions = [32, 704, 32];
 
-    Face.drawCuboid(
+  Face.drawCuboid(
     generator,
     patternFaceId,
     "banner",
     banner.pole,
-    [ox +  1121, oy + 272],
+    [ox + 1121, oy + 272],
     dimensions,
     {},
     baseInputId
   );
 
+  dimensions = [320, 32, 32];
 
-    dimensions = [320, 32, 32];
-
-    Face.drawCuboid(
+  Face.drawCuboid(
     generator,
     patternFaceId,
     "banner",
     banner.bar,
     [ox + 345, oy + 64],
     dimensions,
-    {orientation: "North"},
+    { orientation: "North" },
     baseInputId
   );
-
 
   generator.drawImage("Tabs-Banner", [ox - 96, oy - 3]);
 
