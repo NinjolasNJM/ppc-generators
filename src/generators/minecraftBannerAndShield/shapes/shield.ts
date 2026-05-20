@@ -14,7 +14,7 @@ type Faces = {
   shield: Region;
 };
 
-const a4LargeScale = 3;
+const a4LargeScale = 24;
 
 function makeFaces(ox: number, oy: number): Faces {
   return {
@@ -37,10 +37,10 @@ function scaleGlintPlugin(
     plugin(
       {
         ...coordinates,
-        sx: coordinates.sx / a4LargeScale,
-        sy: coordinates.sy / a4LargeScale,
-        sw: coordinates.sw / a4LargeScale,
-        sh: coordinates.sh / a4LargeScale,
+        sx: coordinates.dx / a4LargeScale,
+        sy: coordinates.dy / a4LargeScale,
+        sw: coordinates.dw / a4LargeScale,
+        sh: coordinates.dh / a4LargeScale,
       },
       context
     );
