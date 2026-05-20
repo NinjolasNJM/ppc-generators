@@ -52,29 +52,6 @@ export const dyeTintGroup = makeTintChoiceGroup("dye", "Dyes", [
   { label: "White", color: "#F9FFFE" },
 ]);
 
-export const bannerDyeTintGroup = makeTintChoiceGroup(
-  "banner-dye",
-  "Banner Dyes",
-  [
-    { label: "White", color: "#F0F0F0" },
-    { label: "Orange", color: "#EB8844" },
-    { label: "Magenta", color: "#C354CD" },
-    { label: "Light Blue", color: "#6689D3" },
-    { label: "Yellow", color: "#DECF2A" },
-    { label: "Lime", color: "#41CD34" },
-    { label: "Pink", color: "#D88198" },
-    { label: "Gray", color: "#434343" },
-    { label: "Light Gray", color: "#ABABAB" },
-    { label: "Cyan", color: "#287697" },
-    { label: "Purple", color: "#7B2FBE" },
-    { label: "Blue", color: "#253192" },
-    { label: "Brown", color: "#51301A" },
-    { label: "Green", color: "#3B511A" },
-    { label: "Red", color: "#B3312C" },
-    { label: "Black", color: "#1E1B1B" },
-  ]
-);
-
 export const grassTintGroup = makeTintChoiceGroup("grass", "Grass", [
   { label: "Badlands", color: "#90814D" },
   { label: "Cherry Grove", color: "#B6DB61" },

@@ -15,8 +15,7 @@ import {
 } from "./bannerTexturePicker/types";
 import { PatternTexturePicker } from "./bannerTexturePicker/patternTexturePicker";
 import {
-  bannerDyeTintGroup,
-  dyeTintGroup,
+  dyeTintGroup
 } from "../_common/tintSelector/tints";
 import { parseAtlas } from "../_common/textures/customTextureVersion";
 import { currentBannerAndShieldTextureId } from "./constants";
@@ -141,7 +140,7 @@ const script: ScriptDef = (generator: Generator) => {
         <PatternTexturePicker
           versionId={versionId}
           selectedPattern={resolvedCurrentPattern}
-          tintChoiceGroups={[bannerDyeTintGroup, dyeTintGroup]}
+          tintChoiceGroups={[dyeTintGroup]}
           onChange={(selectedPattern) => {
             onChange(encodeSelectedBannerShieldPattern(selectedPattern));
           }}
