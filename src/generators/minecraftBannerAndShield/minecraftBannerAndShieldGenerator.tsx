@@ -14,7 +14,10 @@ import {
   encodeSelectedBannerShieldPattern,
 } from "./bannerTexturePicker/types";
 import { PatternTexturePicker } from "./bannerTexturePicker/patternTexturePicker";
-import { dyeTintGroup } from "../_common/tintSelector/tints";
+import {
+  bannerDyeTintGroup,
+  dyeTintGroup,
+} from "../_common/tintSelector/tints";
 import { parseAtlas } from "../_common/textures/customTextureVersion";
 import { currentBannerAndShieldTextureId } from "./constants";
 import { drawBanner } from "./shapes/banner";
@@ -138,7 +141,7 @@ const script: ScriptDef = (generator: Generator) => {
         <PatternTexturePicker
           versionId={versionId}
           selectedPattern={resolvedCurrentPattern}
-          tintChoiceGroups={[dyeTintGroup]}
+          tintChoiceGroups={[bannerDyeTintGroup, dyeTintGroup]}
           onChange={(selectedPattern) => {
             onChange(encodeSelectedBannerShieldPattern(selectedPattern));
           }}
@@ -148,8 +151,9 @@ const script: ScriptDef = (generator: Generator) => {
   );
 
   generator.defineSelectInput("Number of Templates", ["1", "2"]);
-  const numberOfTemplatesInput =
-    generator.getSelectInputValue("Number of Templates");
+  const numberOfTemplatesInput = generator.getSelectInputValue(
+    "Number of Templates"
+  );
   const numberOfTemplates = numberOfTemplatesInput
     ? parseInt(numberOfTemplatesInput, 10)
     : 1;

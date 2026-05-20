@@ -57,6 +57,48 @@ export type TexturePlugin = (
   canvasWithContext: CanvasWithContext
 ) => HTMLCanvasElement;
 
+type TransformMatrix = [number, number, number, number, number, number];
+
+function multiplyMatrix(
+  first: TransformMatrix,
+  second: TransformMatrix
+): TransformMatrix {
+  return [
+    first[0] * second[0] + first[2] * second[1],
+    first[1] * second[0] + first[3] * second[1],
+    first[0] * second[2] + first[2] * second[3],
+    first[1] * second[2] + first[3] * second[3],
+    first[0] * second[4] + first[2] * second[5] + first[4],
+    first[1] * second[4] + first[3] * second[5] + first[5],
+  ];
+}
+
+function translateMatrix(
+  matrix: TransformMatrix,
+  x: number,
+  y: number
+): TransformMatrix {
+  return multiplyMatrix(matrix, [1, 0, 0, 1, x, y]);
+}
+
+function rotateMatrix(
+  matrix: TransformMatrix,
+  degrees: number
+): TransformMatrix {
+  const radians = (degrees * Math.PI) / 180;
+  const cos = Math.cos(radians);
+  const sin = Math.sin(radians);
+  return multiplyMatrix(matrix, [cos, sin, -sin, cos, 0, 0]);
+}
+
+function scaleMatrix(
+  matrix: TransformMatrix,
+  x: number,
+  y: number
+): TransformMatrix {
+  return multiplyMatrix(matrix, [x, 0, 0, y, 0, 0]);
+}
+
 function fit(sw: number, sh: number, dw: number, dh: number): Dimensions {
   const wScale = sw / dw;
   const hScale = sh / dh;
@@ -132,13 +174,178 @@ export function hexToColor(hex: string): Color | null {
   return { r, g, b, a };
 }
 
-function multiplyColors(base: Color, blend: Color): Color {
+function multiplyColorsByDye(base: Color, dye: Color): Color {
+  // Previous renderer behavior:
+  // return {
+  //   r: Math.floor((base.r * dye.r) / 255),
+  //   g: Math.floor((base.g * dye.g) / 255),
+  //   b: Math.floor((base.b * dye.b) / 255),
+  //   a: Math.floor((base.a * dye.a) / 255),
+  // };
   return {
-    r: Math.floor((base.r * blend.r) / 255),
-    g: Math.floor((base.g * blend.g) / 255),
-    b: Math.floor((base.b * blend.b) / 255),
-    a: Math.floor((base.a * blend.a) / 255),
+    r: (base.r / 255) * dye.r,
+    g: (base.g / 255) * dye.g,
+    b: (base.b / 255) * dye.b,
+    a: base.a,
   };
+}
+
+function sourceOverMinecraft(source: Color, destination: Color): Color {
+  const sourceAlpha = source.a / 255;
+  const destinationAlpha = destination.a / 255;
+
+  return {
+    r: source.r * sourceAlpha + destination.r * (1 - sourceAlpha),
+    g: source.g * sourceAlpha + destination.g * (1 - sourceAlpha),
+    b: source.b * sourceAlpha + destination.b * (1 - sourceAlpha),
+    a: 255 * (sourceAlpha + destinationAlpha * (1 - sourceAlpha)),
+  };
+}
+
+function writeColor(
+  data: Uint8ClampedArray,
+  index: number,
+  color: Color
+): void {
+  data[index + 0] = color.r;
+  data[index + 1] = color.g;
+  data[index + 2] = color.b;
+  data[index + 3] = color.a;
+}
+
+function makeDrawMatrix(
+  dx: number,
+  dy: number,
+  dw: number,
+  dh: number,
+  rotate: Rotate,
+  flip: Flip
+): TransformMatrix {
+  let matrix: TransformMatrix = [1, 0, 0, 1, 0, 0];
+  matrix = translateMatrix(matrix, dx, dy);
+
+  if (rotate.kind === "Corner") {
+    matrix = rotateMatrix(matrix, rotate.degrees);
+  } else if (rotate.kind === "Center") {
+    matrix = translateMatrix(matrix, dw / 2, dh / 2);
+    matrix = rotateMatrix(matrix, rotate.degrees);
+    matrix = translateMatrix(matrix, -dw / 2, -dh / 2);
+  }
+
+  if (flip === "Horizontal") {
+    matrix = translateMatrix(matrix, dw, 0);
+    matrix = scaleMatrix(matrix, -1, 1);
+  } else if (flip === "Vertical") {
+    matrix = translateMatrix(matrix, 0, dh);
+    matrix = scaleMatrix(matrix, 1, -1);
+  }
+
+  return matrix;
+}
+
+function transformedPixel(
+  matrix: TransformMatrix,
+  x: number,
+  y: number
+): [number, number] {
+  const centerX = x + 0.5;
+  const centerY = y + 0.5;
+  const transformedX = matrix[0] * centerX + matrix[2] * centerY + matrix[4];
+  const transformedY = matrix[1] * centerX + matrix[3] * centerY + matrix[5];
+  return [Math.round(transformedX - 0.5), Math.round(transformedY - 0.5)];
+}
+
+function compositeMultiplyDirect({
+  page,
+  sourcePixels,
+  sw,
+  sh,
+  dw,
+  dh,
+  blendColor,
+  rotate,
+  flip,
+  dx,
+  dy,
+}: {
+  page: CanvasWithContext;
+  sourcePixels: Uint8ClampedArray;
+  sw: number;
+  sh: number;
+  dw: number;
+  dh: number;
+  blendColor: Color;
+  rotate: Rotate;
+  flip: Flip;
+  dx: number;
+  dy: number;
+}): void {
+  const pageImageData = page.contextWithAlpha.getImageData(
+    0,
+    0,
+    page.width,
+    page.height
+  );
+  const pagePixels = pageImageData.data;
+  const matrix = makeDrawMatrix(dx, dy, dw, dh, rotate, flip);
+
+  const deltax = dw / sw;
+  const deltay = dh / sh;
+  const pixwInitial = Math.floor(deltax);
+  const pixhInitial = Math.floor(deltay);
+  const pixw = pixwInitial < deltax ? pixwInitial + 1 : pixwInitial;
+  const pixh = pixhInitial < deltay ? pixhInitial + 1 : pixhInitial;
+
+  for (let y = 0; y < sh; y += 1) {
+    for (let x = 0; x < sw; x += 1) {
+      const sourceIndex = (y * sw + x) * 4;
+      const sourceAlpha = sourcePixels[sourceIndex + 3] ?? 255;
+      if (sourceAlpha <= 0) {
+        continue;
+      }
+
+      const source = multiplyColorsByDye(
+        {
+          r: sourcePixels[sourceIndex + 0] ?? 0,
+          g: sourcePixels[sourceIndex + 1] ?? 0,
+          b: sourcePixels[sourceIndex + 2] ?? 0,
+          a: sourceAlpha,
+        },
+        blendColor
+      );
+      const tx = Math.floor(x * deltax);
+      const ty = Math.floor(y * deltay);
+
+      for (let row = 0; row < pixh; row += 1) {
+        for (let col = 0; col < pixw; col += 1) {
+          const [pageX, pageY] = transformedPixel(matrix, tx + col, ty + row);
+          if (
+            pageX < 0 ||
+            pageY < 0 ||
+            pageX >= page.width ||
+            pageY >= page.height
+          ) {
+            continue;
+          }
+
+          const destinationIndex = (pageY * page.width + pageX) * 4;
+          const destination: Color = {
+            r: pagePixels[destinationIndex + 0] ?? 0,
+            g: pagePixels[destinationIndex + 1] ?? 0,
+            b: pagePixels[destinationIndex + 2] ?? 0,
+            a: pagePixels[destinationIndex + 3] ?? 0,
+          };
+          writeColor(
+            pagePixels,
+            destinationIndex,
+            sourceOverMinecraft(source, destination)
+          );
+        }
+      }
+    }
+  }
+
+  page.context.putImageData(pageImageData, 0, 0);
 }
 
 function replaceColorsFromPalette(
@@ -208,7 +415,7 @@ function drawNearestNeighbor(
   options: DrawNearestNeighborOptions
 ): void {
   const rotateOption = options.rotate ?? { kind: "None" };
-  const flipOption = options.flip ?? { kind: "None" };
+  const flipOption = options.flip ?? "None";
   const blendOption = options.blend ?? { kind: "None" };
   const pixelateOption = options.pixelate ?? false;
   const pluginOption = options.plugin;
@@ -220,17 +427,6 @@ function drawNearestNeighbor(
     const imageData = canvasWithContext.context.getImageData(sx, sy, sw, sh);
 
     const pix = imageData.data;
-
-    const temp = makeCanvasWithContext(dw, dh);
-
-    const deltax = dw / sw;
-    const deltay = dh / sh;
-
-    const pixwInitial = Math.floor(deltax);
-    const pixhInitial = Math.floor(deltay);
-
-    const pixw = pixwInitial < deltax ? pixwInitial + 1 : pixwInitial;
-    const pixh = pixhInitial < deltay ? pixhInitial + 1 : pixhInitial;
 
     const blendColor: Color | null =
       blendOption.kind === "MultiplyHex"
@@ -253,6 +449,31 @@ function drawNearestNeighbor(
           ? [blendOption.color1, blendOption.color2]
           : null;
 
+    if (blendColor && !pluginOption) {
+      compositeMultiplyDirect({
+        page,
+        sourcePixels: pix,
+        sw,
+        sh,
+        dw,
+        dh,
+        blendColor,
+        rotate: rotateOption,
+        flip: flipOption,
+        dx,
+        dy,
+      });
+      return;
+    }
+
+    const temp = makeCanvasWithContext(dw, dh);
+    const deltax = dw / sw;
+    const deltay = dh / sh;
+    const pixwInitial = Math.floor(deltax);
+    const pixhInitial = Math.floor(deltay);
+    const pixw = pixwInitial < deltax ? pixwInitial + 1 : pixwInitial;
+    const pixh = pixhInitial < deltay ? pixhInitial + 1 : pixhInitial;
+
     for (let y = 0; y < sh; y++) {
       for (let x = 0; x < sw; x++) {
         const tx = x * deltax;
@@ -268,7 +489,7 @@ function drawNearestNeighbor(
           a: pix[i + 3] ?? 255,
         };
 
-        let out = blendColor ? multiplyColors(source, blendColor) : source;
+        let out = blendColor ? multiplyColorsByDye(source, blendColor) : source;
 
         const replaced = replaceColors
           ? replaceColorsFromPalette(out, replaceColors[0], replaceColors[1])
