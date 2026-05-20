@@ -109,6 +109,7 @@ export function PatternTexturePicker({
               frame={frame}
               isSelected={selectedId === pattern.id}
               previewSize={64}
+              blend={blend}
               sourceFrame={bannerFrontPreviewSource}
               onClick={() => {
                 setSelectedId(pattern.id);

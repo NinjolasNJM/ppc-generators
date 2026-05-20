@@ -258,6 +258,7 @@ export function TileButton({
   isSelected,
   onClick,
   previewSize = 32,
+  blend = null,
   sourceFrame,
 }: {
   title?: string;
@@ -266,6 +267,7 @@ export function TileButton({
   isSelected: boolean;
   onClick: () => void;
   previewSize?: number;
+  blend?: string | null;
   sourceFrame?: TexturePreviewSourceFrame;
 }) {
   const [isHover, setIsHover] = React.useState(false);
@@ -277,10 +279,22 @@ export function TileButton({
     previewSize,
     sourceFrame
   );
+  const tintMaskStyle = makeTextureTintMaskStyle(
+    textureDef,
+    frame,
+    previewSize,
+    blend,
+    sourceFrame
+  );
   const buttonStyle = {
     margin: makeMargin(0, texturePickerBorderSize, texturePickerBorderSize, 0),
   };
-  const style = { ...tileStyle, ...buttonStyle };
+  const style: React.CSSProperties = {
+    ...tileStyle,
+    ...buttonStyle,
+    position: "relative",
+    overflow: "hidden",
+  };
   return (
     <button
       title={title ?? frame.label}
@@ -288,7 +302,9 @@ export function TileButton({
       onClick={onClick}
       onMouseEnter={() => setIsHover(true)}
       onMouseLeave={() => setIsHover(false)}
-    />
+    >
+      {tintMaskStyle ? <div style={tintMaskStyle} /> : null}
+    </button>
   );
 }
 
@@ -528,6 +544,7 @@ export function TexturePicker({
                 textureDef={textureDef}
                 frame={frame}
                 isSelected={isSelected}
+                blend={blend}
                 onClick={() => {
                   onSelectClick(frame);
                 }}
