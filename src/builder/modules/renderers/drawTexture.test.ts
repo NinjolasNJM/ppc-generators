@@ -15,6 +15,13 @@ type FakeCanvas = {
   pixels: PixelKey[];
 };
 
+type ImageDataCall = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
 type FakeContext = {
   canvas: FakeCanvas;
   context: FakeContext;
@@ -22,6 +29,7 @@ type FakeContext = {
   width: number;
   height: number;
   fillStyle: string;
+  getImageDataCalls: ImageDataCall[];
   getImageData: (
     x: number,
     y: number,
@@ -29,9 +37,11 @@ type FakeContext = {
     height: number
   ) => {
     data: Uint8ClampedArray;
+    width: number;
+    height: number;
   };
   putImageData: (
-    imageData: { data: Uint8ClampedArray },
+    imageData: { data: Uint8ClampedArray; width: number; height: number },
     x: number,
     y: number
   ) => void;
@@ -163,6 +173,7 @@ function getPixel(canvas: FakeCanvas, x: number, y: number): PixelKey {
 function makeFakeContext(width: number, height: number): FakeContext {
   const canvas = makeFakeCanvas(width, height);
   const stack: Matrix[] = [];
+  const getImageDataCalls: ImageDataCall[] = [];
   let matrix = makeIdentityMatrix();
   let fillStyle = "rgba(0, 0, 0, 0)";
 
@@ -172,6 +183,7 @@ function makeFakeContext(width: number, height: number): FakeContext {
     contextWithAlpha: undefined as unknown as FakeContext,
     width,
     height,
+    getImageDataCalls,
     get fillStyle() {
       return fillStyle;
     },
@@ -184,6 +196,7 @@ function makeFakeContext(width: number, height: number): FakeContext {
       dataWidth: number,
       dataHeight: number
     ) => {
+      getImageDataCalls.push({ x, y, width: dataWidth, height: dataHeight });
       const data = new Uint8ClampedArray(dataWidth * dataHeight * 4);
       let index = 0;
       for (let row = 0; row < dataHeight; row += 1) {
@@ -197,16 +210,16 @@ function makeFakeContext(width: number, height: number): FakeContext {
           index += 4;
         }
       }
-      return { data };
+      return { data, width: dataWidth, height: dataHeight };
     },
     putImageData: (
-      imageData: { data: Uint8ClampedArray },
+      imageData: { data: Uint8ClampedArray; width: number; height: number },
       x: number,
       y: number
     ) => {
-      const dataWidth = canvas.width;
+      const dataWidth = imageData.width;
       let index = 0;
-      for (let row = 0; row < canvas.height; row += 1) {
+      for (let row = 0; row < imageData.height; row += 1) {
         for (let col = 0; col < dataWidth; col += 1) {
           setPixel(
             canvas,
@@ -534,5 +547,27 @@ describe("drawTexture", () => {
     expect(page.getPixels()[0]?.[0]).toBe(makePixelKey(20, 143, 143, 255));
     expect(page.getPixels()[20]?.[0]).toBe(makePixelKey(39, 106, 155, 255));
     expect(page.getPixels()[39]?.[0]).toBe(makePixelKey(55, 62, 155, 255));
+  });
+
+  it("limits direct multiply readback to the affected destination area", () => {
+    const page = makeFakeContext(100, 100);
+    const source = makeSourceTexture([[makePixelKey(255, 255, 255, 255)]]);
+
+    drawTexture(
+      page as unknown as CanvasWithContext,
+      source,
+      [0, 0, 1, 1],
+      [40, 50, 5, 6],
+      {
+        blend: {
+          kind: "MultiplyHex",
+          hex: "#3C44AA",
+        },
+      }
+    );
+
+    expect(page.getImageDataCalls).toEqual([
+      { x: 39, y: 49, width: 7, height: 8 },
+    ]);
   });
 });

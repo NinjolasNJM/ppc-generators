@@ -59,6 +59,13 @@ export type TexturePlugin = (
 
 type TransformMatrix = [number, number, number, number, number, number];
 
+type Bounds = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
 function multiplyMatrix(
   first: TransformMatrix,
   second: TransformMatrix
@@ -255,6 +262,42 @@ function transformedPixel(
   return [Math.round(transformedX - 0.5), Math.round(transformedY - 0.5)];
 }
 
+function transformedPoint(
+  matrix: TransformMatrix,
+  x: number,
+  y: number
+): [number, number] {
+  return [
+    matrix[0] * x + matrix[2] * y + matrix[4],
+    matrix[1] * x + matrix[3] * y + matrix[5],
+  ];
+}
+
+function makeTransformedBounds(
+  matrix: TransformMatrix,
+  dw: number,
+  dh: number,
+  pageWidth: number,
+  pageHeight: number
+): Bounds | null {
+  const points = [
+    transformedPoint(matrix, 0, 0),
+    transformedPoint(matrix, dw, 0),
+    transformedPoint(matrix, 0, dh),
+    transformedPoint(matrix, dw, dh),
+  ];
+  const xs = points.map(([x]) => x);
+  const ys = points.map(([, y]) => y);
+  const minX = Math.max(0, Math.floor(Math.min(...xs)) - 1);
+  const minY = Math.max(0, Math.floor(Math.min(...ys)) - 1);
+  const maxX = Math.min(pageWidth, Math.ceil(Math.max(...xs)) + 1);
+  const maxY = Math.min(pageHeight, Math.ceil(Math.max(...ys)) + 1);
+  const width = maxX - minX;
+  const height = maxY - minY;
+
+  return width > 0 && height > 0 ? { x: minX, y: minY, width, height } : null;
+}
+
 function compositeMultiplyDirect({
   page,
   sourcePixels,
@@ -280,14 +323,19 @@ function compositeMultiplyDirect({
   dx: number;
   dy: number;
 }): void {
+  const matrix = makeDrawMatrix(dx, dy, dw, dh, rotate, flip);
+  const bounds = makeTransformedBounds(matrix, dw, dh, page.width, page.height);
+  if (!bounds) {
+    return;
+  }
+
   const pageImageData = page.contextWithAlpha.getImageData(
-    0,
-    0,
-    page.width,
-    page.height
+    bounds.x,
+    bounds.y,
+    bounds.width,
+    bounds.height
   );
   const pagePixels = pageImageData.data;
-  const matrix = makeDrawMatrix(dx, dy, dw, dh, rotate, flip);
 
   const deltax = dw / sw;
   const deltay = dh / sh;
@@ -328,7 +376,8 @@ function compositeMultiplyDirect({
             continue;
           }
 
-          const destinationIndex = (pageY * page.width + pageX) * 4;
+          const destinationIndex =
+            ((pageY - bounds.y) * bounds.width + (pageX - bounds.x)) * 4;
           const destination: Color = {
             r: pagePixels[destinationIndex + 0] ?? 0,
             g: pagePixels[destinationIndex + 1] ?? 0,
@@ -345,7 +394,7 @@ function compositeMultiplyDirect({
     }
   }
 
-  page.context.putImageData(pageImageData, 0, 0);
+  page.context.putImageData(pageImageData, bounds.x, bounds.y);
 }
 
 function replaceColorsFromPalette(
