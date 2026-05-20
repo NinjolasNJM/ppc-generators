@@ -16,7 +16,7 @@ const size = 384;
 
 function makeFaces(ox: number, oy: number): Faces {
   return {
-    shield: [ox + size / 2, oy + size / 2, 288, 528],
+    shield: [ox + 94, oy + 312, 288, 528],
   };
 }
 
@@ -42,7 +42,7 @@ export function drawShield(
     patternFaceId,
     "shield",
     shield.shield,
-    [regions.shield[0] - dimensions[2], regions.shield[1] - dimensions[2]],
+    [ox + 72, oy + 288],
     dimensions,
     {},
     baseInputId
@@ -56,15 +56,24 @@ export function drawShield(
     "shield",
     shield.handle,
     [
-      regions.shield[0] - dimensions[2] + size * 2.25,
-      regions.shield[1] - dimensions[2] + size / 2,
+      ox + 986,
+      oy + 360,
     ],
     dimensions,
-    {},
+    {center: "Right"},
     baseInputId
   );
 
-  //generator.drawImage("Tabs-Shield", [ox - 96, oy - 3]);
+  // handle inside
+
+  const [hx, hy] = [ox + 1010, oy + 720];
+
+  Face.drawFace( generator, patternFaceId, [32, 7, 2, 4], [hx, hy, 48, 96], {rotate: 270}, baseInputId);
+  Face.drawFace( generator, patternFaceId, [34, 1, 2, 4], [hx + 96, hy, 48, 96], {rotate: 90}, baseInputId);
+  Face.drawFace( generator, patternFaceId, [40, 7, 2, 4], [hx + 96 * 2, hy, 48, 96], {rotate: 270},baseInputId);
+  Face.drawFace( generator, patternFaceId, [32, 1, 2, 4], [hx + 96 * 3, hy, 48, 96],  {rotate: 270}, baseInputId);
+
+  generator.drawImage("Tabs-Shield", [ox - 96, oy - 3]);
 
   if (showFolds) {
     generator.drawImage("Folds-Shield", [ox - 96, oy - 3]);

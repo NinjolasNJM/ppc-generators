@@ -17,7 +17,7 @@ const size = 384;
 function makeFaces(ox: number, oy: number): Faces {
   //const [width, height, depth] = flagDimensions;
   return {
-    flag: [ox, oy + size / 4, 320, 640],// [ox + size + depth, oy + depth, width, height],
+    flag: [ox + 209, oy + 336, 320, 640],// [ox + size + depth, oy + depth, width, height],
   };
 }
 
@@ -44,7 +44,7 @@ export function drawBanner(
     patternFaceId,
     "banner",
     banner.flag,
-    [regions.flag[0] - dimensions[2], regions.flag[1] - dimensions[2]],
+    [ox + 193, oy + 320],
     dimensions,
     {},
     baseInputId
@@ -57,11 +57,12 @@ export function drawBanner(
     patternFaceId,
     "banner",
     banner.pole,
-    [regions.flag[0] - dimensions[2] + size * 2.5, regions.flag[1] - dimensions[2]],
+    [ox +  1121, oy + 272],
     dimensions,
     {},
     baseInputId
   );
+
 
     dimensions = [320, 32, 32];
 
@@ -70,14 +71,14 @@ export function drawBanner(
     patternFaceId,
     "banner",
     banner.bar,
-    [regions.flag[0] - dimensions[2], regions.flag[1] - dimensions[2] + size * 2.25],
+    [ox + 345, oy + 64],
     dimensions,
-    {},
+    {orientation: "North"},
     baseInputId
   );
 
 
-  //generator.drawImage("Tabs-Banner", [ox - 96, oy - 3]);
+  generator.drawImage("Tabs-Banner", [ox - 96, oy - 3]);
 
   if (showFolds) {
     generator.drawImage("Folds-Banner", [ox - 96, oy - 3]);

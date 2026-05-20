@@ -157,8 +157,8 @@ const script: ScriptDef = (generator: Generator) => {
     ? parseInt(numberOfTemplatesInput, 10)
     : 1;
 
-  generator.defineBooleanInput("Show Folds", true);
-  const showFolds = generator.getBooleanInputValue("Show Folds") ?? false;
+  generator.defineBooleanInput("Show Folds", false);
+  const showFolds = generator.getBooleanInputValueWithDefault("Show Folds", false);
 
   for (let i = 1; i <= numberOfTemplates; i += 1) {
     const templateId = i.toString();

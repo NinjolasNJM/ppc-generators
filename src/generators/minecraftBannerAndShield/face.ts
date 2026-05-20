@@ -253,10 +253,25 @@ export function drawFace(
   faceId: string,
   source: Region,
   destination: Region,
-  options?: DrawTextureOptions,
-  target: BannerShieldTarget = getFaceTarget(faceId),
-  baseInputId?: string
+  optionsOrBaseInputId?: DrawTextureOptions | string,
+  targetOrBaseInputId?: BannerShieldTarget | string,
+  explicitBaseInputId?: string
 ) {
+  const options =
+    typeof optionsOrBaseInputId === "string" ? undefined : optionsOrBaseInputId;
+  const explicitTarget =
+    targetOrBaseInputId === "banner" || targetOrBaseInputId === "shield"
+      ? targetOrBaseInputId
+      : null;
+  const baseInputId =
+    typeof optionsOrBaseInputId === "string"
+      ? optionsOrBaseInputId
+      : explicitTarget
+        ? explicitBaseInputId
+        : targetOrBaseInputId ?? explicitBaseInputId;
+  const target =
+    explicitTarget ?? getBaseInputTarget(baseInputId) ?? getFaceTarget(faceId);
+
   drawPatternFace(
     generator,
     faceId,
@@ -322,4 +337,22 @@ export function drawCuboid(
 
 function getFaceTarget(faceId: string): BannerShieldTarget {
   return faceId.startsWith("Shield") ? "shield" : "banner";
+}
+
+function getBaseInputTarget(
+  baseInputId: string | undefined
+): BannerShieldTarget | null {
+  if (!baseInputId) {
+    return null;
+  }
+
+  if (baseInputId.includes("Shield Base")) {
+    return "shield";
+  }
+
+  if (baseInputId.includes("Banner Base")) {
+    return "banner";
+  }
+
+  return null;
 }

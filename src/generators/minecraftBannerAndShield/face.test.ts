@@ -132,6 +132,27 @@ describe("drawFace", () => {
     );
   });
 
+  it("accepts a base input id directly and infers shield rendering from it", () => {
+    const faceId = "PatternFace1";
+    const generator = makeGenerator(faceId, "", shieldBasePatternId, "shield");
+
+    drawFace(
+      generator,
+      faceId,
+      source,
+      destination,
+      makeTemplateBaseInputId("1", "shield")
+    );
+
+    expect(generator.drawTexture).toHaveBeenCalledTimes(1);
+    expect(generator.drawTexture).toHaveBeenCalledWith(
+      "minecraft-26.1.2-shield-patterns",
+      [0, 192, 64, 64],
+      destination,
+      {}
+    );
+  });
+
   it("draws partial source regions inside the selected pattern frame", () => {
     const faceId = "ShieldFaceRight1";
     const generator = makeGenerator(
