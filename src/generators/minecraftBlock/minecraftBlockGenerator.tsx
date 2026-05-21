@@ -19,6 +19,7 @@ import {
 } from "../_common/textures/textureVersions";
 import { TexturePicker } from "../_common/plugins/texturePicker/texturePicker";
 import { blockTintChoiceGroups } from "../_common/tintSelector/tints";
+import { clearVariablesMatching } from "../_common/clearVariablesMatching";
 import { currentBlockTextureId } from "./constants";
 import {
   parseAtlas,
@@ -132,6 +133,13 @@ const images: ImageDef[] = [
 ];
 
 const textures: TextureDef[] = allTextureDefs;
+
+function clearBlockFaces(generator: Generator): void {
+  clearVariablesMatching(
+    generator,
+    /^(?:Block|Slab|Stair|Fence|Door|Trapdoor|Snow|Cake|Shelf)Face/
+  );
+}
 
 const script: ScriptDef = (generator: Generator) => {
   generator.defineSelectInput("Version", versionIdsBlocksFirst);
@@ -273,6 +281,15 @@ const script: ScriptDef = (generator: Generator) => {
     generator.defineInputRowEnd();
   }
 
+  generator.defineInputRowStart();
+  generator.defineButtonInput(
+    "Clear Faces",
+    () => {
+      clearBlockFaces(generator);
+    },
+    "Red"
+  );
+
   generator.defineButtonInput(
     "Clear",
     () => {
@@ -291,6 +308,7 @@ const script: ScriptDef = (generator: Generator) => {
     },
     "Red"
   );
+  generator.defineInputRowEnd();
 
   generator.drawImage("Title", [0, 0]);
 };

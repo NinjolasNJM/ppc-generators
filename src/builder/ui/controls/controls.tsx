@@ -85,7 +85,10 @@ export function Controls({
     onChange(model);
   };
 
-  const renderControl = (control: Control): React.ReactNode => {
+  const renderControl = (
+    control: Control,
+    { inRow = false }: { inRow?: boolean } = {}
+  ): React.ReactNode => {
     switch (control.kind) {
       case "Text": {
         return <TextControl key={control.id} text={control.text} />;
@@ -168,6 +171,7 @@ export function Controls({
               onBooleanInputChange(control.id, value);
             }}
             checked={checked}
+            inRow={inRow}
           />
         );
       }
@@ -248,9 +252,35 @@ export function Controls({
       }
 
       const rowKey = rowControls.map((rowControl) => rowControl.id).join("|");
+      const rowHasBoolean = rowControls.some(
+        (rowControl) => rowControl.kind === "BooleanInput"
+      );
+      const rowHasNonBoolean = rowControls.some(
+        (rowControl) => rowControl.kind !== "BooleanInput"
+      );
+      const rowHasMixedBooleanControls = rowHasBoolean && rowHasNonBoolean;
+
       renderedControls.push(
-        <div key={rowKey} className="flex flex-wrap items-start gap-x-2">
-          {rowControls.map(renderControl)}
+        <div key={rowKey} className="flex flex-wrap items-center">
+          {rowControls.map((rowControl, rowControlIndex) => {
+            const nextRowControl = rowControls[rowControlIndex + 1];
+            const hasWideGapAfter =
+              nextRowControl !== undefined &&
+              !(
+                rowControl.kind === "Button" && nextRowControl.kind === "Button"
+              );
+
+            return (
+              <div
+                key={rowControl.id}
+                className={hasWideGapAfter ? "mr-5" : undefined}
+              >
+                {renderControl(rowControl, {
+                  inRow: rowHasMixedBooleanControls,
+                })}
+              </div>
+            );
+          })}
         </div>
       );
     }

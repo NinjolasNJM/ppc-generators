@@ -23,6 +23,7 @@ import {
 } from "../_common/textures/textureVersions";
 import { TexturePicker } from "../_common/plugins/texturePicker/texturePicker";
 import { blockTintChoiceGroups } from "../_common/tintSelector/tints";
+import { clearVariablesMatching } from "../_common/clearVariablesMatching";
 import { drawBlocks } from "./editModes/blocks";
 import {
   defineAndGetPresetInput,
@@ -427,14 +428,6 @@ function clearDioramaEditMode(
   }
 }
 
-function clearVariablesMatching(generator: Generator, idPattern: RegExp): void {
-  Array.from(generator.model.values.variables.keys()).forEach((id) => {
-    if (idPattern.test(id)) {
-      generator.model.values.variables.delete(id);
-    }
-  });
-}
-
 const script: ScriptDef = (generator: Generator) => {
   generator.defineSelectInput("Version", versionIds);
 
@@ -443,7 +436,7 @@ const script: ScriptDef = (generator: Generator) => {
   defineCustomTextureInput(generator, versionId);
   drawTexturePicker(generator, versionId);
   generator.defineInputRowStart();
-    const dioramaSize = generator.defineAndGetSelectInput("Diorama Size", [
+  const dioramaSize = generator.defineAndGetSelectInput("Diorama Size", [
     "800%",
     "400%",
     "200%",
@@ -462,7 +455,7 @@ const script: ScriptDef = (generator: Generator) => {
     "Transform",
   ]);
   generator.defineInputRowEnd();
-    const dioramaWidth =
+  const dioramaWidth =
     dioramaSize === "Custom"
       ? generator.defineAndGetRangeInput("Diorama Width", {
           min: 100,
