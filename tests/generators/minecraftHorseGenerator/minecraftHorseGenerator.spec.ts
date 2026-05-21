@@ -17,7 +17,7 @@ test("minecraft horse generator exposes a typeable armor tint input", async ({
   await page
     .getByLabel("Tint Armor")
     .evaluate((element) => (element as HTMLInputElement).click());
-  await page.getByLabel("Armor Color").selectOption({ label: "Custom tint" });
+  await page.getByLabel("Armor Color").selectOption({ label: "Custom Tint" });
 
   const tintInput = page.getByPlaceholder("Enter hex color");
   await expect(tintInput).toBeVisible();

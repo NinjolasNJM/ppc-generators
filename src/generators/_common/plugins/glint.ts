@@ -122,53 +122,42 @@ export const makeGlintPlugin: (
   texture: Texture,
   options: GlintPluginOptions
 ) => TexturePlugin = (glintTexture, glintOptions) => (coordinates, context) => {
-  const { sx, sy, sw, sh, dw, dh } = coordinates;
+  const { sx, sy, sw, sh } = coordinates;
   const { opacity, xOffset, yOffset } = glintOptions;
   const glintWidth = glintTexture.standardWidth;
   const glintHeight = glintTexture.standardHeight;
+  const outputWidth = context.canvas.width;
+  const outputHeight = context.canvas.height;
+  const glintCanvas = glintTexture.imageWithCanvas.canvasWithContext.canvas;
+  const glintScaleX = glintCanvas.width / glintWidth;
+  const glintScaleY = glintCanvas.height / glintHeight;
 
-  // Create base-only canvas for masking
-  const baseOnly = makeCanvasWithContext(dw, dh);
-  baseOnly.context.drawImage(context.canvas, 0, 0);
+  if (outputWidth <= 0 || outputHeight <= 0 || sw <= 0 || sh <= 0) {
+    return context.canvas;
+  }
 
-  // Create glint layer
-  const glintLayer = makeCanvasWithContext(dw, dh);
-
-  // Step 1: Draw base to glint layer
-  glintLayer.context.drawImage(context.canvas, 0, 0);
-
-  // Step 2: Add the glint with transformations
+  const glintLayer = makeCanvasWithContext(outputWidth, outputHeight);
   glintLayer.context.save();
   glintLayer.context.globalAlpha = opacity;
-  glintLayer.context.globalCompositeOperation = "lighter";
-
-  // Apply wrapped offsets to the glint texture
-  const sourceX = (sx + xOffset) % glintWidth;
-  const sourceY = (sy + yOffset) % glintHeight;
-
-  // Wrap around if offsets push outside bounds
-  const wrappedX = (sourceX + glintWidth) % glintWidth;
-  const wrappedY = (sourceY + glintHeight) % glintHeight;
-  const glintCanvas = glintTexture.imageWithCanvas.canvasWithContext.canvas;
 
   for (let y = 0; y < sh; ) {
-    const tileY = (wrappedY + y) % glintHeight;
+    const tileY = wrap(sy + yOffset + y, glintHeight);
     const tileHeight = Math.min(glintHeight - tileY, sh - y);
 
     for (let x = 0; x < sw; ) {
-      const tileX = (wrappedX + x) % glintWidth;
+      const tileX = wrap(sx + xOffset + x, glintWidth);
       const tileWidth = Math.min(glintWidth - tileX, sw - x);
 
       glintLayer.context.drawImage(
         glintCanvas,
-        tileX,
-        tileY,
-        tileWidth,
-        tileHeight,
-        (x / sw) * dw,
-        (y / sh) * dh,
-        (tileWidth / sw) * dw,
-        (tileHeight / sh) * dh
+        tileX * glintScaleX,
+        tileY * glintScaleY,
+        tileWidth * glintScaleX,
+        tileHeight * glintScaleY,
+        (x / sw) * outputWidth,
+        (y / sh) * outputHeight,
+        (tileWidth / sw) * outputWidth,
+        (tileHeight / sh) * outputHeight
       );
 
       x += tileWidth;
@@ -179,10 +168,60 @@ export const makeGlintPlugin: (
 
   glintLayer.context.restore();
 
-  // Step 3: Mask to original alpha
-  glintLayer.context.globalCompositeOperation = "destination-in";
-  glintLayer.context.drawImage(baseOnly.canvas, 0, 0);
+  const output = makeCanvasWithContext(outputWidth, outputHeight);
+  const outputImageData = context.contextWithAlpha.getImageData(
+    0,
+    0,
+    outputWidth,
+    outputHeight
+  );
+  const outputPixels = outputImageData.data;
+  const glintImageData = glintLayer.contextWithAlpha.getImageData(
+    0,
+    0,
+    outputWidth,
+    outputHeight
+  );
+  const glintPixels = glintImageData.data;
 
-  // Step 4: Return the final canvas
-  return glintLayer.canvas;
+  for (let y = 0; y < outputHeight; y += 1) {
+    for (let x = 0; x < outputWidth; x += 1) {
+      const outputIndex = (y * outputWidth + x) * 4;
+      const baseAlpha = outputPixels[outputIndex + 3] ?? 0;
+      if (baseAlpha <= 0) {
+        continue;
+      }
+
+      const glintIndex = outputIndex;
+      const glintAlpha = (glintPixels[glintIndex + 3] ?? 0) / 255;
+      if (glintAlpha <= 0) {
+        continue;
+      }
+
+      outputPixels[outputIndex + 0] = clamp(
+        (outputPixels[outputIndex + 0] ?? 0) +
+          (glintPixels[glintIndex + 0] ?? 0) * glintAlpha
+      );
+      outputPixels[outputIndex + 1] = clamp(
+        (outputPixels[outputIndex + 1] ?? 0) +
+          (glintPixels[glintIndex + 1] ?? 0) * glintAlpha
+      );
+      outputPixels[outputIndex + 2] = clamp(
+        (outputPixels[outputIndex + 2] ?? 0) +
+          (glintPixels[glintIndex + 2] ?? 0) * glintAlpha
+      );
+      outputPixels[outputIndex + 3] = baseAlpha;
+    }
+  }
+
+  output.context.putImageData(outputImageData, 0, 0);
+  return output.canvas;
 };
+
+function wrap(value: number, size: number): number {
+  return ((value % size) + size) % size;
+}
+
+function clamp(value: number): number {
+  return Math.max(0, Math.min(255, value));
+}

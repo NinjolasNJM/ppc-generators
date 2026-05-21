@@ -36,7 +36,7 @@ export const noneChoice: SelectOption = { id: "None", label: "No tint" };
 
 export const customChoice: SelectOption = {
   id: "Custom",
-  label: "Custom tint",
+  label: "Custom Tint",
 };
 
 export function flattenTintChoiceGroups(

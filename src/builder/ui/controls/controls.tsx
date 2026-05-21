@@ -197,6 +197,7 @@ export function Controls({
         );
       }
       case "Range": {
+        const value = model.getNumberVariable(control.id) ?? control.value;
         return (
           <RangeControl
             key={control.id}
@@ -204,7 +205,7 @@ export function Controls({
             min={control.min}
             max={control.max}
             step={control.step}
-            value={control.value}
+            value={value}
             showValue={control.showValue}
             onChange={(value) => onRangeInputChange(control.id, value)}
           />
@@ -246,8 +247,9 @@ export function Controls({
         index += 1;
       }
 
+      const rowKey = rowControls.map((rowControl) => rowControl.id).join("|");
       renderedControls.push(
-        <div key={control.id} className="flex flex-wrap items-start gap-x-2">
+        <div key={rowKey} className="flex flex-wrap items-start gap-x-2">
           {rowControls.map(renderControl)}
         </div>
       );

@@ -26,7 +26,7 @@ type TintSelectorState = {
   color: string | null;
 };
 
-const tintSelectorWidthClass = "max-w-[27.5rem]";
+const tintHeaderSquareClass = "h-10 w-10";
 const tintSwatchButtonClass = "h-12 w-12";
 const tintSwatchGridClass =
   "grid max-w-[27.5rem] grid-cols-[repeat(auto-fill,3rem)] gap-2";
@@ -92,7 +92,7 @@ function NoTintButton({
       type="button"
       title="No Tint"
       aria-label="No Tint"
-      className={`flex ${tintSwatchButtonClass} items-center justify-center border bg-white p-1 ${
+      className={`flex ${tintHeaderSquareClass} items-center justify-center border bg-white p-1 ${
         isSelected ? "border-gray-700" : "border-gray-300"
       }`}
       onClick={onClick}
@@ -149,6 +149,7 @@ export function TintSelector({
     selectedGroupId,
     choiceGroups
   );
+  const isCustomGroupSelected = selectedGroupId === null;
 
   React.useEffect(() => {
     if (
@@ -183,18 +184,6 @@ export function TintSelector({
     onChange(selectedTint.kind === "CustomTint" && !color ? "#" : color);
   };
 
-  const onNativeColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const color = normalizeTint(e.currentTarget.value);
-    const selectedTint = makeCustomTintChoice(color);
-    setState({
-      selectedOption: customChoice,
-      selectedTint,
-      customTintInput: color ? color.replace(/^#/, "") : "",
-      color,
-    });
-    onChange(color ?? "#");
-  };
-
   const onCustomColorChange = (color: string) => {
     const normalizedColor = normalizeTint(color);
     const selectedTint = makeCustomTintChoice(normalizedColor);
@@ -207,8 +196,25 @@ export function TintSelector({
     onChange(normalizedColor ?? "#");
   };
 
+  const onCustomHexChange = (hex: string) => {
+    const customTintInput = hex.replace(/^#/, "");
+    const nextColor = normalizeTint(customTintInput);
+    const selectedTint = makeCustomTintChoice(nextColor);
+    setState({
+      selectedOption: customChoice,
+      selectedTint,
+      customTintInput,
+      color: nextColor,
+    });
+    if (nextColor) {
+      onChange(nextColor);
+    } else if (customTintInput.trim().length === 0) {
+      onChange("#");
+    }
+  };
+
   return (
-    <div className={tintSelectorWidthClass}>
+    <div>
       <div id={labelId} className="font-bold mb-1">
         {label}
       </div>
@@ -229,28 +235,44 @@ export function TintSelector({
           />
         </div>
 
-        <div className="flex min-w-0 items-center gap-2">
-          {color ? (
-            <div className="border bg-white p-1">
-              <div className="h-6 w-6" style={{ backgroundColor: color }} />
+        {includeNoTint ? (
+          <NoTintButton
+            isSelected={selectedTint.kind === "NoTint"}
+            onClick={() => {
+              setTint({ kind: "NoTint" });
+            }}
+          />
+        ) : null}
+
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          {isCustomGroupSelected ? (
+            <div className="flex min-w-0 items-center">
+              <span className="text-sm text-gray-600">#</span>
+              <HexColorInput
+                color={state.customTintInput || color?.replace(/^#/, "") || ""}
+                prefixed={false}
+                placeholder="RRGGBB"
+                className="h-10 w-[8ch] border border-gray-300 p-2 font-mono"
+                onChange={onCustomHexChange}
+              />
             </div>
           ) : null}
           <div className="min-w-0 text-sm text-gray-600">
             {selectedTintLabel}
           </div>
+          {color ? (
+            <div className={`${tintHeaderSquareClass} border bg-white p-1`}>
+              <div
+                className="h-full w-full"
+                style={{ backgroundColor: color }}
+              />
+            </div>
+          ) : null}
         </div>
       </div>
 
       {selectedGroup ? (
         <div className={tintSwatchGridClass}>
-          {includeNoTint ? (
-            <NoTintButton
-              isSelected={selectedTint.kind === "NoTint"}
-              onClick={() => {
-                setTint({ kind: "NoTint" });
-              }}
-            />
-          ) : null}
           {selectedGroup.options.map((tint) => {
             const isSelected =
               selectedTint.kind === "SelectedTint" &&
@@ -278,45 +300,6 @@ export function TintSelector({
         </div>
       ) : (
         <div>
-          <div className="mb-3 flex flex-wrap items-center gap-2">
-            {includeNoTint ? (
-              <NoTintButton
-                isSelected={selectedTint.kind === "NoTint"}
-                onClick={() => {
-                  setTint({ kind: "NoTint" });
-                }}
-              />
-            ) : null}
-            <input
-              type="color"
-              className="h-8 w-12 cursor-pointer border border-gray-300 bg-white"
-              value={color ?? "#000000"}
-              onChange={onNativeColorChange}
-            />
-            <span>#</span>
-            <HexColorInput
-              color={color ?? ""}
-              prefixed={false}
-              placeholder="RRGGBB"
-              className="w-[8ch] border border-gray-300 p-2 font-mono"
-              onChange={(hex) => {
-                const customTintInput = hex.replace(/^#/, "");
-                const nextColor = normalizeTint(customTintInput);
-                const selectedTint = makeCustomTintChoice(nextColor);
-                setState({
-                  selectedOption: customChoice,
-                  selectedTint,
-                  customTintInput,
-                  color: nextColor,
-                });
-                if (nextColor) {
-                  onChange(nextColor);
-                } else if (customTintInput.trim().length === 0) {
-                  onChange("#");
-                }
-              }}
-            />
-          </div>
           <div className="[&_.react-colorful]:w-full [&_.react-colorful]:max-w-64">
             <HexColorPicker
               color={color ?? "#000000"}
