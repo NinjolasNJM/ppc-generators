@@ -23,6 +23,7 @@ import {
 } from "../_common/textures/textureVersions";
 import { TexturePicker } from "../_common/plugins/texturePicker/texturePicker";
 import { blockTintChoiceGroups } from "../_common/tintSelector/tints";
+import { clearVariablesMatching } from "../_common/clearVariablesMatching";
 import { drawBlocks } from "./editModes/blocks";
 import {
   defineAndGetPresetInput,
@@ -210,32 +211,6 @@ function drawDiorama(generator: Generator, options: DioramaOptions) {
   drawFolds(generator, options);
 }
 
-function getDioramaDimensions(generator: Generator) {
-  const dioramaSize = generator.defineAndGetSelectInput("Diorama Size", [
-    "800%",
-    "400%",
-    "200%",
-    "Custom",
-  ]);
-
-  const dioramaWidth =
-    dioramaSize === "Custom"
-      ? generator.defineAndGetRangeInput("Diorama Width", {
-          min: 100,
-          max: 1600,
-          value: 800,
-          step: 50,
-          showValue: true,
-        })
-      : parseInt(dioramaSize ?? "800", 10);
-
-  return {
-    dioramaSize,
-    dioramaWidth,
-    dioramaHeight: dioramaWidth,
-  };
-}
-
 function getDioramaPageLayout(
   generator: Generator,
   document: ReturnType<typeof getDioramaDocument>,
@@ -270,6 +245,7 @@ function getDioramaPageLayout(
   const canAddPage = requestedPageCount < maxPageCount;
   const canRemovePage = requestedPageCount > 1;
 
+  generator.defineInputRowStart();
   generator.defineButtonInput(
     "Add Page",
     () => {
@@ -312,6 +288,7 @@ function getDioramaPageLayout(
     },
     "Blue"
   );
+  generator.defineInputRowEnd();
 
   return {
     pageCount: requestedPageCount,
@@ -451,14 +428,6 @@ function clearDioramaEditMode(
   }
 }
 
-function clearVariablesMatching(generator: Generator, idPattern: RegExp): void {
-  Array.from(generator.model.values.variables.keys()).forEach((id) => {
-    if (idPattern.test(id)) {
-      generator.model.values.variables.delete(id);
-    }
-  });
-}
-
 const script: ScriptDef = (generator: Generator) => {
   generator.defineSelectInput("Version", versionIds);
 
@@ -466,8 +435,13 @@ const script: ScriptDef = (generator: Generator) => {
 
   defineCustomTextureInput(generator, versionId);
   drawTexturePicker(generator, versionId);
-  const { dioramaSize, dioramaWidth, dioramaHeight } =
-    getDioramaDimensions(generator);
+  generator.defineInputRowStart();
+  const dioramaSize = generator.defineAndGetSelectInput("Diorama Size", [
+    "800%",
+    "400%",
+    "200%",
+    "Custom",
+  ]);
   const document = defineAndGetPresetInput(
     generator,
     getDioramaDocument(generator)
@@ -480,6 +454,18 @@ const script: ScriptDef = (generator: Generator) => {
     "Destination",
     "Transform",
   ]);
+  generator.defineInputRowEnd();
+  const dioramaWidth =
+    dioramaSize === "Custom"
+      ? generator.defineAndGetRangeInput("Diorama Width", {
+          min: 100,
+          max: 1600,
+          value: 800,
+          step: 50,
+          showValue: true,
+        })
+      : parseInt(dioramaSize ?? "800", 10);
+
   const currentSource =
     editMode === "Source" ? getCurrentSource(generator) : defaultSource;
   const currentDestination =
@@ -490,8 +476,11 @@ const script: ScriptDef = (generator: Generator) => {
         )
       : getDefaultDestinationForPreset(document.preset);
   const currentTransform =
-    editMode === "Transform" ? getCurrentTransform(generator) : defaultTransform;
+    editMode === "Transform"
+      ? getCurrentTransform(generator)
+      : defaultTransform;
 
+  generator.defineInputRowStart();
   const isLandscape = generator.defineAndGetBooleanInput(
     "Landscape Mode",
     false
@@ -500,13 +489,14 @@ const script: ScriptDef = (generator: Generator) => {
     "Show Edit Regions",
     false
   );
+  generator.defineInputRowEnd();
 
   const ox = 42; //isLandscape ? 37 : 42; ( why was it like that before? did it rotate the other way or something?)
   const oy = 41;
   const baseWidth = isLandscape ? 768 : 512;
   const baseHeight = isLandscape ? 512 : 768;
   const width = Math.round((16 * dioramaWidth) / 100);
-  const height = Math.round((16 * dioramaHeight) / 100);
+  const height = Math.round((16 * dioramaWidth) / 100);
   const columns = getColumnCountThatFits({ baseWidth, width, document });
   const rows = getRowCountThatFits({ baseHeight, height, document });
   const { pageCount, pageColumns } = getDioramaPageLayout(
@@ -550,8 +540,7 @@ const script: ScriptDef = (generator: Generator) => {
     );
   }
 
-  generator.defineCustomStringInput("Diorama Clear Button Break", () => <div />);
-
+  generator.defineInputRowStart();
   generator.defineButtonInput(
     "Clear Edit Mode",
     () => {
@@ -579,7 +568,8 @@ const script: ScriptDef = (generator: Generator) => {
         generator.getNumberVariable("Destination Width");
       const currentDestinationHeight =
         generator.getNumberVariable("Destination Height");
-      const currentFaceRotation = generator.getSelectInputValue("Face Rotation");
+      const currentFaceRotation =
+        generator.getSelectInputValue("Face Rotation");
       const currentFaceFlip = generator.getSelectInputValue("Face Flip");
       const currentPreset = document.preset;
 
@@ -641,6 +631,7 @@ const script: ScriptDef = (generator: Generator) => {
     },
     "Red"
   );
+  generator.defineInputRowEnd();
 };
 
 export const generator: GeneratorDef = {

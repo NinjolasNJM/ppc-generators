@@ -43,14 +43,80 @@ function makeMargin(t: number, r: number, b: number, l: number): string {
 
 const bgGray200 = "rgb(229 231 235)";
 const bgGray400 = "rgb(156 163 175)";
-const borderSize = 4;
+export const texturePickerBorderSize = 4;
 
-function makeTileBaseStyle(isSelected: boolean, tileSize: number) {
+export type TexturePreviewSourceFrame = {
+  rectangle: readonly [number, number, number, number];
+  logicalFrameSize: number;
+};
+
+function scalePreviewSource(
+  sourceFrame: TexturePreviewSourceFrame,
+  frame: TextureFrame
+): [number, number, number, number] {
+  const [sourceX, sourceY, sourceWidth, sourceHeight] = sourceFrame.rectangle;
+  const [, , frameWidth, frameHeight] = frame.rectangle;
+  const scale =
+    frameWidth === frameHeight &&
+    frameWidth > 0 &&
+    frameWidth % sourceFrame.logicalFrameSize === 0 &&
+    frameHeight % sourceFrame.logicalFrameSize === 0
+      ? frameWidth / sourceFrame.logicalFrameSize
+      : 1;
+
+  return [
+    sourceX * scale,
+    sourceY * scale,
+    sourceWidth * scale,
+    sourceHeight * scale,
+  ];
+}
+
+function makePreviewSourceRegion(
+  frame: TextureFrame,
+  sourceFrame?: TexturePreviewSourceFrame
+): [number, number, number, number] {
+  const [frameX, frameY, frameWidth, frameHeight] = frame.rectangle;
+  if (!sourceFrame) {
+    return [frameX, frameY, frameWidth, frameHeight];
+  }
+
+  const [sourceX, sourceY, sourceWidth, sourceHeight] = scalePreviewSource(
+    sourceFrame,
+    frame
+  );
+  return [frameX + sourceX, frameY + sourceY, sourceWidth, sourceHeight];
+}
+
+function makePreviewSize(
+  frame: TextureFrame,
+  height: number,
+  sourceFrame?: TexturePreviewSourceFrame
+): { width: number; height: number } {
+  if (!sourceFrame) {
+    return { width: height, height };
+  }
+
+  const [, , sourceWidth, sourceHeight] = makePreviewSourceRegion(
+    frame,
+    sourceFrame
+  );
+  return {
+    width: (sourceWidth / sourceHeight) * height,
+    height,
+  };
+}
+
+export function makeTileBaseStyle(
+  isSelected: boolean,
+  width: number,
+  height = width
+) {
   const borderColor = isSelected ? bgGray400 : bgGray200;
   return {
-    border: makeBorder(borderSize, "solid", borderColor),
-    width: px(tileSize + borderSize * 2),
-    height: px(tileSize + borderSize * 2),
+    border: makeBorder(texturePickerBorderSize, "solid", borderColor),
+    width: px(width + texturePickerBorderSize * 2),
+    height: px(height + texturePickerBorderSize * 2),
   };
 }
 
@@ -59,51 +125,60 @@ function makeTileStyle(
   frame: TextureFrame,
   isSelected: boolean,
   isHover: boolean,
-  tileSize: number
+  tileSize: number,
+  sourceFrame?: TexturePreviewSourceFrame
 ) {
-  const [x, y, width, height] = frame.rectangle;
-  const widthScale = tileSize / width;
-  const heightScale = tileSize / height;
+  const [x, y, width, height] = makePreviewSourceRegion(frame, sourceFrame);
+  const previewSize = makePreviewSize(frame, tileSize, sourceFrame);
+  const sourceScaleX = previewSize.width / width;
+  const sourceScaleY = previewSize.height / height;
 
-  const baseStyle = makeTileBaseStyle(isSelected || isHover, tileSize);
+  const baseStyle = makeTileBaseStyle(
+    isSelected || isHover,
+    previewSize.width,
+    previewSize.height
+  );
   const backgroundStyle = {
     backgroundImage: makeBackgroundImage(textureDef.url),
     backgroundPosition: makeBackgroundPosition(
-      -x * widthScale,
-      -y * heightScale
+      -x * sourceScaleX,
+      -y * sourceScaleY
     ),
     backgroundRepeat: "no-repeat",
     backgroundSize: makeBackgroundSize(
-      textureDef.standardWidth * widthScale,
-      textureDef.standardHeight * heightScale
+      textureDef.standardWidth * sourceScaleX,
+      textureDef.standardHeight * sourceScaleY
     ),
+    backgroundColor: "white",
     imageRendering: "pixelated" as const,
   };
 
   return { ...baseStyle, ...backgroundStyle };
 }
 
-function makeTextureTintMaskStyle(
+export function makeTextureTintMaskStyle(
   textureDef: TextureDef,
   frame: TextureFrame,
   tileSize: number,
-  blend: string | null
+  blend: string | null,
+  sourceFrame?: TexturePreviewSourceFrame
 ): React.CSSProperties | undefined {
   if (!blend) {
     return undefined;
   }
 
-  const [x, y, width, height] = frame.rectangle;
-  const widthScale = tileSize / width;
-  const heightScale = tileSize / height;
+  const [x, y, width, height] = makePreviewSourceRegion(frame, sourceFrame);
+  const previewSize = makePreviewSize(frame, tileSize, sourceFrame);
+  const sourceScaleX = previewSize.width / width;
+  const sourceScaleY = previewSize.height / height;
   const maskImage = makeBackgroundImage(textureDef.url);
   const maskPosition = makeBackgroundPosition(
-    -x * widthScale,
-    -y * heightScale
+    -x * sourceScaleX,
+    -y * sourceScaleY
   );
   const maskSize = makeBackgroundSize(
-    textureDef.standardWidth * widthScale,
-    textureDef.standardHeight * heightScale
+    textureDef.standardWidth * sourceScaleX,
+    textureDef.standardHeight * sourceScaleY
   );
 
   return {
@@ -123,31 +198,113 @@ function makeTextureTintMaskStyle(
   };
 }
 
-function TileButton({
+export function TextureFramePreview({
+  textureDef,
+  frame,
+  size,
+  blend,
+  sourceFrame,
+}: {
+  textureDef: TextureDef;
+  frame: TextureFrame;
+  size: number;
+  blend: string | null;
+  sourceFrame?: TexturePreviewSourceFrame;
+}) {
+  const [x, y, , height] = makePreviewSourceRegion(frame, sourceFrame);
+  const sourceScale = size / height;
+  const previewSize = makePreviewSize(frame, size, sourceFrame);
+  const tintMaskStyle = makeTextureTintMaskStyle(
+    textureDef,
+    frame,
+    size,
+    blend,
+    sourceFrame
+  );
+  const style: React.CSSProperties = {
+    position: "relative",
+    width: previewSize.width,
+    height: previewSize.height,
+    overflow: "hidden",
+    imageRendering: "pixelated",
+    backgroundImage: makeBackgroundImage(textureDef.url),
+    backgroundPosition: makeBackgroundPosition(
+      -x * sourceScale,
+      -y * sourceScale
+    ),
+    backgroundRepeat: "no-repeat",
+    backgroundSize: makeBackgroundSize(
+      textureDef.standardWidth * sourceScale,
+      textureDef.standardHeight * sourceScale
+    ),
+  };
+
+  return (
+    <div
+      className="flex items-center justify-center overflow-hidden"
+      style={previewSize}
+    >
+      <div style={style}>
+        {tintMaskStyle ? <div style={tintMaskStyle} /> : null}
+      </div>
+    </div>
+  );
+}
+
+export function TileButton({
+  title,
   textureDef,
   frame,
   isSelected,
   onClick,
+  previewSize = 32,
+  blend = null,
+  sourceFrame,
 }: {
+  title?: string;
   textureDef: TextureDef;
   frame: TextureFrame;
   isSelected: boolean;
   onClick: () => void;
+  previewSize?: number;
+  blend?: string | null;
+  sourceFrame?: TexturePreviewSourceFrame;
 }) {
   const [isHover, setIsHover] = React.useState(false);
-  const tileStyle = makeTileStyle(textureDef, frame, isSelected, isHover, 32);
+  const tileStyle = makeTileStyle(
+    textureDef,
+    frame,
+    isSelected,
+    isHover,
+    previewSize,
+    sourceFrame
+  );
+  const tintMaskStyle = makeTextureTintMaskStyle(
+    textureDef,
+    frame,
+    previewSize,
+    blend,
+    sourceFrame
+  );
   const buttonStyle = {
-    margin: makeMargin(0, borderSize, borderSize, 0),
+    margin: makeMargin(0, texturePickerBorderSize, texturePickerBorderSize, 0),
   };
-  const style = { ...tileStyle, ...buttonStyle };
+  const style: React.CSSProperties = {
+    ...tileStyle,
+    ...buttonStyle,
+    position: "relative",
+    overflow: "hidden",
+  };
   return (
     <button
-      title={frame.label}
+      title={title ?? frame.label}
       style={style}
       onClick={onClick}
       onMouseEnter={() => setIsHover(true)}
       onMouseLeave={() => setIsHover(false)}
-    />
+    >
+      {tintMaskStyle ? <div style={tintMaskStyle} /> : null}
+    </button>
   );
 }
 
@@ -387,6 +544,7 @@ export function TexturePicker({
                 textureDef={textureDef}
                 frame={frame}
                 isSelected={isSelected}
+                blend={blend}
                 onClick={() => {
                   onSelectClick(frame);
                 }}

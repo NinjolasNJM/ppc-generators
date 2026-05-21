@@ -20,9 +20,7 @@ import foldsSteveImage from "./images/Folds-Steve.png";
 import foldsAlexImage from "./images/Folds-Alex.png";
 import labelsImage from "./images/Labels.png";
 import { getSkinUrl } from "../_common/skins";
-import {
-  makeDefaultMinecraftSkinPresetOptions,
-} from "../_common/skins/options";
+import { makeDefaultMinecraftSkinPresetOptions } from "../_common/skins/options";
 
 const id = "minecraft-ultimate-bendable";
 
@@ -75,9 +73,11 @@ const script: ScriptDef = (generator: Generator) => {
   });
 
   // Define user variables
+  generator.defineInputRowStart();
   generator.defineBooleanInput("Show Folds", true);
   generator.defineBooleanInput("Show Color Codes", true);
   generator.defineBooleanInput("Show Labels", true);
+  generator.defineInputRowEnd();
 
   // Get user variable values
 

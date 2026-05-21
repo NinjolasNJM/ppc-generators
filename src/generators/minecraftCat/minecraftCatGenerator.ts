@@ -196,9 +196,10 @@ const script: ScriptDef = (generator: Generator) => {
       includeNoTint: false,
     }) ?? "#B02E26";
 
+  generator.defineInputRowStart();
   generator.defineBooleanInput("Show Folds", true);
-
   generator.defineBooleanInput("Show Labels", true);
+  generator.defineInputRowEnd();
 
   // Get user variable values
 

@@ -6,7 +6,10 @@ import {
   type Generator,
   type Region,
 } from "@genroot/builder/modules/generator";
-import { makeNextFlip, type Flip } from "@genroot/builder/ui/texturePicker/flip";
+import {
+  makeNextFlip,
+  type Flip,
+} from "@genroot/builder/ui/texturePicker/flip";
 import { type Rotation } from "@genroot/builder/ui/texturePicker/rotation";
 import {
   type SelectedTexture,
@@ -47,10 +50,13 @@ export function defineTextureInputRegion(
         ? decodeSelectedTextures(curentFaceTexturesJson)
         : [];
 
-      const shouldErase = selectedTexture.textureDefId === "";
+      const shouldErase =
+        selectedTexture.textureDefId === "" && selectedTexture.blend === null;
       const newFaceTextures = shouldErase
         ? currentFaceTextures.slice(0, -1)
-        : currentFaceTextures.concat([selectedTexture]);
+        : selectedTexture.textureDefId === ""
+          ? applyBlendToTopTexture(currentFaceTextures, selectedTexture.blend)
+          : currentFaceTextures.concat([selectedTexture]);
       generator.setStringInputValue(
         faceId,
         encodeSelectedTextures(newFaceTextures)
@@ -58,6 +64,23 @@ export function defineTextureInputRegion(
     },
     faceId
   );
+}
+
+function applyBlendToTopTexture(
+  textures: SelectedTexture[],
+  blend: string | null
+): SelectedTexture[] {
+  if (!isValidTint(blend) || textures.length === 0) {
+    return textures;
+  }
+
+  return textures.map((texture, index) =>
+    index === textures.length - 1 ? { ...texture, blend } : texture
+  );
+}
+
+function isValidTint(blend: string | null): blend is string {
+  return /^#[\da-f]{6}$/i.test(blend ?? "");
 }
 
 export function drawSelectedTexture(
@@ -103,7 +126,7 @@ export function drawSelectedTexture(
   })();
 
   const rotate: number = ((): number => {
-    const currRotate = options ? (options.rotate ?? 0) : 0;
+    const currRotate = options ? options.rotate ?? 0 : 0;
     switch (nextRotation) {
       case "Rot0":
         return currRotate;

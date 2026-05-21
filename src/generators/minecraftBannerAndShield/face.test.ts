@@ -10,6 +10,7 @@ import {
 } from "./bannerTexturePicker/types";
 import {
   bannerBasePatternId,
+  defaultPatternTint,
   defineBaseInput,
   defineInputRegion,
   drawCuboid,
@@ -135,6 +136,42 @@ describe("drawFace", () => {
   it("accepts a base input id directly and infers shield rendering from it", () => {
     const faceId = "PatternFace1";
     const generator = makeGenerator(faceId, "", shieldBasePatternId, "shield");
+
+    drawFace(
+      generator,
+      faceId,
+      source,
+      destination,
+      makeTemplateBaseInputId("1", "shield")
+    );
+
+    expect(generator.drawTexture).toHaveBeenCalledTimes(2);
+    expect(generator.drawTexture).toHaveBeenNthCalledWith(
+      1,
+      "minecraft-26.1.2-shield-patterns",
+      [0, 192, 64, 64],
+      destination,
+      {}
+    );
+    expect(generator.drawTexture).toHaveBeenNthCalledWith(
+      2,
+      "minecraft-26.1.2-shield-patterns",
+      [0, 0, 64, 64],
+      destination,
+      expect.objectContaining<DrawTextureOptions>({
+        blend: { kind: "MultiplyHex", hex: defaultPatternTint },
+      })
+    );
+  });
+
+  it("does not draw the default base pattern after it has been explicitly erased", () => {
+    const faceId = "PatternFace1";
+    const generator = makeGenerator(
+      faceId,
+      encodeSelectedBannerShieldPatterns([]),
+      shieldBasePatternId,
+      "shield"
+    );
 
     drawFace(
       generator,
@@ -400,6 +437,9 @@ describe("defineInputRegion", () => {
           nextFaceJson = value;
         }
       }),
+      getSelectInputValue: vi.fn((id: string) =>
+        id === "Version" ? versionId : null
+      ),
     } as unknown as Generator;
 
     defineInputRegion(generator, faceId, region);
@@ -416,18 +456,32 @@ describe("defineInputRegion", () => {
     };
   }
 
-  it("appends the selected pattern to the face", () => {
+  it("appends the selected pattern after the implicit base pattern", () => {
     const { click, getNextFacePatterns } = makeRegionGenerator({
       currentPatternJson: encodeSelectedBannerShieldPattern(
-        makeSelectedPattern("base")
+        makeSelectedPattern("border")
       ),
       faceJson: "",
     });
 
     click();
 
-    expect(getNextFacePatterns()).toHaveLength(1);
+    expect(getNextFacePatterns()).toHaveLength(2);
     expect(getNextFacePatterns()[0]?.patternId).toBe("base");
+    expect(getNextFacePatterns()[1]?.patternId).toBe("border");
+  });
+
+  it("erases the implicit base pattern when the picker selection is empty", () => {
+    const { click, getNextFacePatterns } = makeRegionGenerator({
+      currentPatternJson: encodeSelectedBannerShieldPattern(
+        makeSelectedPattern("")
+      ),
+      faceJson: "",
+    });
+
+    click();
+
+    expect(getNextFacePatterns()).toEqual([]);
   });
 
   it("erases the last face pattern when the picker selection is empty", () => {
@@ -446,5 +500,45 @@ describe("defineInputRegion", () => {
 
     expect(getNextFacePatterns()).toHaveLength(1);
     expect(getNextFacePatterns()[0]?.patternId).toBe("base");
+  });
+
+  it("applies a tint-only selection to the top face pattern", () => {
+    const faceJson = encodeSelectedBannerShieldPatterns([
+      makeSelectedPattern("base"),
+      makeSelectedPattern("border"),
+    ]);
+    const { click, getNextFacePatterns } = makeRegionGenerator({
+      currentPatternJson: encodeSelectedBannerShieldPattern({
+        ...makeSelectedPattern(""),
+        blend: "#ff0000",
+      }),
+      faceJson,
+    });
+
+    click();
+
+    expect(getNextFacePatterns()).toHaveLength(2);
+    expect(getNextFacePatterns()[1]?.patternId).toBe("border");
+    expect(getNextFacePatterns()[1]?.blend).toBe("#ff0000");
+  });
+
+  it("ignores incomplete custom tint selections", () => {
+    const faceJson = encodeSelectedBannerShieldPatterns([
+      makeSelectedPattern("base"),
+      makeSelectedPattern("border"),
+    ]);
+    const { click, getNextFacePatterns } = makeRegionGenerator({
+      currentPatternJson: encodeSelectedBannerShieldPattern({
+        ...makeSelectedPattern(""),
+        blend: "#",
+      }),
+      faceJson,
+    });
+
+    click();
+
+    expect(getNextFacePatterns()).toHaveLength(2);
+    expect(getNextFacePatterns()[1]?.patternId).toBe("border");
+    expect(getNextFacePatterns()[1]?.blend).toBeNull();
   });
 });

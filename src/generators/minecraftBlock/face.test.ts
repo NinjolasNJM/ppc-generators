@@ -8,7 +8,11 @@ import {
   encodeSelectedTexture,
   encodeSelectedTextures,
 } from "@genroot/builder/ui/texturePicker/selectedTexture";
-import { defineInputRegion, drawFace, drawFaceWithTextureTransform } from "./face";
+import {
+  defineInputRegion,
+  drawFace,
+  drawFaceWithTextureTransform,
+} from "./face";
 
 function makeGenerator(faceId: string, faceJson: string): Generator {
   return {
@@ -212,7 +216,10 @@ describe("defineInputRegion", () => {
   const faceId = "BlockFaceTop1";
   const region: [number, number, number, number] = [0, 0, 16, 16];
 
-  function makeSelectedTextureJson(textureDefId: string): string {
+  function makeSelectedTextureJson(
+    textureDefId: string,
+    blend: string | null = null
+  ): string {
     return encodeSelectedTexture({
       textureDefId,
       frame: {
@@ -223,7 +230,7 @@ describe("defineInputRegion", () => {
       },
       rotation: "Rot0",
       flip: "None",
-      blend: null,
+      blend,
     });
   }
 
@@ -298,5 +305,22 @@ describe("defineInputRegion", () => {
 
     expect(getNextFaceTextures()).toHaveLength(1);
     expect(getNextFaceTextures()[0]?.textureDefId).toBe("stone");
+  });
+
+  it("ignores pending tint selections without erasing the face", () => {
+    const currentTextureJson = makeSelectedTextureJson("", "#ff0000");
+    const faceJson = encodeSelectedTextures([
+      JSON.parse(makeSelectedTextureJson("stone")),
+      JSON.parse(makeSelectedTextureJson("dirt")),
+    ]);
+    const { click, getNextFaceTextures } = makeRegionGenerator({
+      currentTextureJson,
+      faceJson,
+    });
+
+    click();
+
+    expect(getNextFaceTextures()).toHaveLength(2);
+    expect(getNextFaceTextures()[1]?.textureDefId).toBe("dirt");
   });
 });

@@ -4,6 +4,21 @@ import { TintSelector } from "@genroot/generators/_common/tintSelector/tintSelec
 import { type TintChoiceGroup } from "@genroot/generators/_common/tintSelector/tints";
 import { findVersion } from "../../textures/textureVersions";
 
+function makeEmptySelectedTexture(blend: string | null): SelectedTexture {
+  return {
+    textureDefId: "",
+    frame: {
+      id: "",
+      label: "",
+      rectangle: [0, 0, 0, 0],
+      crop: [0, 0, 0, 0],
+    },
+    rotation: "Rot0",
+    flip: "None",
+    blend,
+  };
+}
+
 export function TexturePicker({
   versionId,
   selectedTexture,
@@ -42,12 +57,8 @@ export function TexturePicker({
           value={blend}
           choiceGroups={tintChoiceGroups}
           onChange={(nextBlend) => {
-            if (!selectedTexture) {
-              return;
-            }
-
             onChange({
-              ...selectedTexture,
+              ...(selectedTexture ?? makeEmptySelectedTexture(nextBlend)),
               blend: nextBlend,
             });
           }}

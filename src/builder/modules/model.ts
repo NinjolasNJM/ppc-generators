@@ -149,6 +149,20 @@ export class Model {
     });
   }
 
+  addInputRowStartControl() {
+    this.addControl({
+      kind: "InputRowStart",
+      id: makeUUID(),
+    });
+  }
+
+  addInputRowEndControl() {
+    this.addControl({
+      kind: "InputRowEnd",
+      id: makeUUID(),
+    });
+  }
+
   addPage(page: Page) {
     this.pages.push(page);
   }

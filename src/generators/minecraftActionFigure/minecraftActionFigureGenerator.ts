@@ -21,9 +21,7 @@ import foregroundSteveImage from "./images/Foreground-Steve.png";
 import foregroundM16Image from "./images/Foreground-M16.png";
 import labelsImage from "./images/Labels.png";
 import { getSkinUrl } from "../_common/skins";
-import {
-  makeDefaultMinecraftSkinPresetOptions,
-} from "../_common/skins/options";
+import { makeDefaultMinecraftSkinPresetOptions } from "../_common/skins/options";
 
 const id = "minecraft-action-figure";
 
@@ -75,9 +73,11 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Define user variables
 
+  generator.defineInputRowStart();
   generator.defineBooleanInput("Show Folds", true);
   generator.defineBooleanInput("Show Labels", true);
   generator.defineBooleanInput("Hand Notches", true);
+  generator.defineInputRowEnd();
   // Get user variable values
   const isSlimModel =
     generator.getMinecraftSkinInputModelType("Skin") === "Slim";
