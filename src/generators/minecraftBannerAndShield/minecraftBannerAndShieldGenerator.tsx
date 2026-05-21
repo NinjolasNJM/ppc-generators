@@ -182,6 +182,8 @@ const script: ScriptDef = (generator: Generator) => {
           versionId={versionId}
           selectedPattern={resolvedCurrentPattern}
           tintChoiceGroups={[dyeTintGroup]}
+          defaultTint="#F9FFFE"
+          includeNoTint={false}
           onChange={(selectedPattern) => {
             onChange(encodeSelectedBannerShieldPattern(selectedPattern));
           }}

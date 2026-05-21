@@ -21,9 +21,7 @@ import labelsImage from "./images/Labels.png";
 import steveFoldsImage from "./images/SteveFolds.png";
 import steveTabsImage from "./images/SteveTabs.png";
 import { getSkinUrl } from "../_common/skins";
-import {
-  makeDefaultMinecraftSkinPresetOptions,
-} from "../_common/skins/options";
+import { makeDefaultMinecraftSkinPresetOptions } from "../_common/skins/options";
 
 const id = "minecraft-character";
 
@@ -80,9 +78,10 @@ const script: ScriptDef = (generator: Generator) => {
     options: makeDefaultMinecraftSkinPresetOptions(),
     showModelType: true,
   });
+  generator.defineInputRowStart();
   generator.defineBooleanInput("Show Folds", true);
-
   generator.defineBooleanInput("Show Labels", true);
+  generator.defineInputRowEnd();
 
   generator.defineText(
     "Click in the papercraft template to turn on and off the overlay for each part."

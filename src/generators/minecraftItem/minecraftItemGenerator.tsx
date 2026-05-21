@@ -598,6 +598,7 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Show a button which adds the selected texture to the page
 
+  generator.defineInputRowStart();
   generator.defineButtonInput(
     "Add Item",
     () => {
@@ -682,6 +683,7 @@ const script: ScriptDef = (generator: Generator) => {
     },
     "Red"
   );
+  generator.defineInputRowEnd();
 
   // Show a button which allows the items to be cleared
 

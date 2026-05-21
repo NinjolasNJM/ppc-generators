@@ -10,7 +10,7 @@ export function ButtonControl({
   color?: ButtonColor;
 }) {
   return (
-    <div className="mb-4 mr-2 inline-block">
+    <div className="mb-4 mr-2">
       <Button title={id} size="Small" color={color} onClick={onClick}>
         {id}
       </Button>

@@ -1,6 +1,8 @@
 import React from "react";
+import { HexColorInput, HexColorPicker } from "react-colorful";
 import { type Generator } from "@genroot/builder/modules/generator";
 import { Select, type SelectOption } from "@genroot/builder/ui/form/select";
+import { XMarkIcon } from "@genroot/builder/ui/icon";
 import {
   defaultTintChoiceGroups,
   type TintChoice,
@@ -10,11 +12,10 @@ import {
   customChoice,
   flattenTintChoiceGroups,
   getColorFromSelectedTint,
-  getTintFromOption,
   getTintInputValue,
   getTintSelectorStateFromValue,
-  makeTintChoices,
   normalizeTint,
+  noneChoice,
   type SelectedTint,
 } from "./tintSelectorLogic";
 
@@ -30,6 +31,70 @@ function getStateFromValue(
   tintChoices: TintChoice[]
 ): TintSelectorState {
   return getTintSelectorStateFromValue(value, tintChoices);
+}
+
+function makeGroupOption(group: TintChoiceGroup): SelectOption {
+  return {
+    id: group.id,
+    label: group.label,
+  };
+}
+
+function getSelectedGroupOption(
+  groupId: string | null,
+  choiceGroups: TintChoiceGroup[]
+): SelectOption | undefined {
+  if (groupId === null) {
+    return customChoice;
+  }
+
+  const selectedGroup =
+    choiceGroups.find((group) => group.id === groupId) ?? choiceGroups[0];
+  return selectedGroup ? makeGroupOption(selectedGroup) : undefined;
+}
+
+function makeCustomTintChoice(hex: string | null): SelectedTint {
+  return { kind: "CustomTint", hex };
+}
+
+function getTintLabel(
+  selectedTint: SelectedTint,
+  tintChoices: TintChoice[]
+): string {
+  switch (selectedTint.kind) {
+    case "NoTint":
+      return "No Tint";
+    case "CustomTint":
+      return selectedTint.hex ? `Custom ${selectedTint.hex}` : "Custom Tint";
+    case "SelectedTint":
+      return (
+        tintChoices.find(
+          (tint) => tint.color.toLowerCase() === selectedTint.hex.toLowerCase()
+        )?.label ?? selectedTint.hex
+      );
+  }
+}
+
+function NoTintButton({
+  isSelected,
+  onClick,
+}: {
+  isSelected: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      title="No Tint"
+      aria-label="No Tint"
+      className={`flex h-12 w-12 items-center justify-center border bg-white p-1 ${
+        isSelected ? "border-gray-700" : "border-gray-300"
+      }`}
+      onClick={onClick}
+    >
+      <XMarkIcon color="Gray500" />
+    </button>
+  );
 }
 
 export function TintSelector({
@@ -49,12 +114,15 @@ export function TintSelector({
     () => flattenTintChoiceGroups(choiceGroups),
     [choiceGroups]
   );
-  const choices = React.useMemo(
-    () => makeTintChoices(choiceGroups, includeNoTint),
-    [choiceGroups, includeNoTint]
+  const categoryChoices = React.useMemo(
+    () => [...choiceGroups.map(makeGroupOption), customChoice],
+    [choiceGroups]
   );
   const isControlled = value !== undefined;
   const labelId = React.useId();
+  const [selectedGroupId, setSelectedGroupId] = React.useState<string | null>(
+    () => choiceGroups[0]?.id ?? null
+  );
 
   const [state, setState] = React.useState<TintSelectorState>(() =>
     getStateFromValue(value ?? null, tintChoices)
@@ -66,76 +134,192 @@ export function TintSelector({
     }
   }, [isControlled, value, tintChoices]);
 
-  const { selectedTint, selectedOption, customTintInput, color } = state;
+  const { selectedTint, color } = state;
+  const selectedTintLabel = getTintLabel(selectedTint, tintChoices);
+  const selectedGroup = React.useMemo(
+    () => choiceGroups.find((group) => group.id === selectedGroupId),
+    [choiceGroups, selectedGroupId]
+  );
+  const selectedGroupOption = getSelectedGroupOption(
+    selectedGroupId,
+    choiceGroups
+  );
 
-  const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const customTintInput = e.target.value.replace(/^#/, "");
-    const color = normalizeTint(customTintInput);
-    const selectedOption = customChoice;
-    const selectedTint: SelectedTint = { kind: "CustomTint", hex: color };
+  React.useEffect(() => {
+    if (
+      choiceGroups.length > 0 &&
+      selectedGroupId !== null &&
+      !choiceGroups.some((group) => group.id === selectedGroupId)
+    ) {
+      setSelectedGroupId(choiceGroups[0]?.id ?? null);
+    }
+  }, [choiceGroups, selectedGroupId]);
+
+  React.useEffect(() => {
+    if (selectedTint.kind === "CustomTint") {
+      setSelectedGroupId(null);
+    }
+  }, [selectedTint.kind]);
+
+  const setTint = (selectedTint: SelectedTint) => {
+    const color = getColorFromSelectedTint(selectedTint);
     const nextState = {
-      selectedOption,
+      selectedOption:
+        selectedTint.kind === "NoTint"
+          ? noneChoice
+          : selectedTint.kind === "CustomTint"
+            ? customChoice
+            : { id: color ?? "", label: color ?? "" },
       selectedTint,
-      customTintInput,
+      customTintInput: color ? color.replace(/^#/, "") : "",
       color,
     };
     setState(nextState);
-    if (color) {
-      onChange(color);
-    } else if (customTintInput.trim().length === 0) {
-      onChange("#");
-    }
+    onChange(selectedTint.kind === "CustomTint" && !color ? "#" : color);
+  };
+
+  const onNativeColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const color = normalizeTint(e.currentTarget.value);
+    const selectedTint = makeCustomTintChoice(color);
+    setState({
+      selectedOption: customChoice,
+      selectedTint,
+      customTintInput: color ? color.replace(/^#/, "") : "",
+      color,
+    });
+    onChange(color ?? "#");
+  };
+
+  const onCustomColorChange = (color: string) => {
+    const normalizedColor = normalizeTint(color);
+    const selectedTint = makeCustomTintChoice(normalizedColor);
+    setState({
+      selectedOption: customChoice,
+      selectedTint,
+      customTintInput: normalizedColor ? normalizedColor.replace(/^#/, "") : "",
+      color: normalizedColor,
+    });
+    onChange(normalizedColor ?? "#");
   };
 
   return (
-    <div>
+    <div className="max-w-64">
       <div id={labelId} className="font-bold mb-1">
         {label}
       </div>
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3 mb-3">
         <div className="min-w-0 max-w-full">
           <Select
-            choices={choices}
-            value={selectedOption}
+            choices={categoryChoices}
+            value={selectedGroupOption}
             ariaLabelledBy={labelId}
             onChange={(selectedOption) => {
-              const selectedTint = getTintFromOption(
-                selectedOption,
-                tintChoices
+              setSelectedGroupId(
+                selectedOption.id === customChoice.id ? null : selectedOption.id
               );
-              const color = getColorFromSelectedTint(selectedTint);
-              const nextState = {
-                selectedOption,
-                selectedTint,
-                customTintInput: color ? color.replace(/^#/, "") : "",
-                color,
-              };
-              setState(nextState);
-              onChange(selectedTint.kind === "CustomTint" ? "#" : color);
+              if (selectedOption.id === customChoice.id) {
+                setTint(makeCustomTintChoice(color));
+              }
             }}
           />
         </div>
 
-        {selectedTint.kind === "CustomTint" ? (
-          <div className="flex items-center">
-            <span className="mr-1">#</span>
+        <div className="flex min-w-0 items-center gap-2">
+          {color ? (
+            <div className="border bg-white p-1">
+              <div className="h-6 w-6" style={{ backgroundColor: color }} />
+            </div>
+          ) : null}
+          <div className="min-w-0 text-sm text-gray-600">
+            {selectedTintLabel}
+          </div>
+        </div>
+      </div>
+
+      {selectedGroup ? (
+        <div className="grid grid-cols-[repeat(auto-fill,3rem)] gap-2">
+          {includeNoTint ? (
+            <NoTintButton
+              isSelected={selectedTint.kind === "NoTint"}
+              onClick={() => {
+                setTint({ kind: "NoTint" });
+              }}
+            />
+          ) : null}
+          {selectedGroup.options.map((tint) => {
+            const isSelected =
+              selectedTint.kind === "SelectedTint" &&
+              selectedTint.hex.toLowerCase() === tint.color.toLowerCase();
+            return (
+              <button
+                key={tint.id}
+                type="button"
+                title={`${tint.label} (${tint.color})`}
+                aria-label={`${tint.label} (${tint.color})`}
+                className={`h-12 w-12 border p-1 ${
+                  isSelected ? "border-gray-700" : "border-gray-300"
+                }`}
+                onClick={() => {
+                  setTint({ kind: "SelectedTint", hex: tint.color });
+                }}
+              >
+                <span
+                  className="block h-full w-full"
+                  style={{ backgroundColor: tint.color }}
+                />
+              </button>
+            );
+          })}
+        </div>
+      ) : (
+        <div>
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            {includeNoTint ? (
+              <NoTintButton
+                isSelected={selectedTint.kind === "NoTint"}
+                onClick={() => {
+                  setTint({ kind: "NoTint" });
+                }}
+              />
+            ) : null}
             <input
+              type="color"
+              className="h-8 w-12 cursor-pointer border border-gray-300 bg-white"
+              value={color ?? "#000000"}
+              onChange={onNativeColorChange}
+            />
+            <span>#</span>
+            <HexColorInput
+              color={color ?? ""}
+              prefixed={false}
               placeholder="RRGGBB"
-              maxLength={6}
-              size={6}
-              className="w-[8ch] p-2 border border-gray-300 font-mono"
-              value={customTintInput}
-              onChange={onInputChange}
+              className="w-[8ch] border border-gray-300 p-2 font-mono"
+              onChange={(hex) => {
+                const customTintInput = hex.replace(/^#/, "");
+                const nextColor = normalizeTint(customTintInput);
+                const selectedTint = makeCustomTintChoice(nextColor);
+                setState({
+                  selectedOption: customChoice,
+                  selectedTint,
+                  customTintInput,
+                  color: nextColor,
+                });
+                if (nextColor) {
+                  onChange(nextColor);
+                } else if (customTintInput.trim().length === 0) {
+                  onChange("#");
+                }
+              }}
             />
           </div>
-        ) : null}
-
-        {color ? (
-          <div className="border bg-white p-1">
-            <div className="w-8 h-8" style={{ backgroundColor: color }} />
+          <div className="[&_.react-colorful]:w-full [&_.react-colorful]:max-w-64">
+            <HexColorPicker
+              color={color ?? "#000000"}
+              onChange={onCustomColorChange}
+            />
           </div>
-        ) : null}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

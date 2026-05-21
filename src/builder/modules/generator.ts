@@ -154,6 +154,14 @@ export class Generator {
     this.model.addButtonControl(id, onClick, color);
   }
 
+  defineInputRowStart(): void {
+    this.model.addInputRowStartControl();
+  }
+
+  defineInputRowEnd(): void {
+    this.model.addInputRowEndControl();
+  }
+
   hasTexture(id: string): boolean {
     return this.model.hasTexture(id);
   }

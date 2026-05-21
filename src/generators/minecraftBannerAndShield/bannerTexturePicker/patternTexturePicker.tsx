@@ -35,12 +35,16 @@ export function PatternTexturePicker({
   tintChoiceGroups,
   onChange,
   enableErase = true,
+  defaultTint = null,
+  includeNoTint = true,
 }: {
   versionId: string;
   selectedPattern: SelectedBannerShieldPattern | null;
   tintChoiceGroups: TintChoiceGroup[];
   onChange: (pattern: SelectedBannerShieldPattern) => void;
   enableErase?: boolean;
+  defaultTint?: string | null;
+  includeNoTint?: boolean;
 }): JSX.Element | null {
   const textureVersion = findBannerShieldTextureVersion(versionId);
   const [search, setSearch] = React.useState("");
@@ -56,7 +60,7 @@ export function PatternTexturePicker({
     return null;
   }
 
-  const blend = selectedPattern?.blend ?? null;
+  const blend = selectedPattern?.blend ?? defaultTint;
   const previewPatterns = textureVersion.patterns.flatMap((pattern) => {
     const preview = makePreviewPattern(pattern, textureVersion);
     return preview ? [preview] : [];
@@ -143,6 +147,7 @@ export function PatternTexturePicker({
         <TintSelector
           value={blend}
           choiceGroups={tintChoiceGroups}
+          includeNoTint={includeNoTint}
           onChange={(nextBlend) => {
             emit({ nextBlend });
           }}

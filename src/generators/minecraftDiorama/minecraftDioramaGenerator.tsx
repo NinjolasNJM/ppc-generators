@@ -270,6 +270,7 @@ function getDioramaPageLayout(
   const canAddPage = requestedPageCount < maxPageCount;
   const canRemovePage = requestedPageCount > 1;
 
+  generator.defineInputRowStart();
   generator.defineButtonInput(
     "Add Page",
     () => {
@@ -312,6 +313,7 @@ function getDioramaPageLayout(
     },
     "Blue"
   );
+  generator.defineInputRowEnd();
 
   return {
     pageCount: requestedPageCount,
@@ -490,8 +492,11 @@ const script: ScriptDef = (generator: Generator) => {
         )
       : getDefaultDestinationForPreset(document.preset);
   const currentTransform =
-    editMode === "Transform" ? getCurrentTransform(generator) : defaultTransform;
+    editMode === "Transform"
+      ? getCurrentTransform(generator)
+      : defaultTransform;
 
+  generator.defineInputRowStart();
   const isLandscape = generator.defineAndGetBooleanInput(
     "Landscape Mode",
     false
@@ -500,6 +505,7 @@ const script: ScriptDef = (generator: Generator) => {
     "Show Edit Regions",
     false
   );
+  generator.defineInputRowEnd();
 
   const ox = 42; //isLandscape ? 37 : 42; ( why was it like that before? did it rotate the other way or something?)
   const oy = 41;
@@ -550,8 +556,7 @@ const script: ScriptDef = (generator: Generator) => {
     );
   }
 
-  generator.defineCustomStringInput("Diorama Clear Button Break", () => <div />);
-
+  generator.defineInputRowStart();
   generator.defineButtonInput(
     "Clear Edit Mode",
     () => {
@@ -579,7 +584,8 @@ const script: ScriptDef = (generator: Generator) => {
         generator.getNumberVariable("Destination Width");
       const currentDestinationHeight =
         generator.getNumberVariable("Destination Height");
-      const currentFaceRotation = generator.getSelectInputValue("Face Rotation");
+      const currentFaceRotation =
+        generator.getSelectInputValue("Face Rotation");
       const currentFaceFlip = generator.getSelectInputValue("Face Flip");
       const currentPreset = document.preset;
 
@@ -641,6 +647,7 @@ const script: ScriptDef = (generator: Generator) => {
     },
     "Red"
   );
+  generator.defineInputRowEnd();
 };
 
 export const generator: GeneratorDef = {

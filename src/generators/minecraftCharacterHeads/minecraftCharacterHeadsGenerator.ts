@@ -123,11 +123,13 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Define and get user variables
 
+  generator.defineInputRowStart();
   const showFolds = generator.defineAndGetBooleanInput("Show Folds", true);
   const actionFigure = generator.defineAndGetBooleanInput(
     "Action Figure",
     false
   );
+  generator.defineInputRowEnd();
 
   // Helper Function to draw heads
 
