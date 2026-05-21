@@ -32,6 +32,8 @@ import {
 export const bannerBasePatternId = "banner_base";
 export const shieldBasePatternId = "shield_base";
 export const shieldBaseNoPatternId = "shield_base_nopattern";
+export const defaultPatternId = "base";
+export const defaultPatternTint = "#F9FFFE";
 const bannerShieldTextureFrameSize = 64;
 
 export function makePatternFaceId(templateId: string): string {
@@ -88,17 +90,14 @@ export function defineInputRegion(
         return;
       }
 
-      const currentFacePatternsJson = generator.getStringInputValue(faceId);
-      const currentFacePatterns = currentFacePatternsJson
-        ? decodeSelectedBannerShieldPatterns(currentFacePatternsJson)
-        : [];
+      const currentFacePatterns = getFacePatterns(generator, faceId);
 
       const shouldErase =
         selectedPattern.patternId === "" && selectedPattern.blend === null;
       const newFacePatterns = shouldErase
         ? currentFacePatterns.slice(0, -1)
         : selectedPattern.patternId === ""
-          ? currentFacePatterns
+          ? applyBlendToTopPattern(currentFacePatterns, selectedPattern.blend)
           : currentFacePatterns.concat([selectedPattern]);
       generator.setStringInputValue(
         faceId,
@@ -107,6 +106,52 @@ export function defineInputRegion(
     },
     faceId
   );
+}
+
+function getFacePatterns(
+  generator: Generator,
+  faceId: string
+): SelectedBannerShieldPattern[] {
+  const facePatternsJson = generator.getStringInputValue(faceId);
+  return facePatternsJson
+    ? decodeSelectedBannerShieldPatterns(facePatternsJson)
+    : getDefaultFacePatterns(generator);
+}
+
+function getDefaultFacePatterns(
+  generator: Generator
+): SelectedBannerShieldPattern[] {
+  const versionId = generator.getSelectInputValue("Version");
+  const defaultVersionId = versionId
+    ? findPatternVersionId(versionId, defaultPatternId)
+    : null;
+
+  return defaultVersionId
+    ? [
+        {
+          versionId: defaultVersionId,
+          patternId: defaultPatternId,
+          blend: defaultPatternTint,
+        },
+      ]
+    : [];
+}
+
+function applyBlendToTopPattern(
+  patterns: SelectedBannerShieldPattern[],
+  blend: string | null
+): SelectedBannerShieldPattern[] {
+  if (!isValidTint(blend) || patterns.length === 0) {
+    return patterns;
+  }
+
+  return patterns.map((pattern, index) =>
+    index === patterns.length - 1 ? { ...pattern, blend } : pattern
+  );
+}
+
+function isValidTint(blend: string | null): blend is string {
+  return /^#[\da-f]{6}$/i.test(blend ?? "");
 }
 
 function drawPattern(
@@ -245,21 +290,18 @@ function drawPatternFace(
     baseInputId
   );
 
-  const facePatternsJson = generator.getStringInputValue(faceId);
-  if (facePatternsJson) {
-    const facePatterns = decodeSelectedBannerShieldPatterns(facePatternsJson);
-    facePatterns.forEach((selectedPattern) => {
-      drawPattern(
-        generator,
-        selectedPattern,
-        target,
-        source,
-        destination,
-        options,
-        logicalFrameSize
-      );
-    });
-  }
+  const facePatterns = getFacePatterns(generator, faceId);
+  facePatterns.forEach((selectedPattern) => {
+    drawPattern(
+      generator,
+      selectedPattern,
+      target,
+      source,
+      destination,
+      options,
+      logicalFrameSize
+    );
+  });
 }
 
 export function drawFace(

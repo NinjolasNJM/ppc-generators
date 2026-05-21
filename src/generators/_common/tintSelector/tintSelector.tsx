@@ -26,6 +26,11 @@ type TintSelectorState = {
   color: string | null;
 };
 
+const tintSelectorWidthClass = "max-w-[27.5rem]";
+const tintSwatchButtonClass = "h-12 w-12";
+const tintSwatchGridClass =
+  "grid max-w-[27.5rem] grid-cols-[repeat(auto-fill,3rem)] gap-2";
+
 function getStateFromValue(
   value: string | null,
   tintChoices: TintChoice[]
@@ -87,7 +92,7 @@ function NoTintButton({
       type="button"
       title="No Tint"
       aria-label="No Tint"
-      className={`flex h-12 w-12 items-center justify-center border bg-white p-1 ${
+      className={`flex ${tintSwatchButtonClass} items-center justify-center border bg-white p-1 ${
         isSelected ? "border-gray-700" : "border-gray-300"
       }`}
       onClick={onClick}
@@ -203,7 +208,7 @@ export function TintSelector({
   };
 
   return (
-    <div className="max-w-64">
+    <div className={tintSelectorWidthClass}>
       <div id={labelId} className="font-bold mb-1">
         {label}
       </div>
@@ -237,7 +242,7 @@ export function TintSelector({
       </div>
 
       {selectedGroup ? (
-        <div className="grid grid-cols-[repeat(auto-fill,3rem)] gap-2">
+        <div className={tintSwatchGridClass}>
           {includeNoTint ? (
             <NoTintButton
               isSelected={selectedTint.kind === "NoTint"}
@@ -256,7 +261,7 @@ export function TintSelector({
                 type="button"
                 title={`${tint.label} (${tint.color})`}
                 aria-label={`${tint.label} (${tint.color})`}
-                className={`h-12 w-12 border p-1 ${
+                className={`${tintSwatchButtonClass} border p-1 ${
                   isSelected ? "border-gray-700" : "border-gray-300"
                 }`}
                 onClick={() => {
