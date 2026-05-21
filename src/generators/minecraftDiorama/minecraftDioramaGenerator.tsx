@@ -210,32 +210,6 @@ function drawDiorama(generator: Generator, options: DioramaOptions) {
   drawFolds(generator, options);
 }
 
-function getDioramaDimensions(generator: Generator) {
-  const dioramaSize = generator.defineAndGetSelectInput("Diorama Size", [
-    "800%",
-    "400%",
-    "200%",
-    "Custom",
-  ]);
-
-  const dioramaWidth =
-    dioramaSize === "Custom"
-      ? generator.defineAndGetRangeInput("Diorama Width", {
-          min: 100,
-          max: 1600,
-          value: 800,
-          step: 50,
-          showValue: true,
-        })
-      : parseInt(dioramaSize ?? "800", 10);
-
-  return {
-    dioramaSize,
-    dioramaWidth,
-    dioramaHeight: dioramaWidth,
-  };
-}
-
 function getDioramaPageLayout(
   generator: Generator,
   document: ReturnType<typeof getDioramaDocument>,
@@ -468,8 +442,13 @@ const script: ScriptDef = (generator: Generator) => {
 
   defineCustomTextureInput(generator, versionId);
   drawTexturePicker(generator, versionId);
-  const { dioramaSize, dioramaWidth, dioramaHeight } =
-    getDioramaDimensions(generator);
+  generator.defineInputRowStart();
+    const dioramaSize = generator.defineAndGetSelectInput("Diorama Size", [
+    "800%",
+    "400%",
+    "200%",
+    "Custom",
+  ]);
   const document = defineAndGetPresetInput(
     generator,
     getDioramaDocument(generator)
@@ -482,6 +461,18 @@ const script: ScriptDef = (generator: Generator) => {
     "Destination",
     "Transform",
   ]);
+  generator.defineInputRowEnd();
+    const dioramaWidth =
+    dioramaSize === "Custom"
+      ? generator.defineAndGetRangeInput("Diorama Width", {
+          min: 100,
+          max: 1600,
+          value: 800,
+          step: 50,
+          showValue: true,
+        })
+      : parseInt(dioramaSize ?? "800", 10);
+
   const currentSource =
     editMode === "Source" ? getCurrentSource(generator) : defaultSource;
   const currentDestination =
@@ -512,7 +503,7 @@ const script: ScriptDef = (generator: Generator) => {
   const baseWidth = isLandscape ? 768 : 512;
   const baseHeight = isLandscape ? 512 : 768;
   const width = Math.round((16 * dioramaWidth) / 100);
-  const height = Math.round((16 * dioramaHeight) / 100);
+  const height = Math.round((16 * dioramaWidth) / 100);
   const columns = getColumnCountThatFits({ baseWidth, width, document });
   const rows = getRowCountThatFits({ baseHeight, height, document });
   const { pageCount, pageColumns } = getDioramaPageLayout(

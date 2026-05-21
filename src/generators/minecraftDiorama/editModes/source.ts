@@ -17,6 +17,7 @@ type SourceRegionDef = {
 };
 
 export function getCurrentSource(generator: Generator): Region {
+  generator.defineInputRowStart();
   const x = generator.defineAndGetRangeInput("Source X", {
     min: 0,
     max: 16,
@@ -31,6 +32,8 @@ export function getCurrentSource(generator: Generator): Region {
     step: 0.5,
     showValue: true,
   });
+  generator.defineInputRowEnd();
+  generator.defineInputRowStart();
   const width = generator.defineAndGetRangeInput("Source Width", {
     min: 0.5,
     max: 16,
@@ -45,6 +48,7 @@ export function getCurrentSource(generator: Generator): Region {
     step: 0.5,
     showValue: true,
   });
+  generator.defineInputRowEnd();
 
   const clampedX = Math.min(x, 15.5);
   const clampedY = Math.min(y, 15.5);

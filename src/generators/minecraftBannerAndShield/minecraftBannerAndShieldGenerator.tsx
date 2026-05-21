@@ -211,7 +211,8 @@ const script: ScriptDef = (generator: Generator) => {
   for (let i = 1; i <= numberOfTemplates; i += 1) {
     const templateId = i.toString();
     const typeName = `Template ${templateId} Type`;
-
+    
+    generator.defineInputRowStart();
     generator.defineSelectInput(typeName, ["Banner", "Shield"]);
     const templateType = generator.getSelectInputValue(typeName);
 
@@ -228,6 +229,7 @@ const script: ScriptDef = (generator: Generator) => {
         drawBanner(generator, templateId, ox, oy, showFolds);
         break;
     }
+    generator.defineInputRowEnd();
   }
 
   if (hasShieldTemplate) {

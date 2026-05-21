@@ -20,11 +20,13 @@ type TransformRegionDef = {
 };
 
 export function getCurrentTransform(generator: Generator): FaceTransform {
+  generator.defineInputRowStart();
   const rotation = generator.defineAndGetSelectInput(
     "Face Rotation",
     rotationChoices
   );
   const flip = generator.defineAndGetSelectInput("Face Flip", flipChoices);
+  generator.defineInputRowEnd();
 
   return {
     rotate: sanitizeRotation(rotation),

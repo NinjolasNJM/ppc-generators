@@ -27,6 +27,7 @@ export function getCurrentDestination(
   generator: Generator,
   defaultValue: DestinationSize
 ): DestinationSize {
+  generator.defineInputRowStart();
   const width = generator.defineAndGetRangeInput("Destination Width", {
     min: 1,
     max: 32,
@@ -41,6 +42,7 @@ export function getCurrentDestination(
     step: 1,
     showValue: true,
   });
+  generator.defineInputRowEnd();
 
   return { width, height };
 }

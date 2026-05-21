@@ -216,7 +216,8 @@ const script: ScriptDef = (generator: Generator) => {
 
     const typeName = `Block ${blockId} Type`;
 
-    generator.defineSelectInput(typeName, [
+    generator.defineInputRowStart();
+    const blockType = generator.defineAndGetSelectInput(typeName, [
       "Block",
       "Slab",
       "Stair",
@@ -227,8 +228,6 @@ const script: ScriptDef = (generator: Generator) => {
       "Cake",
       "Shelf",
     ]);
-
-    const blockType = generator.getSelectInputValue(typeName);
 
     const ox = 57;
     const oy = 16 + 400 * (i - 1);
@@ -271,6 +270,7 @@ const script: ScriptDef = (generator: Generator) => {
         break;
       }
     }
+    generator.defineInputRowEnd();
   }
 
   generator.defineButtonInput(

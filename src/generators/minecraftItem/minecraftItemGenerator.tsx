@@ -725,8 +725,6 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Show a button which allows the items to be cleared
 
-  generator.defineText("");
-
   generator.defineButtonInput(
     "Clear",
     () => {
