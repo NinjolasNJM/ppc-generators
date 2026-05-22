@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { type TextureFrame } from "@genroot/builder/modules/textureData";
 import {
+  getTextureFrameLogicalCrop,
   getTextureFrameScale,
   makeTextureFrameSourceRegion,
+  scaleTextureRegionToLogical,
   scaleTextureSource,
 } from "./sourceRegion";
 
@@ -33,6 +35,20 @@ describe("texture picker source regions", () => {
         16
       )
     ).toEqual([480, 391, 16, 3]);
+  });
+
+  it("scales frame crop rectangles back to logical units", () => {
+    const textureFrame = {
+      ...frame([464, 384, 32, 32]),
+      crop: [4, 6, 20, 22] as [number, number, number, number],
+    };
+
+    expect(
+      scaleTextureRegionToLogical(textureFrame.crop, textureFrame, 16)
+    ).toEqual([2, 3, 10, 11]);
+    expect(getTextureFrameLogicalCrop(textureFrame, 16)).toEqual([
+      2, 3, 10, 11,
+    ]);
   });
 
   it("scales banner and shield model sources from 64x64 logical frames", () => {

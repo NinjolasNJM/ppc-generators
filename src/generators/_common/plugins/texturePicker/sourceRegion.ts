@@ -32,6 +32,29 @@ export function scaleTextureSource(
   ];
 }
 
+export function scaleTextureRegionToLogical(
+  source: TextureSource,
+  frame: TextureFrame,
+  logicalFrameSize: number
+): Region {
+  const [sourceX, sourceY, sourceWidth, sourceHeight] = source;
+  const scale = getTextureFrameScale(frame, logicalFrameSize);
+
+  return [
+    sourceX / scale,
+    sourceY / scale,
+    sourceWidth / scale,
+    sourceHeight / scale,
+  ];
+}
+
+export function getTextureFrameLogicalCrop(
+  frame: TextureFrame,
+  logicalFrameSize: number
+): Region {
+  return scaleTextureRegionToLogical(frame.crop, frame, logicalFrameSize);
+}
+
 export function makeTextureFrameSourceRegion(
   frame: TextureFrame,
   source: TextureSource,
@@ -44,10 +67,5 @@ export function makeTextureFrameSourceRegion(
     logicalFrameSize
   );
 
-  return [
-    frameX + sourceX,
-    frameY + sourceY,
-    sourceWidth,
-    sourceHeight,
-  ];
+  return [frameX + sourceX, frameY + sourceY, sourceWidth, sourceHeight];
 }

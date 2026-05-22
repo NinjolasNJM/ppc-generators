@@ -7,6 +7,8 @@ import {
   defineTextureInputRegion,
   drawTextureFace,
   drawTextureFaceWithTransform,
+  getSelectedTextureInputCrop,
+  getTopTextureFaceCrop,
   type FaceTextureTransform,
 } from "../_common/plugins/texturePicker/face";
 import { currentBlockTextureId } from "./constants";
@@ -45,4 +47,15 @@ export function drawFaceWithTextureTransform(
     destination,
     transform
   );
+}
+
+export function getFaceCrop(
+  generator: Generator,
+  faceId: string
+): Region | null {
+  return getTopTextureFaceCrop(generator, faceId, 16);
+}
+
+export function getCurrentTextureCrop(generator: Generator): Region | null {
+  return getSelectedTextureInputCrop(generator, currentBlockTextureId, 16);
 }

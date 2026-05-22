@@ -17,7 +17,7 @@ import {
   decodeSelectedTextures,
   encodeSelectedTextures,
 } from "@genroot/builder/ui/texturePicker/selectedTexture";
-import { scaleTextureSource } from "./sourceRegion";
+import { getTextureFrameLogicalCrop, scaleTextureSource } from "./sourceRegion";
 
 export type FaceTextureTransform = {
   rotate: 0 | 90 | 180 | 270;
@@ -158,9 +158,8 @@ export function drawTextureFace(
   destination: Region,
   options?: DrawTextureOptions
 ) {
-  const faceTexturesJson = generator.getStringInputValue(faceId);
-  if (faceTexturesJson) {
-    const faceTextures = decodeSelectedTextures(faceTexturesJson);
+  const faceTextures = getFaceTextures(generator, faceId);
+  if (faceTextures.length > 0) {
     faceTextures.forEach((selectedTexture: SelectedTexture) => {
       drawSelectedTexture(
         generator,
@@ -180,9 +179,8 @@ export function drawTextureFaceWithTransform(
   destination: Region,
   transform: FaceTextureTransform
 ) {
-  const faceTexturesJson = generator.getStringInputValue(faceId);
-  if (faceTexturesJson) {
-    const faceTextures = decodeSelectedTextures(faceTexturesJson);
+  const faceTextures = getFaceTextures(generator, faceId);
+  if (faceTextures.length > 0) {
     faceTextures.forEach((selectedTexture: SelectedTexture) => {
       drawSelectedTexture(
         generator,
@@ -199,6 +197,49 @@ export function drawTextureFaceWithTransform(
       );
     });
   }
+}
+
+export function getFaceTextures(
+  generator: Generator,
+  faceId: string
+): SelectedTexture[] {
+  const faceTexturesJson = generator.getStringInputValue(faceId);
+  return faceTexturesJson ? decodeSelectedTextures(faceTexturesJson) : [];
+}
+
+export function getSelectedTextureLogicalCrop(
+  selectedTexture: SelectedTexture,
+  logicalFrameSize = 16
+): Region {
+  return getTextureFrameLogicalCrop(selectedTexture.frame, logicalFrameSize);
+}
+
+export function getTopTextureFaceCrop(
+  generator: Generator,
+  faceId: string,
+  logicalFrameSize = 16
+): Region | null {
+  const selectedTexture = getFaceTextures(generator, faceId).at(-1);
+  return selectedTexture
+    ? getSelectedTextureLogicalCrop(selectedTexture, logicalFrameSize)
+    : null;
+}
+
+export function getSelectedTextureInputCrop(
+  generator: Generator,
+  selectedTextureInputId: string,
+  logicalFrameSize = 16
+): Region | null {
+  const selectedTextureJson = generator.getStringInputValue(
+    selectedTextureInputId
+  );
+  const selectedTexture = selectedTextureJson
+    ? decodeSelectedTexture(selectedTextureJson)
+    : null;
+
+  return selectedTexture && selectedTexture.textureDefId !== ""
+    ? getSelectedTextureLogicalCrop(selectedTexture, logicalFrameSize)
+    : null;
 }
 
 function rotateTextureRotation(

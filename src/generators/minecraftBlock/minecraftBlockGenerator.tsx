@@ -65,6 +65,7 @@ import tabsCakeCornerImage from "./images/Tabs-Cake-Corner.png";
 import tabsCakeRightImage from "./images/Tabs-Cake-Right.png";
 import foldsShelfImage from "./images/Folds-Shelf.png";
 import tabsShelfImage from "./images/Tabs-Shelf.png";
+import { drawCross } from "./shapes/cross";
 
 const id = "minecraft-block";
 
@@ -137,7 +138,7 @@ const textures: TextureDef[] = allTextureDefs;
 function clearBlockFaces(generator: Generator): void {
   clearVariablesMatching(
     generator,
-    /^(?:Block|Slab|Stair|Fence|Door|Trapdoor|Snow|Cake|Shelf)Face/
+    /^(?:Block|Slab|Stair|Fence|Door|Trapdoor|Snow|Cake|Shelf|Cross)Face/
   );
 }
 
@@ -226,6 +227,7 @@ const script: ScriptDef = (generator: Generator) => {
 
     generator.defineInputRowStart();
     const blockType = generator.defineAndGetSelectInput(typeName, [
+            "Cross",
       "Block",
       "Slab",
       "Stair",
@@ -275,6 +277,10 @@ const script: ScriptDef = (generator: Generator) => {
       }
       case "Shelf": {
         drawShelf(generator, blockId, ox, oy, showFolds);
+        break;
+      }
+      case "Cross": {
+        drawCross(generator, blockId, ox, oy, showFolds);
         break;
       }
     }

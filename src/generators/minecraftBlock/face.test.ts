@@ -12,6 +12,8 @@ import {
   defineInputRegion,
   drawFace,
   drawFaceWithTextureTransform,
+  getCurrentTextureCrop,
+  getFaceCrop,
 } from "./face";
 
 function makeGenerator(faceId: string, faceJson: string): Generator {
@@ -25,10 +27,12 @@ function makeFaceJson({
   rotation,
   flip,
   rectangle = [16, 32, 16, 16],
+  crop = [0, 0, rectangle[2], rectangle[3]],
 }: {
   rotation: "Rot0" | "Rot90" | "Rot180" | "Rot270";
   flip: "None" | "Horizontal" | "Vertical";
   rectangle?: [number, number, number, number];
+  crop?: [number, number, number, number];
 }) {
   return encodeSelectedTextures([
     {
@@ -37,7 +41,7 @@ function makeFaceJson({
         id: "frame",
         label: "frame",
         rectangle,
-        crop: [0, 0, rectangle[2], rectangle[3]],
+        crop,
       },
       rotation,
       flip,
@@ -209,6 +213,56 @@ describe("drawFace", () => {
         blend: undefined,
       })
     );
+  });
+});
+
+describe("texture crop helpers", () => {
+  const faceId = "BlockFaceTop1";
+
+  it("returns the top face texture crop in logical block units", () => {
+    const bottomTexture = decodeSelectedTextures(
+      makeFaceJson({
+        rotation: "Rot0",
+        flip: "None",
+        rectangle: [0, 0, 16, 16],
+        crop: [1, 1, 14, 14],
+      })
+    )[0]!;
+    const topTexture = decodeSelectedTextures(
+      makeFaceJson({
+        rotation: "Rot0",
+        flip: "None",
+        rectangle: [464, 384, 32, 32],
+        crop: [4, 6, 20, 22],
+      })
+    )[0]!;
+    const generator = makeGenerator(
+      faceId,
+      encodeSelectedTextures([bottomTexture, topTexture])
+    );
+
+    expect(getFaceCrop(generator, faceId)).toEqual([2, 3, 10, 11]);
+  });
+
+  it("returns the current picker texture crop in logical block units", () => {
+    const currentTextureJson = encodeSelectedTexture({
+      textureDefId: "test-texture",
+      frame: {
+        id: "frame",
+        label: "frame",
+        rectangle: [464, 384, 32, 32],
+        crop: [4, 6, 20, 22],
+      },
+      rotation: "Rot0",
+      flip: "None",
+      blend: null,
+    });
+    const generator = {
+      getStringInputValue: (id: string) =>
+        id === currentBlockTextureId ? currentTextureJson : null,
+    } as unknown as Generator;
+
+    expect(getCurrentTextureCrop(generator)).toEqual([2, 3, 10, 11]);
   });
 });
 
