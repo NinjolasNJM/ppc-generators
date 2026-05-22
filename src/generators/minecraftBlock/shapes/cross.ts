@@ -1,8 +1,18 @@
 import {
-  Rectangle,
   type Generator,
   type Region,
 } from "@genroot/builder/modules/generator";
+import {
+  type Flip,
+  makeNextFlip,
+} from "@genroot/builder/ui/texturePicker/flip";
+import { rotationToDegrees } from "@genroot/builder/ui/texturePicker/rotation";
+import { type SelectedTexture } from "@genroot/builder/ui/texturePicker/selectedTexture";
+import {
+  getLayerHalfDestination,
+  getTextureLayout,
+  type Rectangle,
+} from "../../_common/plugins/texturePicker/textureLayout";
 import * as Face from "../face";
 
 type Faces = {
@@ -13,14 +23,95 @@ type Faces = {
 };
 
 const size = 128;
+const scale = size / 16;
 
-function makeFaces(ox: number, oy: number, [cx, cy, cw, ch]: Rectangle, scale: number): Faces {
+function makeFullFaces(ox: number, oy: number): Faces {
   return {
-    front1: [ox + size - cw * scale, oy + size + cy * scale, cw * scale, ch * scale],
-    back1: [ox + size, oy + size + cy * scale, cw * scale, ch * scale],
-    front2: [ox + size * 3 - cw * scale, oy + size + cy * scale, cw * scale, ch * scale],
-    back2: [ox + size * 3, oy + size + cy * scale, cw * scale, ch * scale],
+    front1: [ox, oy + size, size, size],
+    back1: [ox + size, oy + size, size, size],
+    front2: [ox + size * 2, oy + size, size, size],
+    back2: [ox + size * 3, oy + size, size, size],
   };
+}
+
+function drawTextureHalf(
+  generator: Generator,
+  selectedTexture: SelectedTexture,
+  source: Rectangle,
+  destination: Region,
+  appliedFlip: Flip
+) {
+  const { textureDefId, rotation, flip, blend } = selectedTexture;
+  const [nextFlip, nextRotation] = makeNextFlip(flip, appliedFlip, rotation);
+
+  generator.drawTexture(textureDefId, source, destination, {
+    flip: nextFlip,
+    rotate: rotationToDegrees(nextRotation),
+    blend: blend ? { kind: "MultiplyHex", hex: blend } : undefined,
+  });
+}
+
+function drawCrossPair(
+  generator: Generator,
+  faceId: string,
+  centerX: number,
+  top: number
+) {
+  const layers = Face.getFaceTextures(generator, faceId);
+  if (layers.length === 0) {
+    return;
+  }
+
+  const layout = getTextureLayout(layers);
+  const leftHalfWidth = layout.leftBounds[2] * scale;
+  const leftX = centerX - leftHalfWidth;
+  const layoutY = top + layout.minY * scale;
+
+  layers.forEach((layer) => {
+    const leftDestination = getLayerHalfDestination(
+      layout.leftBounds,
+      layout.minY,
+      layer,
+      leftX,
+      layoutY,
+      scale,
+      "None"
+    );
+    const rightDestination = getLayerHalfDestination(
+      layout.rightBounds,
+      layout.minY,
+      layer,
+      centerX,
+      layoutY,
+      scale,
+      "Horizontal"
+    );
+
+    drawTextureHalf(
+      generator,
+      layer,
+      leftDestination.source,
+      [
+        leftDestination.x,
+        leftDestination.y,
+        leftDestination.width,
+        leftDestination.height,
+      ],
+      "None"
+    );
+    drawTextureHalf(
+      generator,
+      layer,
+      rightDestination.source,
+      [
+        rightDestination.x,
+        rightDestination.y,
+        rightDestination.width,
+        rightDestination.height,
+      ],
+      "Horizontal"
+    );
+  });
 }
 
 export function drawCross(
@@ -30,48 +121,13 @@ export function drawCross(
   oy: number,
   showFolds: boolean
 ) {
-    const crop = Face.getFaceCrop(generator, "CrossFace" + blockId) ?? [0, 0, 16, 16];
-const [cx, cy, cw, ch] = crop;
-const scale = size / 16;
-  const regions = makeFaces(ox, oy, crop, scale);
+  const regions = makeFullFaces(ox, oy);
 
+  Face.defineInputRegion(generator, "CrossFace" + blockId, [ox, oy + size, size * 2, size]);
+  Face.defineInputRegion(generator, "CrossFace" + blockId, [ox + size * 2, oy + size, size * 2, size]);
 
-
-  Face.defineInputRegion(generator, "CrossFace" + blockId, regions.front1);
-  Face.defineInputRegion(generator, "CrossFace" + blockId, regions.back1);
-  Face.defineInputRegion(generator, "CrossFace" + blockId, regions.front2);
-  Face.defineInputRegion(generator, "CrossFace" + blockId, regions.back2);
-
-  Face.drawFace(
-    generator,
-    "CrossFace" + blockId,
-    crop,
-    regions.front1
-  );
-  Face.drawFace(
-    generator,
-    "CrossFace" + blockId,
-    crop,
-    regions.back1,
-    {
-      flip: "Horizontal",
-    }
-  );
-  Face.drawFace(
-    generator,
-    "CrossFace" + blockId,
-    crop,
-    regions.front2
-  );
-  Face.drawFace(
-    generator,
-    "CrossFace" + blockId,
-    crop,
-    regions.back2,
-    {
-      flip: "Horizontal",
-    }
-  );
+  drawCrossPair(generator, "CrossFace" + blockId, ox + size, oy + size);
+  drawCrossPair(generator, "CrossFace" + blockId, ox + size * 3, oy + size);
 
   generator.drawImage("Title", [ox - 32, oy - 1]);
 
