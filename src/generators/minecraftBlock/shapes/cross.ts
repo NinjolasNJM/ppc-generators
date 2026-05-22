@@ -11,13 +11,16 @@ type CrossFaces = {
 };
 
 const size = 128;
+const gap = 32;
+const halfPageHeight = 400;
 const pairWidth = crossWidth * 2;
 const pairXOffset = size * 2 - 16 - crossWidth;
+const pairYOffset = (halfPageHeight - (size * 2 + gap)) / 2;
 
 function makeFaces(ox: number, oy: number): CrossFaces {
   return {
-    pair1: [ox + pairXOffset, oy + size, pairWidth, size],
-    pair2: [ox + pairXOffset, oy + size * 2, pairWidth, size],
+    pair1: [ox + pairXOffset, oy + pairYOffset, pairWidth, size],
+    pair2: [ox + pairXOffset, oy + pairYOffset + size + gap, pairWidth, size],
   };
 }
 

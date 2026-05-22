@@ -16,9 +16,9 @@ import {
 
 const size = 128;
 const heightScale = size / 16;
-const widthScale = heightScale * 1.40625;
+const widthScale = heightScale * 1.265625;
 
-export const crossWidth = size * 1.40625;
+export const crossWidth = size * 1.265625;
 
 export type CrossLayout = ReturnType<typeof getTextureLayout>;
 type LayerHalf = ReturnType<typeof getLayerHalfDestinationWithScale>;
@@ -46,24 +46,10 @@ export function drawCrossPair(
   region: Region
 ) {
   const [x, y, width] = region;
+  const seamGap = getLayoutSeamGap(layout, x, width);
 
   for (const layer of layers) {
-    const leftHalf = getLayerHalf(
-      layer,
-      layout.leftBounds,
-      layout.minY,
-      x + width / 2 - layout.leftBounds[2] * widthScale,
-      y + layout.minY * heightScale,
-      "None"
-    );
-    const rightHalf = getLayerHalf(
-      layer,
-      layout.rightBounds,
-      layout.minY,
-      x + width / 2,
-      y + layout.minY * heightScale,
-      "Horizontal"
-    );
+    const [leftHalf, rightHalf] = getCrossHalves(layer, layout, x, y, width);
 
     drawLayerHalf(generator, layer, leftHalf, "None");
     drawLayerHalf(
@@ -71,11 +57,107 @@ export function drawCrossPair(
       layer,
       {
         ...rightHalf,
-        x: rightHalf.x - getCrossSeamGap(leftHalf, rightHalf),
+        x: rightHalf.x - seamGap,
       },
       "Horizontal"
     );
   }
+}
+
+export function drawSidewaysCrossPair(
+  generator: Generator,
+  layers: SelectedTexture[],
+  layout: CrossLayout,
+  region: Region
+) {
+  const [x, y, width, height] = region;
+  const centerX = x + width / 2;
+  const centerY = y + height / 2;
+  const virtualRegion: Region = [
+    centerX - height / 2,
+    centerY - width / 2,
+    height,
+    width,
+  ];
+  const [virtualX, virtualY, virtualWidth] = virtualRegion;
+  const seamOffset = getLayoutSeamGap(layout, virtualX, virtualWidth) / 2;
+
+  for (const layer of layers) {
+    const [leftHalf, rightHalf] = getCrossHalves(
+      layer,
+      layout,
+      virtualX,
+      virtualY,
+      virtualWidth
+    );
+
+    drawLayerHalf(
+      generator,
+      layer,
+      rotateHalfAround(
+        { ...leftHalf, x: leftHalf.x + seamOffset },
+        centerX,
+        centerY
+      ),
+      "None",
+      90
+    );
+    drawLayerHalf(
+      generator,
+      layer,
+      rotateHalfAround(
+        { ...rightHalf, x: rightHalf.x - seamOffset },
+        centerX,
+        centerY
+      ),
+      "Horizontal",
+      90
+    );
+  }
+}
+
+function getLayoutSeamGap(
+  layout: NonNullable<CrossLayout>,
+  x: number,
+  width: number
+): number {
+  return getCrossSeamGap(
+    {
+      x: x + width / 2 - layout.leftBounds[2] * widthScale,
+      width: layout.leftBounds[2] * widthScale,
+    },
+    {
+      x: x + width / 2,
+      width: layout.rightBounds[2] * widthScale,
+    }
+  );
+}
+
+function getCrossHalves(
+  layer: SelectedTexture,
+  layout: NonNullable<CrossLayout>,
+  x: number,
+  y: number,
+  width: number
+): [LayerHalf, LayerHalf] {
+  return [
+    getLayerHalf(
+      layer,
+      layout.leftBounds,
+      layout.minY,
+      x + width / 2 - layout.leftBounds[2] * widthScale,
+      y + layout.minY * heightScale,
+      "None"
+    ),
+    getLayerHalf(
+      layer,
+      layout.rightBounds,
+      layout.minY,
+      x + width / 2,
+      y + layout.minY * heightScale,
+      "Horizontal"
+    ),
+  ];
 }
 
 function getLayerHalf(
@@ -102,7 +184,8 @@ function drawLayerHalf(
   generator: Generator,
   layer: SelectedTexture,
   half: LayerHalf,
-  appliedFlip: Flip
+  appliedFlip: Flip,
+  rotate = 0
 ) {
   const [nextFlip, nextRotation] = makeNextFlip(
     layer.flip,
@@ -116,10 +199,27 @@ function drawLayerHalf(
     [half.x, half.y, half.width, half.height],
     {
       flip: nextFlip,
-      rotate: rotationToDegrees(nextRotation),
+      rotate: rotationToDegrees(nextRotation) + rotate,
       blend: layer.blend
         ? { kind: "MultiplyHex", hex: layer.blend }
         : undefined,
     }
   );
+}
+
+function rotateHalfAround(
+  half: LayerHalf,
+  centerX: number,
+  centerY: number
+): LayerHalf {
+  const halfCenterX = half.x + half.width / 2;
+  const halfCenterY = half.y + half.height / 2;
+  const rotatedCenterX = centerX - (halfCenterY - centerY);
+  const rotatedCenterY = centerY + halfCenterX - centerX;
+
+  return {
+    ...half,
+    x: rotatedCenterX - half.width / 2,
+    y: rotatedCenterY - half.height / 2,
+  };
 }
