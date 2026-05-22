@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { type SelectedTexture } from "@genroot/builder/ui/texturePicker/selectedTexture";
-import { getLayerHalfDestination, getTextureLayout } from "./textureLayout";
+import {
+  getLayerHalfDestination,
+  getLayerHalfDestinationWithScale,
+  getTextureLayout,
+} from "./textureLayout";
 
 function makeSelectedTexture(
   crop: [number, number, number, number],
@@ -46,6 +50,29 @@ describe("texture layout", () => {
       x: 54,
       y: 64,
       width: 16,
+      height: 18,
+    });
+  });
+
+  it("can scale width and height separately", () => {
+    const layer = makeSelectedTexture([2, 3, 8, 9]);
+
+    expect(
+      getLayerHalfDestinationWithScale(
+        [0, 1, 12, 13],
+        1,
+        layer,
+        50,
+        60,
+        3,
+        2,
+        "None"
+      )
+    ).toEqual({
+      source: [102, 203, 8, 9],
+      x: 56,
+      y: 64,
+      width: 24,
       height: 18,
     });
   });

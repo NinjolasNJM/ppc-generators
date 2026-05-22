@@ -142,6 +142,34 @@ export function getLayerHalfDestination(
   width: number;
   height: number;
 } {
+  return getLayerHalfDestinationWithScale(
+    halfCropBounds,
+    itemMinY,
+    layer,
+    x,
+    y,
+    scale,
+    scale,
+    appliedFlip
+  );
+}
+
+export function getLayerHalfDestinationWithScale(
+  halfCropBounds: Rectangle,
+  itemMinY: number,
+  layer: SelectedTexture,
+  x: number,
+  y: number,
+  scaleX: number,
+  scaleY: number,
+  appliedFlip: Flip
+): {
+  source: Rectangle;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+} {
   const [halfCropX] = halfCropBounds;
   const { rotation } = layer;
   const [, transformedRotation] = makeNextFlip(
@@ -151,14 +179,13 @@ export function getLayerHalfDestination(
   );
   const [layerCropX, layerCropY] = getTransformedCrop(layer, appliedFlip);
   const [, , cropWidth, cropHeight] = getFrameLogicalCrop(layer.frame);
-  const drawWidth = cropWidth * scale;
-  const drawHeight = cropHeight * scale;
-  const orientedX = x + (layerCropX - halfCropX) * scale;
-  const orientedY = y + (layerCropY - itemMinY) * scale;
-  const rotateOffset =
-    transformedRotation === "Rot90" || transformedRotation === "Rot270"
-      ? (drawWidth - drawHeight) / 2
-      : 0;
+  const isSideways =
+    transformedRotation === "Rot90" || transformedRotation === "Rot270";
+  const drawWidth = cropWidth * (isSideways ? scaleY : scaleX);
+  const drawHeight = cropHeight * (isSideways ? scaleX : scaleY);
+  const orientedX = x + (layerCropX - halfCropX) * scaleX;
+  const orientedY = y + (layerCropY - itemMinY) * scaleY;
+  const rotateOffset = isSideways ? (drawWidth - drawHeight) / 2 : 0;
 
   return {
     source: getFrameSourceCrop(layer.frame),

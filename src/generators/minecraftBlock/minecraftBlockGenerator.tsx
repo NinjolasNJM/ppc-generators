@@ -66,6 +66,7 @@ import tabsCakeRightImage from "./images/Tabs-Cake-Right.png";
 import foldsShelfImage from "./images/Folds-Shelf.png";
 import tabsShelfImage from "./images/Tabs-Shelf.png";
 import { drawCross } from "./shapes/cross";
+import { drawDoubleCross } from "./shapes/doubleCross";
 
 const id = "minecraft-block";
 
@@ -237,6 +238,7 @@ const script: ScriptDef = (generator: Generator) => {
       "Snow Layers",
       "Cake",
       "Shelf",
+      "Double Cross",
     ]);
 
     const ox = 57;
@@ -281,6 +283,10 @@ const script: ScriptDef = (generator: Generator) => {
       }
       case "Cross": {
         drawCross(generator, blockId, ox, oy, showFolds);
+        break;
+      }
+      case "Double Cross": {
+        drawDoubleCross(generator, blockId, ox, oy, showFolds);
         break;
       }
     }
