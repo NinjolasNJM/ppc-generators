@@ -107,6 +107,10 @@ test("minecraft block generator shows the selected tint in the preview", async (
 
   const preview = page.getByTestId("texture-picker-preview");
   await expect(preview).toBeVisible();
+  await expect(preview.locator("div").first()).toHaveAttribute(
+    "style",
+    /background-color:\s*rgb\(145, 189, 89\)/
+  );
 
   await expect(preview).toHaveScreenshot("minecraft-block-tinted-preview.png");
 });

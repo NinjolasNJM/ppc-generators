@@ -128,12 +128,6 @@ export function AtlasControl({
       throw new Error("No images to pack into atlas");
     }
 
-    const estimateWidth = Math.max(
-      standardWidth,
-      standardHeight,
-      Math.min(2048, Math.ceil(Math.sqrt(images.length)) * standardWidth)
-    );
-
     const sourceFrameMap = new Map<
       string,
       {
@@ -176,6 +170,19 @@ export function AtlasControl({
         };
       });
     });
+    const widestFrame = packableImages.reduce(
+      (max, frame) => Math.max(max, frame.rectangle[2]),
+      0
+    );
+    const estimateWidth = Math.max(
+      standardWidth,
+      standardHeight,
+      widestFrame,
+      Math.min(
+        2048,
+        Math.ceil(Math.sqrt(packableImages.length)) * standardWidth
+      )
+    );
 
     const packedAtlas = packImages(packableImages, estimateWidth);
     const { atlasWidth, atlasHeight } = packedAtlas;
