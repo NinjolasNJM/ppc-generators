@@ -93,7 +93,7 @@ const textures: TextureDef[] = [
     id: "CenterFold",
     url: centerFoldTexture.src,
     standardWidth: 2,
-    standardHeight: 128,
+    standardHeight: 512,
   },
 ];
 
@@ -361,9 +361,9 @@ const script: ScriptDef = (generator: Generator) => {
         const glintPlugin = getGlintPlugin(
           selectedTextureFrame.enchanted ?? false
         );
+        const itemLayout = getItemLayout(layers);
 
         layers.forEach((layer) => {
-          const itemLayout = getItemLayout([layer]);
           const leftDestination = getLayerHalfDestination(
             itemLayout.leftBounds,
             itemLayout.minY,

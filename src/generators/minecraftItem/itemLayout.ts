@@ -123,9 +123,9 @@ export function getItemLayout(layers: SelectedTexture[]): {
   height: number;
   minY: number;
 } {
-  const anchorLayers = layers.length > 0 ? [layers[0]!] : layers;
-  const leftBounds = getItemHalfCropBounds(anchorLayers, "None");
-  const rightBounds = getItemHalfCropBounds(anchorLayers, "Horizontal");
+  // Overlaid items share one logical crop, centered on the widest transformed layer.
+  const leftBounds = getItemHalfCropBounds(layers, "None");
+  const rightBounds = getItemHalfCropBounds(layers, "Horizontal");
   const minY = Math.min(leftBounds[1], rightBounds[1]);
   const maxY = Math.max(
     leftBounds[1] + leftBounds[3],
