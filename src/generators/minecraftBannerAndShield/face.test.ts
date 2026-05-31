@@ -20,7 +20,7 @@ import {
   shieldBaseNoPatternId,
 } from "./face";
 
-const versionId = "minecraft-26-1-2-banner-shield";
+const versionId = "minecraft-26-2-pre-2-banner-shield";
 
 function makeSelectedPattern(
   patternId: string,
@@ -79,14 +79,14 @@ describe("drawFace", () => {
     expect(generator.drawTexture).toHaveBeenCalledTimes(2);
     expect(generator.drawTexture).toHaveBeenNthCalledWith(
       1,
-      "minecraft-26.1.2-banner-patterns",
+      "minecraft-26.2-pre-2-banner-patterns",
       [0, 0, 64, 64],
       destination,
       {}
     );
     expect(generator.drawTexture).toHaveBeenNthCalledWith(
       2,
-      "minecraft-26.1.2-banner-patterns",
+      "minecraft-26.2-pre-2-banner-patterns",
       [64, 0, 64, 64],
       destination,
       expect.objectContaining<DrawTextureOptions>({
@@ -117,14 +117,14 @@ describe("drawFace", () => {
     expect(generator.drawTexture).toHaveBeenCalledTimes(2);
     expect(generator.drawTexture).toHaveBeenNthCalledWith(
       1,
-      "minecraft-26.1.2-shield-patterns",
+      "minecraft-26.2-pre-2-shield-patterns",
       [0, 192, 64, 64],
       destination,
       {}
     );
     expect(generator.drawTexture).toHaveBeenNthCalledWith(
       2,
-      "minecraft-26.1.2-shield-patterns",
+      "minecraft-26.2-pre-2-shield-patterns",
       [0, 0, 64, 64],
       destination,
       expect.objectContaining<DrawTextureOptions>({
@@ -148,14 +148,14 @@ describe("drawFace", () => {
     expect(generator.drawTexture).toHaveBeenCalledTimes(2);
     expect(generator.drawTexture).toHaveBeenNthCalledWith(
       1,
-      "minecraft-26.1.2-shield-patterns",
+      "minecraft-26.2-pre-2-shield-patterns",
       [0, 192, 64, 64],
       destination,
       {}
     );
     expect(generator.drawTexture).toHaveBeenNthCalledWith(
       2,
-      "minecraft-26.1.2-shield-patterns",
+      "minecraft-26.2-pre-2-shield-patterns",
       [0, 0, 64, 64],
       destination,
       expect.objectContaining<DrawTextureOptions>({
@@ -183,7 +183,7 @@ describe("drawFace", () => {
 
     expect(generator.drawTexture).toHaveBeenCalledTimes(1);
     expect(generator.drawTexture).toHaveBeenCalledWith(
-      "minecraft-26.1.2-shield-patterns",
+      "minecraft-26.2-pre-2-shield-patterns",
       [0, 192, 64, 64],
       destination,
       {}
@@ -212,14 +212,14 @@ describe("drawFace", () => {
     expect(generator.drawTexture).toHaveBeenCalledTimes(2);
     expect(generator.drawTexture).toHaveBeenNthCalledWith(
       1,
-      "minecraft-26.1.2-shield-patterns",
+      "minecraft-26.2-pre-2-shield-patterns",
       [0, 224, 64, 32],
       destination,
       {}
     );
     expect(generator.drawTexture).toHaveBeenNthCalledWith(
       2,
-      "minecraft-26.1.2-shield-patterns",
+      "minecraft-26.2-pre-2-shield-patterns",
       [0, 32, 64, 32],
       destination,
       expect.objectContaining<DrawTextureOptions>({
@@ -235,7 +235,7 @@ describe("drawFace", () => {
       encodeSelectedBannerShieldPatterns([makeSelectedPattern("base")]),
       shieldBasePatternId,
       "shield",
-      "vanilla-tweaks-26-1-2-banner-shield"
+      "vanilla-tweaks-26-2-pre-2-banner-shield"
     );
 
     drawFace(
@@ -251,14 +251,14 @@ describe("drawFace", () => {
     expect(generator.drawTexture).toHaveBeenCalledTimes(2);
     expect(generator.drawTexture).toHaveBeenNthCalledWith(
       1,
-      "vanilla-tweaks-26.1.2-shield-patterns",
+      "vanilla-tweaks-26.2-pre-2-shield-patterns",
       [0, 0, 64, 64],
       destination,
       {}
     );
     expect(generator.drawTexture).toHaveBeenNthCalledWith(
       2,
-      "vanilla-tweaks-26.1.2-shield-patterns",
+      "vanilla-tweaks-26.2-pre-2-shield-patterns",
       [128, 0, 128, 128],
       destination,
       expect.objectContaining<DrawTextureOptions>({
@@ -283,7 +283,7 @@ describe("drawFace", () => {
 
     expect(generator.drawTexture).toHaveBeenNthCalledWith(
       2,
-      "minecraft-26.1.2-banner-patterns",
+      "minecraft-26.2-pre-2-banner-patterns",
       [64, 0, 64, 64],
       destination,
       expect.objectContaining<DrawTextureOptions>({
@@ -383,7 +383,7 @@ describe("drawCuboid", () => {
     expect(generator.drawTexture).toHaveBeenCalledTimes(12);
     expect(generator.drawTexture).toHaveBeenNthCalledWith(
       1,
-      "minecraft-26.1.2-banner-patterns",
+      "minecraft-26.2-pre-2-banner-patterns",
       [0, 0, 16, 16],
       [13, 23, 40, 50],
       expect.objectContaining<DrawTextureOptions>({
@@ -394,7 +394,7 @@ describe("drawCuboid", () => {
     );
     expect(generator.drawTexture).toHaveBeenNthCalledWith(
       2,
-      "minecraft-26.1.2-banner-patterns",
+      "minecraft-26.2-pre-2-banner-patterns",
       [64, 0, 16, 16],
       [13, 23, 40, 50],
       expect.objectContaining<DrawTextureOptions>({

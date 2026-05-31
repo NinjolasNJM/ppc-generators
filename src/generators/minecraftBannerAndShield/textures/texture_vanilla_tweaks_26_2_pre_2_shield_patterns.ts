@@ -3,10 +3,10 @@
 import { type TextureDef } from "@genroot/builder/modules/generatorDef";
 import { type TextureData } from "@genroot/builder/modules/textureData";
 
-import image from "./texture_vanilla_tweaks_26_1_2_shield_patterns.png";
+import image from "./texture_vanilla_tweaks_26_2_pre_2_shield_patterns.png";
 
 const textureDef: TextureDef = {
-  id: "vanilla-tweaks-26.1.2-shield-patterns",
+  id: "vanilla-tweaks-26.2-pre-2-shield-patterns",
   url: image.src,
   standardWidth: 512,
   standardHeight: 1408,

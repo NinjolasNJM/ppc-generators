@@ -11,7 +11,7 @@ import { type CanvasWithContext } from "@genroot/builder/modules/canvasWithConte
 import { shieldBasePatternId } from "../face";
 import { drawShield } from "./shield";
 
-const versionId = "minecraft-26-1-2-banner-shield";
+const versionId = "minecraft-26-2-pre-2-banner-shield";
 
 function makeGenerator() {
   return {

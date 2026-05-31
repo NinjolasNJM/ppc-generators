@@ -1,8 +1,16 @@
 import fs from "node:fs";
 import path from "node:path";
 
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import { renderImageAtNaturalSize } from "../_shared/screenshot";
+
+async function selectPlainsTint(page: Page) {
+  await page
+    .getByRole("button", {
+      name: "Plains / Beach / Dripstone / Deep Dark (#91BD59)",
+    })
+    .click();
+}
 
 test("minecraft block generator matches the default screenshot", async ({
   page,
@@ -101,9 +109,7 @@ test("minecraft block generator shows the selected tint in the preview", async (
 
   await page.getByPlaceholder("Search...").fill("lever");
   await page.getByTitle("lever").click();
-  await page
-    .getByLabel("Tint")
-    .selectOption({ label: "Plains / Beach / Dripstone / Deep Dark" });
+  await selectPlainsTint(page);
 
   const preview = page.getByTestId("texture-picker-preview");
   await expect(preview).toBeVisible();
@@ -120,9 +126,7 @@ test("minecraft block generator shows the before and after tinting on the page",
   await page.getByTitle("grass block top").click();
   await page.getByTestId("region-BlockFaceTop1").click();
 
-  await page
-    .getByLabel("Tint")
-    .selectOption({ label: "Plains / Beach / Dripstone / Deep Dark" });
+  await selectPlainsTint(page);
   await page.getByTestId("region-BlockFaceFront1").click();
 
   const outputPages = page.getByTestId("generator-page-image");

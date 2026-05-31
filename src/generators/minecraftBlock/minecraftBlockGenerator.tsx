@@ -228,7 +228,6 @@ const script: ScriptDef = (generator: Generator) => {
 
     generator.defineInputRowStart();
     const blockType = generator.defineAndGetSelectInput(typeName, [
-            "Cross",
       "Block",
       "Slab",
       "Stair",
@@ -238,6 +237,7 @@ const script: ScriptDef = (generator: Generator) => {
       "Snow Layers",
       "Cake",
       "Shelf",
+      "Cross",
       "Double Cross",
     ]);
 

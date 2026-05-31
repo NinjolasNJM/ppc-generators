@@ -41,6 +41,10 @@ function makeMargin(t: number, r: number, b: number, l: number): string {
   return px(t) + " " + px(r) + " " + px(b) + " " + px(l);
 }
 
+function normalizeSearchText(value: string): string {
+  return value.toLowerCase().replace(/[_-]+/g, " ");
+}
+
 const bgGray200 = "rgb(229 231 235)";
 const bgGray400 = "rgb(156 163 175)";
 export const texturePickerBorderSize = 4;
@@ -370,7 +374,11 @@ export function Preview({
   };
 
   return (
-    <div className="flex flex-col items-center" style={{ width: "148px" }}>
+    <div
+      className="flex flex-col items-center"
+      data-testid="texture-picker-preview"
+      style={{ width: "148px" }}
+    >
       <div style={style}>
         {tintMaskStyle ? <div style={tintMaskStyle} /> : null}
       </div>
@@ -441,9 +449,11 @@ export function TexturePicker({
   const [rotation, setRotation] = React.useState<Rotation>("Rot0");
   const [flip, setFlip] = React.useState<Flip>("None");
 
-  const searchLower = search.toLowerCase();
+  const searchLower = normalizeSearchText(search);
   const framesFiltered = searchLower
-    ? frames.filter((frame) => frame.label.toLowerCase().includes(searchLower))
+    ? frames.filter((frame) =>
+        normalizeSearchText(frame.label).includes(searchLower)
+      )
     : frames;
 
   const onEraseClick = () => {
