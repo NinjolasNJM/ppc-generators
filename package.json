@@ -10,6 +10,7 @@
     "build": "next build",
     "start": "next start",
     "setup": "node scripts/setup.mjs",
+    "test:unit": "vitest run",
     "test:generators": "playwright test",
     "test:generators:update": "playwright test --update-snapshots=all",
     "test:generators:report": "playwright show-report",

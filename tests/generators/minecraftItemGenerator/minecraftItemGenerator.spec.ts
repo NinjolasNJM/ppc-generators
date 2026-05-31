@@ -25,8 +25,8 @@ async function setItemSize(
   }
 }
 
-function getPreviewTile(page: Page) {
-  return page.getByTestId("texture-picker-preview").locator("div").nth(1);
+function getPreviewImage(page: Page) {
+  return page.getByTestId("texture-picker-preview-image");
 }
 
 test("minecraft item generator matches the default screenshots", async ({ page }) => {
@@ -149,17 +149,15 @@ test("minecraft item generator resets rotation when a new texture is selected", 
   await selectItemByTitle(page, "sword", "diamond sword");
   await page.getByLabel("Rotate texture").click();
 
-  await expect(getPreviewTile(page)).toHaveAttribute(
-    "style",
-    /transform:\s*rotate\(90deg\)/
+  await expect(getPreviewImage(page)).toHaveScreenshot(
+    "minecraft-item-rotated-preview.png"
   );
 
   await page.getByLabel("Add Item").click();
   await selectItemByTitle(page, "bow", "bow");
 
-  await expect(getPreviewTile(page)).toHaveAttribute(
-    "style",
-    /transform:\s*rotate\(0deg\)/
+  await expect(getPreviewImage(page)).toHaveScreenshot(
+    "minecraft-item-reset-preview.png"
   );
 });
 
@@ -172,21 +170,15 @@ test("minecraft item generator resets flip when a new texture is selected", asyn
   await selectItemByTitle(page, "sword", "diamond sword");
   await page.getByLabel("Flip texture horizontal").click();
 
-  await expect(getPreviewTile(page)).toHaveAttribute(
-    "style",
-    /scaleX\(-1\)/
+  await expect(getPreviewImage(page)).toHaveScreenshot(
+    "minecraft-item-flipped-preview.png"
   );
 
   await page.getByLabel("Add Item").click();
   await selectItemByTitle(page, "bow", "bow");
 
-  await expect(getPreviewTile(page)).toHaveAttribute(
-    "style",
-    /transform:\s*rotate\(0deg\)/
-  );
-  await expect(getPreviewTile(page)).not.toHaveAttribute(
-    "style",
-    /scaleX\(-1\)/
+  await expect(getPreviewImage(page)).toHaveScreenshot(
+    "minecraft-item-reset-preview.png"
   );
 });
 
