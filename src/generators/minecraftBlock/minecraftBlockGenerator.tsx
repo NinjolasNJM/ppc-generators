@@ -10,27 +10,30 @@ import type {
 } from "@genroot/builder/modules/generatorDef";
 import { type Generator } from "@genroot/builder/modules/generator";
 import {
-  type SelectedTextureWithBlend,
-  encodeSelectedTextureWithBlend,
-  decodeSelectedTextureWithBlend,
-} from "./selectedTextureWithBlend";
-import { textureDefs, textureVersionIds } from "./textureVersions";
-import { TexturePicker } from "./texturePicker";
-import { currentBlockTextureId } from "./constants";
+  type SelectedTexture,
+  encodeSelectedTexture,
+  decodeSelectedTexture,
+} from "@genroot/builder/ui/texturePicker/selectedTexture";
+import {
+  allTextureDefs,
+  versionIdsBlocksFirst,
+} from "@genroot/generators/_common/textures/textureVersions";
+import { TexturePicker } from "@genroot/generators/minecraftBlock/texturePicker";
+import { currentBlockTextureId } from "@genroot/generators/minecraftBlock/constants";
 import {
   parseAtlas,
   updateCustomTextureAtlas,
   updateCustomTextureUrl,
-} from "../_common/customTextureVersion";
-import { drawBlock } from "./shapes/block";
-import { drawSlab } from "./shapes/slab";
-import { drawStair } from "./shapes/stair";
-import { drawFence } from "./shapes/fence";
-import { drawDoor } from "./shapes/door";
-import { drawTrapdoor } from "./shapes/trapdoor";
-import { drawSnow } from "./shapes/snow";
-import { drawCake } from "./shapes/cake";
-import { drawShelf } from "./shapes/shelf";
+} from "@genroot/generators/_common/textures/customTextureVersion";
+import { drawBlock } from "@genroot/generators/minecraftBlock/shapes/block";
+import { drawSlab } from "@genroot/generators/minecraftBlock/shapes/slab";
+import { drawStair } from "@genroot/generators/minecraftBlock/shapes/stair";
+import { drawFence } from "@genroot/generators/minecraftBlock/shapes/fence";
+import { drawDoor } from "@genroot/generators/minecraftBlock/shapes/door";
+import { drawTrapdoor } from "@genroot/generators/minecraftBlock/shapes/trapdoor";
+import { drawSnow } from "@genroot/generators/minecraftBlock/shapes/snow";
+import { drawCake } from "@genroot/generators/minecraftBlock/shapes/cake";
+import { drawShelf } from "@genroot/generators/minecraftBlock/shapes/shelf";
 
 import thumnbailImage from "./thumbnail/v2-thumbnail-256.jpeg";
 import backgroundImage from "./images/Background.png";
@@ -109,10 +112,10 @@ const images: ImageDef[] = [
   { id: "Tabs-Shelf", url: tabsShelfImage.src },
 ];
 
-const textures: TextureDef[] = textureDefs;
+const textures: TextureDef[] = allTextureDefs;
 
 const script: ScriptDef = (generator: Generator) => {
-  generator.defineSelectInput("Version", textureVersionIds);
+  generator.defineSelectInput("Version", versionIdsBlocksFirst);
 
   const versionId = generator.getSelectInputValue("Version");
 
@@ -142,12 +145,11 @@ const script: ScriptDef = (generator: Generator) => {
     currentBlockTextureId
   );
   const currentTexture = currentTextureJson
-    ? decodeSelectedTextureWithBlend(currentTextureJson)
+    ? decodeSelectedTexture(currentTextureJson)
     : null;
   if (
     currentTexture !== null &&
-    currentTexture.selectedTexture !== null &&
-    currentTexture.selectedTexture.textureDefId !== versionId
+    currentTexture.textureDefId !== versionId
   ) {
     // Clear stale selections when the active texture version changes.
     generator.setStringInputValue(currentBlockTextureId, "");
@@ -156,7 +158,7 @@ const script: ScriptDef = (generator: Generator) => {
     currentBlockTextureId
   );
   const resolvedCurrentTexture = resolvedCurrentTextureJson
-    ? decodeSelectedTextureWithBlend(resolvedCurrentTextureJson)
+    ? decodeSelectedTexture(resolvedCurrentTextureJson)
     : null;
 
   generator.defineCustomStringInput(currentBlockTextureId, (onChange) => {
@@ -168,20 +170,27 @@ const script: ScriptDef = (generator: Generator) => {
         versionId={versionId}
         blend={resolvedCurrentTexture ? resolvedCurrentTexture.blend : null}
         onTextureSelected={(selectedTexture) => {
-          const newTexture: SelectedTextureWithBlend = {
-            selectedTexture,
-            blend: resolvedCurrentTexture ? resolvedCurrentTexture.blend : null,
+          const newTexture: SelectedTexture = {
+            ...selectedTexture,
+            blend:
+              selectedTexture.textureDefId === ""
+                ? null
+                : resolvedCurrentTexture
+                  ? resolvedCurrentTexture.blend
+                  : null,
           };
-          onChange(encodeSelectedTextureWithBlend(newTexture));
+          onChange(encodeSelectedTexture(newTexture));
         }}
         onBlendSelected={(blend) => {
-          const newTexture: SelectedTextureWithBlend = {
-            selectedTexture: resolvedCurrentTexture
-              ? resolvedCurrentTexture.selectedTexture
-              : null,
-            blend,
-          };
-          onChange(encodeSelectedTextureWithBlend(newTexture));
+          if (!resolvedCurrentTexture) {
+            return;
+          }
+          onChange(
+            encodeSelectedTexture({
+              ...resolvedCurrentTexture,
+              blend,
+            })
+          );
         }}
       />
     );
