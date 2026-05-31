@@ -159,6 +159,22 @@ test("minecraft block generator shows the selected tint in the preview", async (
   await expect(preview).toHaveScreenshot("minecraft-block-tinted-preview.png");
 });
 
+test("minecraft block generator applies rotation and flips only once in the preview", async ({
+  page,
+}) => {
+  await page.goto("/generator/minecraft-block");
+
+  await page.getByPlaceholder("Search...").fill("lever");
+  await page.getByTitle("lever").click();
+
+  await page.getByLabel("Rotate texture").click();
+  await page.getByLabel("Flip texture horizontal").click();
+
+  const previewImage = page.getByTestId("texture-picker-preview-image");
+  await expect(previewImage).toBeVisible();
+  await expect(previewImage).toHaveCSS("transform", "none");
+});
+
 test("minecraft block generator shows the before and after tinting on the page", async ({
   page,
 }) => {

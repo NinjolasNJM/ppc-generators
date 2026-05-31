@@ -14,7 +14,6 @@ import { drawTexture } from "@genroot/builder/modules/renderers/drawTexture";
 import { makeTextureFromImage } from "@genroot/builder/modules/texture";
 import {
   type Flip,
-  flipToTransform,
   makeNextFlip,
 } from "./flip";
 import {
@@ -28,10 +27,6 @@ import { makeTileStyle } from "./texturePickerStyle";
 
 function px(n: number): string {
   return n + "px";
-}
-
-function deg(n: number): string {
-  return n + "deg";
 }
 
 function makeBorder(size: number, style: string, color: string): string {
@@ -218,10 +213,6 @@ export function Preview({
     );
   }
 
-  const rotationDegrees = rotationToDegrees(rotation);
-  const flipTransform = flipToTransform(flip);
-  const transform = `rotate(${deg(rotationDegrees)}) ${flipTransform}`.trim();
-
   return (
     <div
       className="flex flex-col items-center"
@@ -235,14 +226,13 @@ export function Preview({
         }}
       >
         <div
+          data-testid="texture-picker-preview-image"
           style={{
             position: "absolute",
             top: px(0),
             left: px(0),
             width: px(128),
             height: px(128),
-            transform,
-            transformOrigin: "center",
             imageRendering: "pixelated",
           }}
         >
