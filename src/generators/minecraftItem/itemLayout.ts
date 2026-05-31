@@ -123,6 +123,7 @@ export function getItemLayout(layers: SelectedTexture[]): {
   height: number;
   minY: number;
 } {
+  // Overlaid items share one logical crop, centered on the widest transformed layer.
   const leftBounds = getItemHalfCropBounds(layers, "None");
   const rightBounds = getItemHalfCropBounds(layers, "Horizontal");
   const minY = Math.min(leftBounds[1], rightBounds[1]);

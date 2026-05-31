@@ -92,7 +92,7 @@ const textures: TextureDef[] = [
     id: "CenterFold",
     url: centerFoldTexture.src,
     standardWidth: 2,
-    standardHeight: 128,
+    standardHeight: 512,
   },
 ];
 
