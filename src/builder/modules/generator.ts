@@ -21,7 +21,11 @@ import {
   type DrawRectangeOptions,
   drawRectangle,
 } from "./renderers/drawRectangle";
-import { type LineProps, drawLine } from "./renderers/drawLine";
+import {
+  type LineProps,
+  drawFoldLine as drawRendererFoldLine,
+  drawLine,
+} from "./renderers/drawLine";
 import { drawText } from "./renderers/drawText";
 import {
   type TabOrientation,
@@ -279,14 +283,9 @@ export class Generator {
     drawLine(currentPage.canvasWithContext, p1, p2, options);
   }
 
-  drawFoldLine(p1: Position, p2: Position): void {
+  drawFoldLine(p1: Position, p2: Position, lightColor = false): void {
     const currentPage = this.getCurrentPage();
-    drawLine(currentPage.canvasWithContext, p1, p2, {
-      color: "#7b7b7b",
-      width: 1,
-      lineDash: [2, 2],
-      lineDashOffset: 3,
-    });
+    drawRendererFoldLine(currentPage.canvasWithContext, p1, p2, lightColor);
   }
 
   drawTab(

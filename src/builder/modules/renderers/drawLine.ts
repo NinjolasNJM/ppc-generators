@@ -102,10 +102,11 @@ export function drawLine(
 export function drawFoldLine(
   page: CanvasWithContext,
   from: Position,
-  to: Position
+  to: Position,
+  lightColor = false
 ) {
   return drawLine(page, from, to, {
-    color: "#7b7b7b",
+    color: lightColor ? "#a1a1a1" : "#7b7b7b",
     width: 1,
     lineDash: [2, 2],
     lineDashOffset: 3,

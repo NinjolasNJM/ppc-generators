@@ -1,11 +1,13 @@
 import {
   type Generator,
+  type Position,
   type Region,
 } from "@genroot/builder/modules/generator";
 import {
   type Flip,
   makeNextFlip,
 } from "@genroot/builder/ui/texturePicker/flip";
+import { type Orientation } from "../../_common/minecraft";
 import { rotationToDegrees } from "@genroot/builder/ui/texturePicker/rotation";
 import { type SelectedTexture } from "@genroot/builder/ui/texturePicker/selectedTexture";
 import {
@@ -22,6 +24,8 @@ export const crossWidth = size * 1.265625;
 
 export type CrossLayout = ReturnType<typeof getTextureLayout>;
 type LayerHalf = ReturnType<typeof getLayerHalfDestinationWithScale>;
+type Bounds = { x: number; y: number; width: number; height: number };
+type TextureSide = "start" | "end";
 
 export function getCrossLayout(layers: SelectedTexture[]): CrossLayout | null {
   return layers.length > 0 ? getTextureLayout(layers) : null;
@@ -116,6 +120,52 @@ export function drawSidewaysCrossPair(
   }
 }
 
+export function drawCrossFold(
+  generator: Generator,
+  layout: CrossLayout,
+  region: Region,
+  orientation: Orientation
+) {
+  const {
+    foldRegion,
+    foldOrientation,
+    seamMode,
+    reverseSegment,
+    fullSegment,
+    textureSide,
+    transformPoint,
+  } = getFoldSpace(region, orientation);
+
+  getCrossHalfBounds(layout, foldRegion, seamMode, textureSide).forEach(
+    (bounds) => {
+      const segment = getFoldSegment(bounds, foldOrientation, fullSegment);
+      const [from, to] = reverseSegment ? [segment[1], segment[0]] : segment;
+      generator.drawFoldLine(transformPoint(from), transformPoint(to), true);
+    }
+  );
+}
+
+export function drawCrossCenterFold(generator: Generator, region: Region) {
+  const [x, y, width, height] = region;
+  const line: [Position, Position, Position, Position] =
+    width >= height
+      ? [
+          [x + width / 2, y],
+          [x + width / 2, y + height],
+          [x + width / 2 - 1, y],
+          [x + width / 2 - 1, y + height],
+        ]
+      : [
+          [x, y + height / 2],
+          [x + width, y + height / 2],
+          [x, y + height / 2 - 1],
+          [x + width, y + height / 2 - 1],
+        ];
+
+  generator.drawFoldLine(line[0], line[1], true);
+  generator.drawFoldLine(line[2], line[3], true);
+}
+
 function getLayoutSeamGap(
   layout: NonNullable<CrossLayout>,
   x: number,
@@ -131,6 +181,143 @@ function getLayoutSeamGap(
       width: layout.rightBounds[2] * widthScale,
     }
   );
+}
+
+function getCrossHalfBounds(
+  layout: NonNullable<CrossLayout>,
+  [x, y, width, height]: Region,
+  seamMode: "normal" | "split",
+  textureSide: TextureSide
+): Bounds[] {
+  const leftWidth = layout.leftBounds[2] * widthScale;
+  const rightWidth = layout.rightBounds[2] * widthScale;
+  const seamGap = getLayoutSeamGap(layout, x, width);
+  const seamOffset = seamMode === "split" ? seamGap / 2 : 0;
+  const textureHeight = layout.height * heightScale;
+  const textureY =
+    textureSide === "start"
+      ? y + layout.minY * heightScale
+      : y + height - (layout.minY + layout.height) * heightScale;
+
+  return [
+    {
+      x: x + width / 2 - leftWidth + seamOffset,
+      y: textureY,
+      width: leftWidth,
+      height: textureHeight,
+    },
+    {
+      x: x + width / 2 - seamGap + seamOffset,
+      y: textureY,
+      width: rightWidth,
+      height: textureHeight,
+    },
+  ];
+}
+
+function getFoldSpace(region: Region, orientation: Orientation) {
+  const [x, y, width, height] = region;
+
+  if (width >= height) {
+    return {
+      foldRegion: region,
+      foldOrientation: orientation,
+      seamMode: "normal" as const,
+      reverseSegment: false,
+      fullSegment: false,
+      textureSide: "start" as const,
+      transformPoint: (point: Position) => point,
+    };
+  }
+
+  const centerX = x + width / 2;
+  const centerY = y + height / 2;
+  const textureSide: TextureSide = orientation === "West" ? "end" : "start";
+
+  return {
+    foldRegion: [
+      centerX - height / 2,
+      centerY - width / 2,
+      height,
+      width,
+    ] as Region,
+    foldOrientation: getSidewaysFoldOrientation(orientation),
+    seamMode: "split" as const,
+    reverseSegment: orientation === "East",
+    fullSegment: orientation === "East" || orientation === "West",
+    textureSide,
+    transformPoint: (point: Position) =>
+      rotatePointAround(point, centerX, centerY),
+  };
+}
+
+function getFoldSegment(
+  { x, y, width, height }: Bounds,
+  orientation: Orientation,
+  fullSegment: boolean
+): [Position, Position] {
+  const centerX = x + width / 2;
+  const centerY = y + height / 2;
+
+  switch (orientation) {
+    case "North":
+      if (fullSegment) {
+        return [
+          [centerX, y],
+          [centerX, y + height],
+        ];
+      }
+      return [
+        [centerX, y],
+        [centerX, centerY],
+      ];
+    case "South":
+      if (fullSegment) {
+        return [
+          [centerX, y],
+          [centerX, y + height],
+        ];
+      }
+      return [
+        [centerX, centerY],
+        [centerX, y + height],
+      ];
+    case "East":
+      if (fullSegment) {
+        return [
+          [x, centerY],
+          [x + width, centerY],
+        ];
+      }
+      return [
+        [centerX, centerY],
+        [x + width, centerY],
+      ];
+    case "West":
+      if (fullSegment) {
+        return [
+          [x, centerY],
+          [x + width, centerY],
+        ];
+      }
+      return [
+        [x, centerY],
+        [centerX, centerY],
+      ];
+  }
+}
+
+function getSidewaysFoldOrientation(orientation: Orientation): Orientation {
+  switch (orientation) {
+    case "North":
+      return "West";
+    case "East":
+      return "North";
+    case "South":
+      return "East";
+    case "West":
+      return "South";
+  }
 }
 
 function getCrossHalves(
@@ -222,4 +409,12 @@ function rotateHalfAround(
     x: rotatedCenterX - half.width / 2,
     y: rotatedCenterY - half.height / 2,
   };
+}
+
+function rotatePointAround(
+  [x, y]: Position,
+  centerX: number,
+  centerY: number
+): Position {
+  return [centerX - (y - centerY), centerY + x - centerX];
 }

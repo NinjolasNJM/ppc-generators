@@ -56,7 +56,7 @@ function drawFoldLine(
           lineDashOffset: 3,
         })
     : (from: [number, number], to: [number, number]) =>
-        generator.drawFoldLine(from, to);
+        generator.drawFoldLine(from, to, true);
 
   switch (rotation) {
     case 0:

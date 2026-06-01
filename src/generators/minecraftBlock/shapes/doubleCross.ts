@@ -5,11 +5,15 @@ import {
 import * as Face from "../face";
 import {
   crossWidth,
+  drawCrossCenterFold,
+  drawCrossFold,
   drawSidewaysCrossPair,
   getCrossLayout,
 } from "./crossShared";
 
 type DoubleCrossFaces = {
+  pair1: Region;
+  pair2: Region;
   bottomPair1: Region;
   topPair1: Region;
   bottomPair2: Region;
@@ -24,6 +28,8 @@ const pairYOffset = (halfPageHeight - pairHeight) / 2;
 
 function makeFaces(ox: number, oy: number): DoubleCrossFaces {
   return {
+    pair1: [ox - gap, oy + pairYOffset, size * 2, pairHeight],
+    pair2: [ox + size * 2, oy + pairYOffset, size * 2, pairHeight],
     bottomPair1: [ox - gap, oy + pairYOffset, size, pairHeight],
     topPair1: [ox + size - gap, oy + pairYOffset, size, pairHeight],
     bottomPair2: [ox + size * 2, oy + pairYOffset, size, pairHeight],
@@ -58,9 +64,13 @@ export function drawDoubleCross(
     drawSidewaysCrossPair(generator, topLayers, layout, regions.topPair2);
   }
 
-  generator.drawImage("Title", [ox - 32, oy - 1]);
-
   if (showFolds) {
-    generator.drawImage("Folds-Block", [ox - 32, oy - 1]);
+    drawCrossCenterFold(generator, regions.pair1);
+    drawCrossCenterFold(generator, regions.pair2);
+  }
+
+  if (showFolds && layout) {
+    drawCrossFold(generator, layout, regions.pair1, "East");
+    drawCrossFold(generator, layout, regions.pair2, "West");
   }
 }

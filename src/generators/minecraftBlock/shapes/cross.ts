@@ -3,7 +3,13 @@ import {
   type Region,
 } from "@genroot/builder/modules/generator";
 import * as Face from "../face";
-import { crossWidth, drawCrossPair, getCrossLayout } from "./crossShared";
+import {
+  crossWidth,
+  drawCrossCenterFold,
+  drawCrossFold,
+  drawCrossPair,
+  getCrossLayout,
+} from "./crossShared";
 
 type CrossFaces = {
   pair1: Region;
@@ -44,9 +50,13 @@ export function drawCross(
     drawCrossPair(generator, layers, layout, regions.pair2);
   }
 
-  generator.drawImage("Title", [ox - 32, oy - 1]);
-
   if (showFolds) {
-    generator.drawImage("Folds-Block", [ox - 32, oy - 1]);
+    drawCrossCenterFold(generator, regions.pair1);
+    drawCrossCenterFold(generator, regions.pair2);
+  }
+
+  if (showFolds && layout) {
+    drawCrossFold(generator, layout, regions.pair1, "North");
+    drawCrossFold(generator, layout, regions.pair2, "South");
   }
 }
