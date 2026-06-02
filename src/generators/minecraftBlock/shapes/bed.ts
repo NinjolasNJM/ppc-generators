@@ -18,25 +18,25 @@ type Faces = {
 };
 
 const size = 128;
-const size2 = 24;
+const size2 = 48;
 
 function makeFaces(ox: number, oy: number): Faces {
   return {
-    top: [ox + (size * 3) / 2 - size2 / 2, oy - size2 / 2, size2, size],
+    top: [ox + size2, oy + size / 8, size, size2],
     bottom: [
-      ox + (size * 3) / 2 - size2 / 2,
-      oy + size * 2 + size2 / 2,
-      size2,
+      ox + size2,
+      oy + size * 17 / 8 + size2,
       size,
+      size2,
     ],
-    right1: [ox + size - size2, oy + size / 2, size2, size],
-    front1: [ox + size, oy + size / 2, size, size],
-    left1: [ox + size * 2, oy + size / 2, size2, size],
-    back1: [ox + size * 2 + size2, oy + size / 2, size, size],
-    right2: [ox + size - size2, oy + (size * 3) / 2, size2, size],
-    front2: [ox + size, oy + (size * 3) / 2, size, size],
-    left2: [ox + size * 2, oy + (size * 3) / 2, size2, size],
-    back2: [ox + size * 2 + size2, oy + (size * 3) / 2, size, size],
+    right1: [ox, oy + size / 2, size2, size],
+    front1: [ox + size2, oy + size / 2, size, size],
+    left1: [ox + size + size2, oy + size / 2, size2, size],
+    back1: [ox + size + size2 * 2, oy + size / 2, size, size],
+    right2: [ox, oy + (size * 3) / 2, size2, size],
+    front2: [ox + size2, oy + (size * 3) / 2, size, size],
+    left2: [ox + size + size2, oy + (size * 3) / 2, size2, size],
+    back2: [ox + size + size2 * 2, oy + (size * 3) / 2, size, size],
   };
 }
 
