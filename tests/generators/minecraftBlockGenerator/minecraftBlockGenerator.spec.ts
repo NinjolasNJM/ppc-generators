@@ -47,7 +47,7 @@ test("minecraft block generator erases the last texture from a face", async ({
   await renderImageAtNaturalSize(outputPage);
 
   await expect(outputPage).toHaveScreenshot(
-    "minecraft-block-default-page-1.png"
+    "minecraft-block-erases-last-texture-from-face-page-1.png"
   );
 });
 
