@@ -25,6 +25,32 @@ test("minecraft block generator matches the default screenshot", async ({
   }
 });
 
+test("minecraft block generator erases the last texture from a face", async ({
+  page,
+}) => {
+  await page.goto("/generator/minecraft-block");
+
+  await page.getByPlaceholder("Search...").fill("lever");
+  await page.getByTitle("lever").click();
+  await page.getByTestId("region-BlockFaceTop1").click();
+
+  await page.getByLabel("Erase texture").click();
+  await page.getByTestId("region-BlockFaceTop1").click();
+  await page.mouse.move(0, 0);
+
+  const outputPages = page.getByTestId("generator-page-image");
+  await expect(outputPages).toHaveCount(1);
+
+  const outputPage = outputPages.nth(0);
+  await expect(outputPage).toBeVisible();
+  await expect(outputPage).toHaveAttribute("src", /data:image\/png/);
+  await renderImageAtNaturalSize(outputPage);
+
+  await expect(outputPage).toHaveScreenshot(
+    "minecraft-block-default-page-1.png"
+  );
+});
+
 test("minecraft block generator matches the rotated and flipped screenshot", async ({
   page,
 }) => {

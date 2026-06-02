@@ -149,6 +149,7 @@ const script: ScriptDef = (generator: Generator) => {
     : null;
   if (
     currentTexture !== null &&
+    currentTexture.textureDefId !== "" &&
     currentTexture.textureDefId !== versionId
   ) {
     // Clear stale selections when the active texture version changes.
