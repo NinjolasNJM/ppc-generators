@@ -65,9 +65,12 @@ import tabsCakeCornerImage from "./images/Tabs-Cake-Corner.png";
 import tabsCakeRightImage from "./images/Tabs-Cake-Right.png";
 import foldsShelfImage from "./images/Folds-Shelf.png";
 import tabsShelfImage from "./images/Tabs-Shelf.png";
+import tabsBedImage from "./images/Tabs-Bed.png";
+//import foldsBedImage from "./images/Folds-Bed.png";
 import { drawCross } from "./shapes/cross";
 import { drawDoubleCross } from "./shapes/doubleCross";
 import { drawCrop } from "./shapes/crop";
+import { drawBed } from "./shapes/bed";
 
 const id = "minecraft-block";
 
@@ -134,6 +137,8 @@ const images: ImageDef[] = [
   { id: "Tabs-Cake-Right", url: tabsCakeRightImage.src },
   { id: "Folds-Shelf", url: foldsShelfImage.src },
   { id: "Tabs-Shelf", url: tabsShelfImage.src },
+  //{ id: "Folds-Bed", url: foldsBedImage.src },
+  { id: "Tabs-Bed", url: tabsBedImage.src },
 ];
 
 const textures: TextureDef[] = allTextureDefs;
@@ -230,6 +235,7 @@ const script: ScriptDef = (generator: Generator) => {
 
     generator.defineInputRowStart();
     const blockType = generator.defineAndGetSelectInput(typeName, [
+      "Bed",
       "Block",
       "Slab",
       "Stair",
@@ -294,6 +300,10 @@ const script: ScriptDef = (generator: Generator) => {
       }
       case "Crop": {
         drawCrop(generator, blockId, ox, oy, showFolds);
+        break;
+      }
+      case "Bed": {
+        drawBed(generator, blockId, ox, oy, showFolds);
         break;
       }
     }
