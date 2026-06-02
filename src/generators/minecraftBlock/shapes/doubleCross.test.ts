@@ -47,10 +47,10 @@ function makeGenerator(cropOrOptions?: Crop | CropOptions): Generator {
     drawTexture: vi.fn(),
     fillRectangle: vi.fn(),
     getStringInputValue: (id: string) => {
-      if (id === "CrossFace1") {
+      if (id === "DoubleCrossFaceBottom1") {
         return bottomFaceJson;
       }
-      if (id === "CrossFaceTop1") {
+      if (id === "DoubleCrossFaceTop1") {
         return topFaceJson;
       }
       return null;

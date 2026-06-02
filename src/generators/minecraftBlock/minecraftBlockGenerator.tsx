@@ -67,6 +67,7 @@ import foldsShelfImage from "./images/Folds-Shelf.png";
 import tabsShelfImage from "./images/Tabs-Shelf.png";
 import { drawCross } from "./shapes/cross";
 import { drawDoubleCross } from "./shapes/doubleCross";
+import { drawCrop } from "./shapes/crop";
 
 const id = "minecraft-block";
 
@@ -77,6 +78,7 @@ const history: HistoryDef = [
   "Dec 2021 NinjolasNJM - Add Stairs, Fence, Door, Trapdoor and Snow.",
   "Jan 2022 NinjolasNJM - Add Cake Block type.",
   "May 2026 NinjolasNJM - Add Shelf Block type.",
+  "Jun 2026 NinjolasNJM - Add Crop Block type.",
   "May 2026 NinjolasNJM - Changed to use new glint and tint input.",
 ];
 
@@ -139,7 +141,7 @@ const textures: TextureDef[] = allTextureDefs;
 function clearBlockFaces(generator: Generator): void {
   clearVariablesMatching(
     generator,
-    /^(?:Block|Slab|Stair|Fence|Door|Trapdoor|Snow|Cake|Shelf|Cross)Face/
+    /^(?:Block|Slab|Stair|Fence|Door|Trapdoor|Snow|Cake|Shelf|Cross|DoubleCross|Crop)Face/
   );
 }
 
@@ -239,6 +241,7 @@ const script: ScriptDef = (generator: Generator) => {
       "Shelf",
       "Cross",
       "Double Cross",
+      "Crop",
     ]);
 
     const ox = 57;
@@ -287,6 +290,10 @@ const script: ScriptDef = (generator: Generator) => {
       }
       case "Double Cross": {
         drawDoubleCross(generator, blockId, ox, oy, showFolds);
+        break;
+      }
+      case "Crop": {
+        drawCrop(generator, blockId, ox, oy, showFolds);
         break;
       }
     }
