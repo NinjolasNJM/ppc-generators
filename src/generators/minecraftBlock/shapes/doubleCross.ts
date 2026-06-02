@@ -45,8 +45,8 @@ export function drawDoubleCross(
   oy: number,
   showFolds: boolean
 ) {
-  const topFaceId = "CrossFaceTop" + blockId;
-  const bottomFaceId = "CrossFace" + blockId;
+  const topFaceId = "DoubleCrossFaceTop" + blockId;
+  const bottomFaceId = "DoubleCrossFaceBottom" + blockId;
   const regions = makeFaces(ox, oy);
   const topLayers = Face.getFaceTextures(generator, topFaceId);
   const bottomLayers = Face.getFaceTextures(generator, bottomFaceId);
