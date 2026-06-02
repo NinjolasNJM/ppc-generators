@@ -272,7 +272,7 @@ export function Controls({
 
             return (
               <div
-                key={rowControl.id}
+                key={`${rowControl.id ?? rowControl.kind}-${rowControlIndex}`}
                 className={hasWideGapAfter ? "mr-5" : undefined}
               >
                 {renderControl(rowControl, {

@@ -9,6 +9,7 @@ import {
   drawCrossFold,
   drawSidewaysCrossPair,
   getCrossLayout,
+  getStackedCrossFoldLayout,
 } from "./crossShared";
 
 type DoubleCrossFaces = {
@@ -51,6 +52,7 @@ export function drawDoubleCross(
   const bottomLayers = Face.getFaceTextures(generator, bottomFaceId);
   const allLayers = [...topLayers, ...bottomLayers];
   const layout = getCrossLayout(allLayers);
+  const foldLayout = getStackedCrossFoldLayout(topLayers, bottomLayers);
 
   Face.defineInputRegion(generator, bottomFaceId, regions.bottomPair1);
   Face.defineInputRegion(generator, topFaceId, regions.topPair1);
@@ -69,8 +71,12 @@ export function drawDoubleCross(
     drawCrossCenterFold(generator, regions.pair2);
   }
 
-  if (showFolds && layout) {
-    drawCrossFold(generator, layout, regions.pair1, "East");
-    drawCrossFold(generator, layout, regions.pair2, "West");
+  if (showFolds && foldLayout) {
+    drawCrossFold(generator, foldLayout, regions.pair1, "East", {
+      useTranslatedSidewaysTexture: true,
+    });
+    drawCrossFold(generator, foldLayout, regions.pair2, "West", {
+      useTranslatedSidewaysTexture: true,
+    });
   }
 }

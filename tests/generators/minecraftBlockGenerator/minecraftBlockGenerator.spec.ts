@@ -12,6 +12,10 @@ async function selectPlainsTint(page: Page) {
     .click();
 }
 
+async function selectBlockType(page: Page) {
+  await page.getByLabel("Block 1 Type").selectOption({ label: "Block" });
+}
+
 test("minecraft block generator matches the default screenshot", async ({
   page,
 }) => {
@@ -38,6 +42,7 @@ test("minecraft block generator matches the rotated and flipped screenshot", asy
 }) => {
   await page.goto("/generator/minecraft-block");
 
+  await selectBlockType(page);
   await page.getByPlaceholder("Search...").fill("lever");
   await page.getByTitle("lever").click();
   await page.getByLabel("Rotate texture").click();
@@ -62,6 +67,7 @@ test("minecraft block generator matches the rotated and horizontally flipped scr
 }) => {
   await page.goto("/generator/minecraft-block");
 
+  await selectBlockType(page);
   await page.getByPlaceholder("Search...").fill("observer");
   await page.getByTitle("observer front").click();
   await page.getByLabel("Rotate texture").click();
@@ -122,6 +128,7 @@ test("minecraft block generator shows the before and after tinting on the page",
 }) => {
   await page.goto("/generator/minecraft-block");
 
+  await selectBlockType(page);
   await page.getByPlaceholder("Search...").fill("grass_block_top");
   await page.getByTitle("grass block top").click();
   await page.getByTestId("region-BlockFaceTop1").click();
@@ -153,6 +160,7 @@ test("minecraft block generator renders custom atlas textures", async ({
   );
   const sheetBytes = fs.readFileSync(sheetPath);
 
+  await selectBlockType(page);
   await page.getByLabel("Version").selectOption("custom");
   await page
     .getByLabel("Select one or more custom texture files")
@@ -193,6 +201,7 @@ test("minecraft block generator clears the selected texture when switching to cu
 }) => {
   await page.goto("/generator/minecraft-block");
 
+  await selectBlockType(page);
   await page.getByPlaceholder("Search...").fill("lever");
   await page.getByTitle("lever").click();
   await page.getByLabel("Version").selectOption("custom");
@@ -225,6 +234,7 @@ test("minecraft block generator clears the custom selection when the version cha
   );
   const sheetBytes = fs.readFileSync(sheetPath);
 
+  await selectBlockType(page);
   await page.getByLabel("Version").selectOption("custom");
   await page
     .getByLabel("Select one or more custom texture files")
