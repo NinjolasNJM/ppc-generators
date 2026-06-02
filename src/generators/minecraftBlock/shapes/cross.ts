@@ -9,7 +9,7 @@ import {
   drawCrossFold,
   drawCrossPair,
   getCrossLayout,
-} from "./crossShared";
+} from "./shared";
 
 type CrossFaces = {
   pair1: Region;

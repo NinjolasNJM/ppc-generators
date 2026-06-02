@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getCrossSeamGap } from "./crossShared";
+import { getCrossSeamGap } from "./shared";
 
 const size = 128;
 const textureSize = 16;

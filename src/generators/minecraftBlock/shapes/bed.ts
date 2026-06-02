@@ -3,6 +3,7 @@ import {
   type Region,
 } from "@genroot/builder/modules/generator";
 import * as Face from "../face";
+import { rotateRegion } from "./shared";
 
 type Faces = {
   top: Region;
@@ -60,25 +61,21 @@ export function drawBed(
   Face.defineInputRegion(generator, "BedFaceLeft2" + blockId, regions.left2);
   Face.defineInputRegion(generator, "BedFaceBack2" + blockId, regions.back2);
 
-  Face.drawFace(generator, "BedFaceTop" + blockId, [13, 0, 3, 16], regions.top, {
-    rotate: -90,
-  });
+  Face.drawFace(generator, "BedFaceTop" + blockId, [0, 7, 16, 6], regions.top, {
+  rotate: 180,});
   Face.drawFace(
     generator,
     "BedFaceBottom" + blockId,
-    [13, 0, 3, 16],
+    [0, 7, 16, 6],
     regions.bottom,
-    {
-      rotate: 90,
-    }
   );
   Face.drawFace(
     generator,
     "BedFaceRight1" + blockId,
-    [0, 0, 3, 16],
-    regions.right1,
+    [0, 7, 16, 6],
+    rotateRegion(regions.right1),
     {
-      flip: "Horizontal",
+      rotate: 90,
     }
   );
   Face.drawFace(
@@ -87,23 +84,20 @@ export function drawBed(
     [0, 0, 16, 16],
     regions.front1
   );
-  Face.drawFace(generator, "BedFaceLeft1" + blockId, [0, 0, 3, 16], regions.left1);
+  Face.drawFace(generator, "BedFaceLeft1" + blockId, [0, 7, 16, 6], rotateRegion(regions.left1), {rotate: -90,});
   Face.drawFace(
     generator,
     "BedFaceBack1" + blockId,
     [0, 0, 16, 16],
     regions.back1,
-    {
-      flip: "Horizontal",
-    }
   );
   Face.drawFace(
     generator,
     "BedFaceRight2" + blockId,
-    [0, 0, 3, 16],
-    regions.right2,
+    [0, 7, 16, 6],
+    rotateRegion(regions.right2),
     {
-      flip: "Horizontal",
+      rotate: 90,
     }
   );
   Face.drawFace(
@@ -112,15 +106,12 @@ export function drawBed(
     [0, 0, 16, 16],
     regions.front2
   );
-  Face.drawFace(generator, "BedFaceLeft2" + blockId, [0, 0, 3, 16], regions.left2);
+  Face.drawFace(generator, "BedFaceLeft2" + blockId, [0, 7, 16, 6], rotateRegion(regions.left2), {rotate: -90,});
   Face.drawFace(
     generator,
     "BedFaceBack2" + blockId,
     [0, 0, 16, 16],
     regions.back2,
-    {
-      flip: "Horizontal",
-    }
   );
 
   generator.drawImage("Tabs-Bed", [ox - 32, oy - 1]);

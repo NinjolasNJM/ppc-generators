@@ -10,7 +10,7 @@ import {
   type Rectangle,
 } from "../../_common/plugins/texturePicker/textureLayout";
 import * as Face from "../face";
-import { drawCrossCenterFold } from "./crossShared";
+import { drawCrossCenterFold } from "./shared";
 
 type CropFoldDirection = "North" | "South";
 type CropPairConfig = {

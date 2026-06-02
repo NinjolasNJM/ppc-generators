@@ -469,3 +469,8 @@ function rotatePointAround(
 ): Position {
   return [centerX - (y - centerY), centerY + x - centerX];
 }
+
+export function rotateRegion(region: Region): Region {
+  const [x, y, w, h] = region;
+  return [x + (w - h) / 2, y - (w - h) / 2, h, w];
+}

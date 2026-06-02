@@ -10,7 +10,7 @@ import {
   drawSidewaysCrossPair,
   getCrossLayout,
   getStackedCrossFoldLayout,
-} from "./crossShared";
+} from "./shared";
 
 type DoubleCrossFaces = {
   pair1: Region;
