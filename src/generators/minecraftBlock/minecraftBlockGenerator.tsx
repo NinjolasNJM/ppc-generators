@@ -146,7 +146,7 @@ const textures: TextureDef[] = allTextureDefs;
 function clearBlockFaces(generator: Generator): void {
   clearVariablesMatching(
     generator,
-    /^(?:Block|Slab|Stair|Fence|Door|Trapdoor|Snow|Cake|Shelf|Cross|DoubleCross|Crop)Face/
+    /^(?:Block|Slab|Stair|Fence|Door|Trapdoor|Snow|Cake|Shelf|Cross|DoubleCross|Crop|Bed)Face/
   );
 }
 
