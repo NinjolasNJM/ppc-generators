@@ -207,7 +207,7 @@ export function drawBed(
 
   generator.drawImage("Tabs-Bed", [ox - 32, oy - 1]);
 
-  //if (showFolds) {
-  //generator.drawImage("Folds-Bed", [ox - 32, oy - 1]);
-  //}
+  if (showFolds) {
+  generator.drawImage("Folds-Bed", [ox - 32, oy - 1]);
+  }
 }

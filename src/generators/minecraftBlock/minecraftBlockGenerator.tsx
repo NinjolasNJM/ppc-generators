@@ -66,7 +66,7 @@ import tabsCakeRightImage from "./images/Tabs-Cake-Right.png";
 import foldsShelfImage from "./images/Folds-Shelf.png";
 import tabsShelfImage from "./images/Tabs-Shelf.png";
 import tabsBedImage from "./images/Tabs-Bed.png";
-//import foldsBedImage from "./images/Folds-Bed.png";
+import foldsBedImage from "./images/Folds-Bed.png";
 import { drawCross } from "./shapes/cross";
 import { drawDoubleCross } from "./shapes/doubleCross";
 import { drawCrop } from "./shapes/crop";
@@ -137,7 +137,7 @@ const images: ImageDef[] = [
   { id: "Tabs-Cake-Right", url: tabsCakeRightImage.src },
   { id: "Folds-Shelf", url: foldsShelfImage.src },
   { id: "Tabs-Shelf", url: tabsShelfImage.src },
-  //{ id: "Folds-Bed", url: foldsBedImage.src },
+  { id: "Folds-Bed", url: foldsBedImage.src },
   { id: "Tabs-Bed", url: tabsBedImage.src },
 ];
 
