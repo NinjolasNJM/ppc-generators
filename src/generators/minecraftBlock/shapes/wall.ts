@@ -183,37 +183,37 @@ export function drawWall(
     Face.drawFace(
       generator,
       "WallFaceTop" + blockId,
-      [6, 6, 4, 4],
+      [4, 4, 8, 8],
       regions.top
     );
     Face.drawFace(
       generator,
       "WallFaceBottom" + blockId,
-      [6, 6, 4, 4],
+      [4, 4, 8, 8],
       regions.bottom
     );
     Face.drawFace(
       generator,
       "WallFaceRight" + blockId,
-      [6, 0, 4, 16],
+      [4, 0, 8, 16],
       regions.right
     );
     Face.drawFace(
       generator,
       "WallFaceFront" + blockId,
-      [6, 0, 4, 16],
+      [4, 0, 8, 16],
       regions.front
     );
     Face.drawFace(
       generator,
       "WallFaceLeft" + blockId,
-      [6, 0, 4, 16],
+      [4, 0, 8, 16],
       regions.left
     );
     Face.drawFace(
       generator,
       "WallFaceBack" + blockId,
-      [6, 0, 4, 16],
+      [4, 0, 8, 16],
       regions.back
     );
   }
@@ -223,39 +223,40 @@ export function drawWall(
     Face.drawFace(
       generator,
       "WallFaceTop" + blockId,
-      [10, 7, 6, 2],
-      regions.stop1
+      [0, 5, 5, 6],
+      regions.stop1,
+      { rotate: 180 }
     );
     Face.drawFace(
       generator,
       "WallFaceBottom" + blockId,
-      [10, 7, 6, 2],
-      regions.sbottom1
+      [0, 5, 5, 6],
+      regions.sbottom1,
+      { rotate: 180 }
     );
     Face.drawFace(
       generator,
       "WallFaceRight" + blockId,
-      [7, 1, 2, 3],
+      [5, 0, 6, 16],
       regions.sright1
     );
     Face.drawFace(
       generator,
       "WallFaceFront" + blockId,
-      [10, 1, 6, 3],
+      [11, 0, 5, 16],
       regions.sfront1
     );
     Face.drawFace(
       generator,
       "WallFaceLeft" + blockId,
-      [7, 1, 2, 3],
+      [5, 0, 6, 16],
       regions.sleft1
     );
     Face.drawFace(
       generator,
       "WallFaceBack" + blockId,
-      [0, 1, 6, 3],
-      regions.sback1,
-      { rotate: 180.0 }
+      [0, 0, 5, 16],
+      regions.sback1
     );
   }
 
@@ -264,39 +265,38 @@ export function drawWall(
     Face.drawFace(
       generator,
       "WallFaceTop" + blockId,
-      [10, 7, 6, 2],
+      [11, 5, 5, 6],
       regions.stop2
     );
     Face.drawFace(
       generator,
       "WallFaceBottom" + blockId,
-      [10, 7, 6, 2],
+      [11, 5, 5, 6],
       regions.sbottom2
     );
     Face.drawFace(
       generator,
       "WallFaceRight" + blockId,
-      [7, 7, 2, 3],
+      [5, 0, 6, 16],
       regions.sright2
     );
     Face.drawFace(
       generator,
       "WallFaceFront" + blockId,
-      [10, 7, 6, 3],
+      [11, 0, 5, 16],
       regions.sfront2
     );
     Face.drawFace(
       generator,
       "WallFaceLeft" + blockId,
-      [7, 7, 2, 3],
+      [5, 0, 6, 16],
       regions.sleft2
     );
     Face.drawFace(
       generator,
       "WallFaceBack" + blockId,
-      [0, 7, 6, 3],
-      regions.sback2,
-      { rotate: 180.0 }
+      [0, 0, 5, 16],
+      regions.sback2
     );
   }
 
@@ -305,39 +305,38 @@ export function drawWall(
     Face.drawFace(
       generator,
       "WallFaceTop" + blockId,
-      [10, 7, 6, 2],
+      [0, 5, 16, 6],
       regions.ltop1
     );
     Face.drawFace(
       generator,
       "WallFaceBottom" + blockId,
-      [10, 7, 6, 2],
+      [0, 5, 16, 6],
       regions.lbottom1
     );
     Face.drawFace(
       generator,
       "WallFaceRight" + blockId,
-      [7, 1, 2, 3],
+      [5, 0, 6, 16],
       regions.lright1
     );
     Face.drawFace(
       generator,
       "WallFaceFront" + blockId,
-      [10, 1, 6, 3],
+      [0, 0, 16, 16],
       regions.lfront1
     );
     Face.drawFace(
       generator,
       "WallFaceLeft" + blockId,
-      [7, 1, 2, 3],
+      [5, 0, 6, 16],
       regions.lleft1
     );
     Face.drawFace(
       generator,
       "WallFaceBack" + blockId,
-      [0, 1, 6, 3],
-      regions.lback1,
-      { rotate: 180.0 }
+      [0, 0, 16, 16],
+      regions.lback1
     );
   }
 
