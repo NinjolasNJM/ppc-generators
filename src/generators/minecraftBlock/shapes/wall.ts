@@ -42,17 +42,19 @@ type Faces = {
   lfront1: Region;
   lleft1: Region;
   lback1: Region;
+
+  rightSideControl: Region;
 };
 
 const size = 128; // 16
 const size2 = 64; // 8
 const size3 = 48; // 6
-const sizex = 40; // 5
-const sizey = 128; // 6. So youll have a sizey = 16 or 14, or a sizex = 4 or 5.
+const sizeXWithoutPost = 40; // 5
+const sizeXWithPost = 32; // 4
+const tallSizeY = 128; // 16
+const shortSizeY = 112; // 14
 const x1 = 304;
 const x2 = 80;
-const y1 = 0;
-const y2 = 208;
 
 const wallShapeOptions: WallShape[] = [
   "Post and Side",
@@ -66,36 +68,54 @@ const wallShapeImageSuffixes: Record<WallShape, string> = {
   "Straight Segment": "Straight",
 };
 
-function makeFaces(ox: number, oy: number): Faces {
+function makeFaces(
+  ox: number,
+  oy: number,
+  isTall: boolean,
+  withPost: boolean
+): Faces {
+  const sizex = withPost ? sizeXWithPost : sizeXWithoutPost;
+  const sideInsetX = sizeXWithoutPost - sizex;
+  const sizey = isTall ? tallSizeY : shortSizeY;
+  const y1 = isTall ? 0 : tallSizeY - shortSizeY;
+  const wallTopY = oy + size + y1 - size3;
+  const wallBodyY = oy + size + y1;
+  const wallBottomY = wallBodyY + sizey;
+  const leftSideX = ox + sideInsetX;
+  const rightSideX = ox + x1 + sideInsetX;
+  const sideTotalWidth = size3 * 2 + sizex * 2;
+  const sideTotalHeight = wallBottomY + size3 - wallTopY;
+
   return {
     // wall post = 8x16x8
     top: [ox + size2, oy + size2, size2, size2],
     bottom: [ox + size2, oy + size * 2, size2, size2],
-    right: [ox, oy + size, size2, sizey],
-    front: [ox + size2, oy + size, size2, sizey],
-    left: [ox + size, oy + size, size2, sizey],
-    back: [ox + size + size2, oy + size, size2, sizey],
+    right: [ox, oy + size, size2, size],
+    front: [ox + size2, oy + size, size2, size],
+    left: [ox + size, oy + size, size2, size],
+    back: [ox + size + size2, oy + size, size2, size],
     // left wall side = 5x16x6- will be 4 as default
-    stop1: [ox + size3, oy + sizey - size3, sizex, size3],
-    sbottom1: [ox  + size3, oy + size * 2, sizex, size3],
-    sright1: [ox, oy + size, size3, sizey],
-    sfront1: [ox + size3, oy + size, sizex, sizey],
-    sleft1: [ox + size3 + sizex, oy + size, size3, sizey],
-    sback1: [ox + size3 * 2 + sizex, oy + size, sizex, sizey],
+    stop1: [leftSideX + size3, wallTopY, sizex, size3],
+    sbottom1: [leftSideX + size3, wallBottomY, sizex, size3],
+    sright1: [leftSideX, wallBodyY, size3, sizey],
+    sfront1: [leftSideX + size3, wallBodyY, sizex, sizey],
+    sleft1: [leftSideX + size3 + sizex, wallBodyY, size3, sizey],
+    sback1: [leftSideX + size3 * 2 + sizex, wallBodyY, sizex, sizey],
     // right wall side = 5x16x6- will be 4 as default
-    stop2: [ox + x1 + size3, oy + sizey - size3, sizex, size3],
-    sbottom2: [ox + x1 + size3, oy + size * 2, sizex, size3],
-    sright2: [ox + x1, oy + size, size3, sizey],
-    sfront2: [ox + x1 + size3, oy + size, sizex, sizey],
-    sleft2: [ox + x1 + size3 + sizex, oy + size, size3, sizey],
-    sback2: [ox + x1 + size3 * 2 + sizex, oy + size, sizex, sizey],
+    stop2: [rightSideX + size3, wallTopY, sizex, size3],
+    sbottom2: [rightSideX + size3, wallBottomY, sizex, size3],
+    sright2: [rightSideX, wallBodyY, size3, sizey],
+    sfront2: [rightSideX + size3, wallBodyY, sizex, sizey],
+    sleft2: [rightSideX + size3 + sizex, wallBodyY, size3, sizey],
+    sback2: [rightSideX + size3 * 2 + sizex, wallBodyY, sizex, sizey],
     // straight wall segment = 16x16x6
-    ltop1: [ox + x2 + size3, oy + y1 + size - size3, size, size3],
-    lbottom1: [ox + x2 + size3, oy + y1 + size * 2, size, size3],
-    lright1: [ox + x2, oy + y1 + size, size3, sizey],
-    lfront1: [ox + x2 + size3, oy + y1 + size, size, sizey],
-    lleft1: [ox + x2 + size3 + size, oy + y1 + size, size3, sizey],
-    lback1: [ox + x2 + size3 * 2 + size, oy + y1 + size, size, sizey],
+    ltop1: [ox + x2 + size3, wallTopY, size, size3],
+    lbottom1: [ox + x2 + size3, wallBottomY, size, size3],
+    lright1: [ox + x2, wallBodyY, size3, sizey],
+    lfront1: [ox + x2 + size3, wallBodyY, size, sizey],
+    lleft1: [ox + x2 + size3 + size, wallBodyY, size3, sizey],
+    lback1: [ox + x2 + size3 * 2 + size, wallBodyY, size, sizey],
+    rightSideControl: [rightSideX, wallTopY, sideTotalWidth, sideTotalHeight],
   };
 }
 
@@ -114,8 +134,22 @@ export function drawWall(
     shapeInput === "Two Sides" || shapeInput === "Straight Segment"
       ? shapeInput
       : "Post and Side";
+  const isTall = generator.defineAndGetBooleanInput(
+    "Block " + blockId + " Tall Wall",
+    false
+  );
+  const withPostInputId = "Block " + blockId + " Wall With Post";
+  const withPost = generator.getBooleanInputValueWithDefault(
+    withPostInputId,
+    true
+  );
   const imageSuffix = wallShapeImageSuffixes[shape];
-  const regions = makeFaces(ox, oy);
+  const regions = makeFaces(ox, oy, isTall, withPost);
+  const wallSourceY = isTall ? 0 : 2;
+  const wallSourceHeight = isTall ? 16 : 14;
+  const sideSourceX = withPost ? 0 : 1;
+  const sideSourceWidth = withPost ? 4 : 5;
+  const frontSourceX = withPost ? 12 : 11;
 
   const drawPost = shape === "Post and Side";
   const drawLeftSide = shape === "Two Sides";
@@ -178,6 +212,16 @@ export function drawWall(
     Face.defineInputRegion(generator, "WallFaceBack" + blockId, regions.lback1);
   }
 
+  if (drawRightSide) {
+    generator.defineRegionInput(
+      regions.rightSideControl,
+      () => {
+        generator.setBooleanInputValue(withPostInputId, !withPost);
+      },
+      withPostInputId
+    );
+  }
+
   // Post and Side draws only the editable post plus the matching right side.
   if (drawPost) {
     Face.drawFace(
@@ -223,39 +267,39 @@ export function drawWall(
     Face.drawFace(
       generator,
       "WallFaceTop" + blockId,
-      [0, 5, 5, 6],
+      [sideSourceX, 5, sideSourceWidth, 6],
       regions.stop1,
       { rotate: 180 }
     );
     Face.drawFace(
       generator,
       "WallFaceBottom" + blockId,
-      [0, 5, 5, 6],
+      [sideSourceX, 5, sideSourceWidth, 6],
       regions.sbottom1,
       { rotate: 180 }
     );
     Face.drawFace(
       generator,
       "WallFaceRight" + blockId,
-      [5, 0, 6, 16],
+      [5, wallSourceY, 6, wallSourceHeight],
       regions.sright1
     );
     Face.drawFace(
       generator,
       "WallFaceFront" + blockId,
-      [11, 0, 5, 16],
+      [frontSourceX, wallSourceY, sideSourceWidth, wallSourceHeight],
       regions.sfront1
     );
     Face.drawFace(
       generator,
       "WallFaceLeft" + blockId,
-      [5, 0, 6, 16],
+      [5, wallSourceY, 6, wallSourceHeight],
       regions.sleft1
     );
     Face.drawFace(
       generator,
       "WallFaceBack" + blockId,
-      [0, 0, 5, 16],
+      [sideSourceX, wallSourceY, sideSourceWidth, wallSourceHeight],
       regions.sback1
     );
   }
@@ -265,37 +309,37 @@ export function drawWall(
     Face.drawFace(
       generator,
       "WallFaceTop" + blockId,
-      [11, 5, 5, 6],
+      [frontSourceX, 5, sideSourceWidth, 6],
       regions.stop2
     );
     Face.drawFace(
       generator,
       "WallFaceBottom" + blockId,
-      [11, 5, 5, 6],
+      [frontSourceX, 5, sideSourceWidth, 6],
       regions.sbottom2
     );
     Face.drawFace(
       generator,
       "WallFaceRight" + blockId,
-      [5, 0, 6, 16],
+      [5, wallSourceY, 6, wallSourceHeight],
       regions.sright2
     );
     Face.drawFace(
       generator,
       "WallFaceFront" + blockId,
-      [11, 0, 5, 16],
+      [frontSourceX, wallSourceY, sideSourceWidth, wallSourceHeight],
       regions.sfront2
     );
     Face.drawFace(
       generator,
       "WallFaceLeft" + blockId,
-      [5, 0, 6, 16],
+      [5, wallSourceY, 6, wallSourceHeight],
       regions.sleft2
     );
     Face.drawFace(
       generator,
       "WallFaceBack" + blockId,
-      [0, 0, 5, 16],
+      [sideSourceX, wallSourceY, sideSourceWidth, wallSourceHeight],
       regions.sback2
     );
   }
@@ -317,25 +361,25 @@ export function drawWall(
     Face.drawFace(
       generator,
       "WallFaceRight" + blockId,
-      [5, 0, 6, 16],
+      [5, wallSourceY, 6, wallSourceHeight],
       regions.lright1
     );
     Face.drawFace(
       generator,
       "WallFaceFront" + blockId,
-      [0, 0, 16, 16],
+      [0, wallSourceY, 16, wallSourceHeight],
       regions.lfront1
     );
     Face.drawFace(
       generator,
       "WallFaceLeft" + blockId,
-      [5, 0, 6, 16],
+      [5, wallSourceY, 6, wallSourceHeight],
       regions.lleft1
     );
     Face.drawFace(
       generator,
       "WallFaceBack" + blockId,
-      [0, 0, 16, 16],
+      [0, wallSourceY, 16, wallSourceHeight],
       regions.lback1
     );
   }
