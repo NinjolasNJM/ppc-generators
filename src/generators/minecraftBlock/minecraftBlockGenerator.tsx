@@ -30,6 +30,7 @@ import { drawBlock } from "./shapes/block";
 import { drawSlab } from "./shapes/slab";
 import { drawStair } from "./shapes/stair";
 import { drawFence } from "./shapes/fence";
+import { drawWall } from "./shapes/wall";
 import { drawDoor } from "./shapes/door";
 import { drawTrapdoor } from "./shapes/trapdoor";
 import { drawSnow } from "./shapes/snow";
@@ -47,6 +48,12 @@ import foldsStairImage from "./images/Folds-Stair.png";
 import tabsStairImage from "./images/Tabs-Stair.png";
 import foldsFenceImage from "./images/Folds-Fence.png";
 import tabsFenceImage from "./images/Tabs-Fence.png";
+import foldsWallPostImage from "./images/Folds-Wall-Post.png";
+import tabsWallPostImage from "./images/Tabs-Wall-Post.png";
+import foldsWallSidesImage from "./images/Folds-Wall-Sides.png";
+import tabsWallSidesImage from "./images/Tabs-Wall-Sides.png";
+import foldsWallStraightImage from "./images/Folds-Wall-Straight.png";
+import tabsWallStraightImage from "./images/Tabs-Wall-Straight.png";
 import foldsDoorImage from "./images/Folds-Door.png";
 import tabsDoorImage from "./images/Tabs-Door.png";
 import foldsTrapdoorImage from "./images/Folds-Trapdoor.png";
@@ -82,6 +89,7 @@ const history: HistoryDef = [
   "Jan 2022 NinjolasNJM - Add Cake Block type.",
   "May 2026 NinjolasNJM - Add Shelf Block type.",
   "Jun 2026 NinjolasNJM - Add Crop Block type.",
+  "Jun 2026 NinjolasNJM - Add Wall Block type.",
   "May 2026 NinjolasNJM - Changed to use new glint and tint input.",
 ];
 
@@ -119,6 +127,12 @@ const images: ImageDef[] = [
   { id: "Tabs-Stair", url: tabsStairImage.src },
   { id: "Folds-Fence", url: foldsFenceImage.src },
   { id: "Tabs-Fence", url: tabsFenceImage.src },
+  { id: "Folds-Wall-Post", url: foldsWallPostImage.src },
+  { id: "Tabs-Wall-Post", url: tabsWallPostImage.src },
+  { id: "Folds-Wall-Sides", url: foldsWallSidesImage.src },
+  { id: "Tabs-Wall-Sides", url: tabsWallSidesImage.src },
+  { id: "Folds-Wall-Straight", url: foldsWallStraightImage.src },
+  { id: "Tabs-Wall-Straight", url: tabsWallStraightImage.src },
   { id: "Folds-Door", url: foldsDoorImage.src },
   { id: "Tabs-Door", url: tabsDoorImage.src },
   { id: "Folds-Trapdoor", url: foldsTrapdoorImage.src },
@@ -146,7 +160,7 @@ const textures: TextureDef[] = allTextureDefs;
 function clearBlockFaces(generator: Generator): void {
   clearVariablesMatching(
     generator,
-    /^(?:Block|Slab|Stair|Fence|Door|Trapdoor|Snow|Cake|Shelf|Cross|DoubleCross|Crop|Bed)Face/
+    /^(?:Block|Slab|Stair|Fence|Wall|Door|Trapdoor|Snow|Cake|Shelf|Cross|DoubleCross|Crop|Bed)Face/
   );
 }
 
@@ -235,6 +249,7 @@ const script: ScriptDef = (generator: Generator) => {
 
     generator.defineInputRowStart();
     const blockType = generator.defineAndGetSelectInput(typeName, [
+      "Wall",
       "Block",
       "Slab",
       "Stair",
@@ -268,6 +283,10 @@ const script: ScriptDef = (generator: Generator) => {
       }
       case "Fence": {
         drawFence(generator, blockId, ox, oy, showFolds);
+        break;
+      }
+      case "Wall": {
+        drawWall(generator, blockId, ox, oy, showFolds);
         break;
       }
       case "Door": {
@@ -340,6 +359,7 @@ const script: ScriptDef = (generator: Generator) => {
   generator.defineInputRowEnd();
 
   generator.drawImage("Title", [0, 0]);
+  generator.fillBackgroundColor("#ff8000");
 };
 
 export const generator: GeneratorDef = {

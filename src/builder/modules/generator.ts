@@ -222,6 +222,11 @@ export class Generator {
     this.model.usePage(id, options);
   }
 
+  fillBackgroundColor(color: string) {
+    const page = this.getCurrentPage();
+    fillBackgroundColor(page.canvasWithContext, color);
+  }
+
   fillBackgroundColorWithWhite() {
     const page = this.getCurrentPage();
     fillBackgroundColor(page.canvasWithContext, "#ffffff");
