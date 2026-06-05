@@ -35,6 +35,7 @@ export function Pages({
             ? `${generatorDef.name} - ${page.id}`
             : generatorDef.name;
         const isFirstPage = pageIndex === 0;
+        const displaySize = getDisplayPageSize(page);
 
         return (
           <div key={page.id}>
@@ -44,7 +45,7 @@ export function Pages({
 
             <div
               className="relative mb-6 flex flex-wrap items-center justify-between gap-2"
-              style={{ maxWidth: px(page.sizes.px.width) }}
+              style={{ maxWidth: px(displaySize.width) }}
             >
               {showPageIds && isFirstPage ? (
                 <h1 className="absolute -top-10 left-0 font-bold text-2xl">
@@ -65,7 +66,7 @@ export function Pages({
             <div
               className="relative"
               style={{
-                maxWidth: px(page.sizes.px.width + pageBorderWidth * 2),
+                maxWidth: px(displaySize.width + pageBorderWidth * 2),
               }}
             >
               <img
@@ -73,7 +74,7 @@ export function Pages({
                 className="mb-8 border shadow-xl"
                 style={{
                   imageRendering: "pixelated",
-                  width: px(page.sizes.px.width),
+                  width: px(displaySize.width),
                   height: "auto",
                 }}
                 data-testid="generator-page-image"
@@ -98,4 +99,15 @@ export function Pages({
       })}
     </div>
   );
+}
+
+function getDisplayPageSize(page: Model["pages"][number]) {
+  if (page.size === "A4_Large") {
+    return {
+      width: page.sizes.px.width / 3,
+      height: page.sizes.px.height / 3,
+    };
+  }
+
+  return page.sizes.px;
 }

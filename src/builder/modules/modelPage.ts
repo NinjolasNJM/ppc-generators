@@ -13,7 +13,7 @@ export type PageSizes = {
   mm: PageSize;
 };
 
-export type PageSizeId = "A4";
+export type PageSizeId = "A4" | "A4_Large";
 export type PageOrientation = "portrait" | "landscape";
 
 export const A4: PageSizes = {
@@ -21,8 +21,14 @@ export const A4: PageSizes = {
   mm: { width: 210, height: 297 },
 };
 
+export const A4_Large: PageSizes = {
+  px: { width: 1785, height: 2526 },
+  mm: { width: 630, height: 891 },
+};
+
 const pageSizeDefinitions: Record<PageSizeId, PageSizes> = {
   A4,
+  A4_Large,
 };
 
 export type PageOptions = {

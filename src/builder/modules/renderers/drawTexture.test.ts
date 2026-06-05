@@ -1,3 +1,5 @@
+import path from "path";
+import sharp from "sharp";
 import { describe, expect, it, vi } from "vitest";
 import type { CanvasWithContext } from "../canvasWithContext";
 import type { Texture } from "../texture";
@@ -13,6 +15,13 @@ type FakeCanvas = {
   pixels: PixelKey[];
 };
 
+type ImageDataCall = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
 type FakeContext = {
   canvas: FakeCanvas;
   context: FakeContext;
@@ -20,9 +29,22 @@ type FakeContext = {
   width: number;
   height: number;
   fillStyle: string;
-  getImageData: (x: number, y: number, width: number, height: number) => {
+  getImageDataCalls: ImageDataCall[];
+  getImageData: (
+    x: number,
+    y: number,
+    width: number,
+    height: number
+  ) => {
     data: Uint8ClampedArray;
+    width: number;
+    height: number;
   };
+  putImageData: (
+    imageData: { data: Uint8ClampedArray; width: number; height: number },
+    x: number,
+    y: number
+  ) => void;
   fillRect: (x: number, y: number, width: number, height: number) => void;
   drawImage: (canvas: FakeCanvas, dx: number, dy: number) => void;
   save: () => void;
@@ -39,7 +61,9 @@ function makePixelKey(r: number, g: number, b: number, a: number): PixelKey {
 
 function parseRgba(value: string): PixelKey {
   const match =
-    /^rgba\((\d+),\s*(\d+),\s*(\d+),\s*([0-9]*\.?[0-9]+)\)$/.exec(value);
+    /^rgba\(([0-9]*\.?[0-9]+),\s*([0-9]*\.?[0-9]+),\s*([0-9]*\.?[0-9]+),\s*([0-9]*\.?[0-9]+)\)$/.exec(
+      value
+    );
   if (!match) {
     return null;
   }
@@ -49,6 +73,34 @@ function parseRgba(value: string): PixelKey {
   const b = Number(match[3]);
   const a = Math.round(Number(match[4]) * 255);
   return makePixelKey(r, g, b, a);
+}
+
+function premultiplyPixelKey(key: PixelKey): PixelKey {
+  const [r, g, b, a] = keyToRgba(key);
+  if (a <= 0 || a >= 255) {
+    return key;
+  }
+
+  const alpha = a / 255;
+  return makePixelKey(r * alpha, g * alpha, b * alpha, a);
+}
+
+function sourceOverPixelKey(
+  sourceKey: PixelKey,
+  destinationKey: PixelKey
+): PixelKey {
+  const [sourceR, sourceG, sourceB, sourceA] = keyToRgba(sourceKey);
+  const [destinationR, destinationG, destinationB, destinationA] =
+    keyToRgba(destinationKey);
+  const sourceAlpha = sourceA / 255;
+  const destinationAlpha = destinationA / 255;
+
+  return makePixelKey(
+    Math.round(sourceR + destinationR * (1 - sourceAlpha)),
+    Math.round(sourceG + destinationG * (1 - sourceAlpha)),
+    Math.round(sourceB + destinationB * (1 - sourceAlpha)),
+    Math.round(255 * (sourceAlpha + destinationAlpha * (1 - sourceAlpha)))
+  );
 }
 
 function keyToRgba(key: PixelKey): [number, number, number, number] {
@@ -121,6 +173,7 @@ function getPixel(canvas: FakeCanvas, x: number, y: number): PixelKey {
 function makeFakeContext(width: number, height: number): FakeContext {
   const canvas = makeFakeCanvas(width, height);
   const stack: Matrix[] = [];
+  const getImageDataCalls: ImageDataCall[] = [];
   let matrix = makeIdentityMatrix();
   let fillStyle = "rgba(0, 0, 0, 0)";
 
@@ -130,13 +183,20 @@ function makeFakeContext(width: number, height: number): FakeContext {
     contextWithAlpha: undefined as unknown as FakeContext,
     width,
     height,
+    getImageDataCalls,
     get fillStyle() {
       return fillStyle;
     },
     set fillStyle(value: string) {
       fillStyle = value;
     },
-    getImageData: (x: number, y: number, dataWidth: number, dataHeight: number) => {
+    getImageData: (
+      x: number,
+      y: number,
+      dataWidth: number,
+      dataHeight: number
+    ) => {
+      getImageDataCalls.push({ x, y, width: dataWidth, height: dataHeight });
       const data = new Uint8ClampedArray(dataWidth * dataHeight * 4);
       let index = 0;
       for (let row = 0; row < dataHeight; row += 1) {
@@ -150,7 +210,31 @@ function makeFakeContext(width: number, height: number): FakeContext {
           index += 4;
         }
       }
-      return { data };
+      return { data, width: dataWidth, height: dataHeight };
+    },
+    putImageData: (
+      imageData: { data: Uint8ClampedArray; width: number; height: number },
+      x: number,
+      y: number
+    ) => {
+      const dataWidth = imageData.width;
+      let index = 0;
+      for (let row = 0; row < imageData.height; row += 1) {
+        for (let col = 0; col < dataWidth; col += 1) {
+          setPixel(
+            canvas,
+            x + col,
+            y + row,
+            makePixelKey(
+              imageData.data[index + 0] ?? 0,
+              imageData.data[index + 1] ?? 0,
+              imageData.data[index + 2] ?? 0,
+              imageData.data[index + 3] ?? 0
+            )
+          );
+          index += 4;
+        }
+      }
     },
     fillRect: (x: number, y: number, rectWidth: number, rectHeight: number) => {
       const key = parseRgba(fillStyle);
@@ -174,7 +258,15 @@ function makeFakeContext(width: number, height: number): FakeContext {
           const transformedY = matrix[1] * x + matrix[3] * y + matrix[5];
           const destX = Math.round(transformedX - 0.5);
           const destY = Math.round(transformedY - 0.5);
-          setPixel(canvas, destX, destY, key);
+          setPixel(
+            canvas,
+            destX,
+            destY,
+            sourceOverPixelKey(
+              premultiplyPixelKey(key),
+              getPixel(canvas, destX, destY)
+            )
+          );
         }
       }
     },
@@ -235,6 +327,35 @@ function makeSourceTexture(pixels: PixelKey[][]): Texture {
   } as Texture;
 }
 
+async function readTextureColumn({
+  imagePath,
+  x,
+  y,
+  height,
+}: {
+  imagePath: string;
+  x: number;
+  y: number;
+  height: number;
+}): Promise<PixelKey[][]> {
+  const { data, info } = await sharp(imagePath)
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+
+  return Array.from({ length: height }, (_, row) => {
+    const index = ((y + row) * info.width + x) * 4;
+    return [
+      makePixelKey(
+        data[index + 0] ?? 0,
+        data[index + 1] ?? 0,
+        data[index + 2] ?? 0,
+        data[index + 3] ?? 0
+      ),
+    ];
+  });
+}
+
 function rotatePixels(
   pixels: PixelKey[][],
   rotation: "Rot0" | "Rot90" | "Rot180" | "Rot270"
@@ -243,15 +364,22 @@ function rotatePixels(
     case "Rot0":
       return pixels.map((row) => row.slice());
     case "Rot90":
-      return pixels[0]?.map((_, x) =>
-        pixels.map((row) => row[x] ?? null).reverse()
-      ) ?? [];
+      return (
+        pixels[0]?.map((_, x) =>
+          pixels.map((row) => row[x] ?? null).reverse()
+        ) ?? []
+      );
     case "Rot180":
-      return pixels.slice().reverse().map((row) => row.slice().reverse());
+      return pixels
+        .slice()
+        .reverse()
+        .map((row) => row.slice().reverse());
     case "Rot270":
-      return pixels[0]?.map((_, x) =>
-        pixels.map((row) => row[row.length - 1 - x] ?? null)
-      ) ?? [];
+      return (
+        pixels[0]?.map((_, x) =>
+          pixels.map((row) => row[row.length - 1 - x] ?? null)
+        ) ?? []
+      );
   }
 }
 
@@ -265,7 +393,10 @@ function flipPixels(
     case "Horizontal":
       return pixels.map((row) => row.slice().reverse());
     case "Vertical":
-      return pixels.slice().reverse().map((row) => row.slice());
+      return pixels
+        .slice()
+        .reverse()
+        .map((row) => row.slice());
   }
 }
 
@@ -279,14 +410,8 @@ function expectedPixels(
 
 describe("drawTexture", () => {
   const sourcePixels: PixelKey[][] = [
-    [
-      makePixelKey(255, 0, 0, 255),
-      makePixelKey(0, 255, 0, 255),
-    ],
-    [
-      makePixelKey(0, 0, 255, 255),
-      makePixelKey(255, 255, 0, 255),
-    ],
+    [makePixelKey(255, 0, 0, 255), makePixelKey(0, 255, 0, 255)],
+    [makePixelKey(0, 0, 255, 255), makePixelKey(255, 255, 0, 255)],
   ];
 
   const texture = makeSourceTexture(sourcePixels);
@@ -335,7 +460,9 @@ describe("drawTexture", () => {
         options
       );
 
-      expect(page.getPixels()).toEqual(expectedPixels(sourcePixels, rotation, flip));
+      expect(page.getPixels()).toEqual(
+        expectedPixels(sourcePixels, rotation, flip)
+      );
     });
   });
 
@@ -343,19 +470,104 @@ describe("drawTexture", () => {
     const rotatedOnly = makeFakeContext(2, 2);
     const rotatedAndFlipped = makeFakeContext(2, 2);
 
-    drawTexture(rotatedOnly as unknown as CanvasWithContext, texture, sourceRegion, destinationRegion, {
-      rotate: 90,
-      flip: "None",
-    });
+    drawTexture(
+      rotatedOnly as unknown as CanvasWithContext,
+      texture,
+      sourceRegion,
+      destinationRegion,
+      {
+        rotate: 90,
+        flip: "None",
+      }
+    );
 
-    drawTexture(rotatedAndFlipped as unknown as CanvasWithContext, texture, sourceRegion, destinationRegion, {
-      rotate: 90,
-      flip: "Horizontal",
-    });
+    drawTexture(
+      rotatedAndFlipped as unknown as CanvasWithContext,
+      texture,
+      sourceRegion,
+      destinationRegion,
+      {
+        rotate: 90,
+        flip: "Horizontal",
+      }
+    );
 
     expect(rotatedAndFlipped.getPixels()).toEqual(
       expectedPixels(sourcePixels, "Rot90", "Horizontal")
     );
     expect(rotatedAndFlipped.getPixels()).not.toEqual(rotatedOnly.getPixels());
+  });
+
+  it("renders sampled blue base and cyan gradient pixels without double alpha", async () => {
+    const page = makeFakeContext(1, 40);
+    const bannerPatternsPath = path.resolve(
+      "src/generators/minecraftBannerAndShield/textures/texture_minecraft_26_1_2_banner_patterns.png"
+    );
+    const frontFaceX = 1 + 10;
+    const frontFaceY = 1;
+    const basePixels = await readTextureColumn({
+      imagePath: bannerPatternsPath,
+      x: 64 + frontFaceX,
+      y: frontFaceY,
+      height: 40,
+    });
+    const gradientPixels = await readTextureColumn({
+      imagePath: bannerPatternsPath,
+      x: 448 + frontFaceX,
+      y: 64 + frontFaceY,
+      height: 40,
+    });
+
+    drawTexture(
+      page as unknown as CanvasWithContext,
+      makeSourceTexture(basePixels),
+      [0, 0, 1, 40],
+      [0, 0, 1, 40],
+      {
+        blend: {
+          kind: "MultiplyHex",
+          hex: "#3C44AA",
+        },
+      }
+    );
+
+    drawTexture(
+      page as unknown as CanvasWithContext,
+      makeSourceTexture(gradientPixels),
+      [0, 0, 1, 40],
+      [0, 0, 1, 40],
+      {
+        blend: {
+          kind: "MultiplyHex",
+          hex: "#169C9C",
+        },
+      }
+    );
+
+    expect(page.getPixels()[0]?.[0]).toBe(makePixelKey(20, 143, 143, 255));
+    expect(page.getPixels()[20]?.[0]).toBe(makePixelKey(39, 106, 155, 255));
+    expect(page.getPixels()[39]?.[0]).toBe(makePixelKey(55, 62, 155, 255));
+  });
+
+  it("limits direct multiply readback to the affected destination area", () => {
+    const page = makeFakeContext(100, 100);
+    const source = makeSourceTexture([[makePixelKey(255, 255, 255, 255)]]);
+
+    drawTexture(
+      page as unknown as CanvasWithContext,
+      source,
+      [0, 0, 1, 1],
+      [40, 50, 5, 6],
+      {
+        blend: {
+          kind: "MultiplyHex",
+          hex: "#3C44AA",
+        },
+      }
+    );
+
+    expect(page.getImageDataCalls).toEqual([
+      { x: 39, y: 49, width: 7, height: 8 },
+    ]);
   });
 });
