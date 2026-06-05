@@ -230,7 +230,6 @@ const textures: TextureDef[] = [
     standardHeight: 64,
   },
   ...entityGlintTextureDefs,
-  ...entityGlintTextureDefs,
 ];
 
 const script: ScriptDef = (generator: Generator) => {
@@ -278,8 +277,6 @@ const script: ScriptDef = (generator: Generator) => {
     choices: ["Leather", "Gold", "Copper", "Iron", "Diamond", "Netherite"],
   });
 
-  const glint = defineGlintControls(generator);
-
   // Define user variables
 
   const tintArmor = generator.defineAndGetBooleanInput("Tint Armor", false);
@@ -298,6 +295,9 @@ const script: ScriptDef = (generator: Generator) => {
 
   generator.defineBooleanInput("Show Folds", true);
   generator.defineBooleanInput("Show Labels", true);
+
+  const glint = defineGlintControls(generator);
+  
   generator.defineRegionInput([256, 249, 124, 72], () => {
     generator.setBooleanInputValue("Donkey / Mule Model", !muleModel);
   });
