@@ -24,7 +24,9 @@ const widthScale = heightScale * 1.265625;
 export const crossWidth = size * 1.265625;
 
 export type CrossLayout = ReturnType<typeof getTextureLayout>;
-type LayerHalf = ReturnType<typeof getLayerHalfDestinationWithScale>;
+export type TextureLayerHalf = ReturnType<
+  typeof getLayerHalfDestinationWithScale
+>;
 type Bounds = { x: number; y: number; width: number; height: number };
 type TextureSide = "start" | "end";
 type CrossFoldOptions = {
@@ -56,9 +58,9 @@ export function getStackedCrossFoldLayout(
   };
 }
 
-export function getCrossSeamGap(
-  left: Pick<LayerHalf, "x" | "width">,
-  right: Pick<LayerHalf, "x" | "width">
+export function getMirroredSeamGap(
+  left: Pick<TextureLayerHalf, "x" | "width">,
+  right: Pick<TextureLayerHalf, "x" | "width">
 ): number {
   const leftEnd = Math.round(left.x) + Math.floor(left.width) - 1;
   const flippedRightStart = Math.round(
@@ -66,6 +68,51 @@ export function getCrossSeamGap(
   );
 
   return Math.max(0, flippedRightStart - leftEnd - 1);
+}
+
+export function getCrossSeamGap(
+  left: Pick<TextureLayerHalf, "x" | "width">,
+  right: Pick<TextureLayerHalf, "x" | "width">
+): number {
+  return getMirroredSeamGap(left, right);
+}
+
+export function alignCoordinateToRenderedMirror(
+  coordinate: number,
+  mirrorCoordinate: number,
+  center: number
+): number {
+  // Fold lines round to pixels, so mirror the rendered pixel without changing
+  // subpixel coordinates unless rounding would make the pair visibly uneven.
+  const desiredRounded = Math.round(2 * center - Math.round(mirrorCoordinate));
+  return coordinate + desiredRounded - Math.round(coordinate);
+}
+
+export function drawTextureLayerHalf(
+  generator: Generator,
+  layer: SelectedTexture,
+  half: TextureLayerHalf,
+  appliedFlip: Flip,
+  rotate = 0
+) {
+  const [nextFlip, nextRotation] = makeNextFlip(
+    layer.flip,
+    appliedFlip,
+    layer.rotation
+  );
+
+  generator.drawTexture(
+    layer.textureDefId,
+    half.source,
+    [half.x, half.y, half.width, half.height],
+    {
+      flip: nextFlip,
+      rotate: rotationToDegrees(nextRotation) + rotate,
+      blend: layer.blend
+        ? { kind: "MultiplyHex", hex: layer.blend }
+        : undefined,
+    }
+  );
 }
 
 export function drawCrossPair(
@@ -80,8 +127,8 @@ export function drawCrossPair(
   for (const layer of layers) {
     const [leftHalf, rightHalf] = getCrossHalves(layer, layout, x, y, width);
 
-    drawLayerHalf(generator, layer, leftHalf, "None");
-    drawLayerHalf(
+    drawTextureLayerHalf(generator, layer, leftHalf, "None");
+    drawTextureLayerHalf(
       generator,
       layer,
       {
@@ -120,7 +167,7 @@ export function drawSidewaysCrossPair(
       virtualWidth
     );
 
-    drawLayerHalf(
+    drawTextureLayerHalf(
       generator,
       layer,
       rotateHalfAround(
@@ -131,7 +178,7 @@ export function drawSidewaysCrossPair(
       "None",
       90
     );
-    drawLayerHalf(
+    drawTextureLayerHalf(
       generator,
       layer,
       rotateHalfAround(
@@ -150,9 +197,7 @@ export function drawCrossFold(
   layout: CrossLayout,
   region: Region,
   orientation: Orientation,
-  {
-    useTranslatedSidewaysTexture = false,
-  }: CrossFoldOptions = {}
+  { useTranslatedSidewaysTexture = false }: CrossFoldOptions = {}
 ) {
   const {
     foldRegion,
@@ -163,13 +208,19 @@ export function drawCrossFold(
     transformPoint,
   } = getFoldSpace(region, orientation, useTranslatedSidewaysTexture);
 
-  getCrossHalfBounds(layout, foldRegion, seamMode, textureSide).forEach(
-    (bounds) => {
-      const segment = getFoldSegment(bounds, foldOrientation);
-      const [from, to] = reverseSegment ? [segment[1], segment[0]] : segment;
-      generator.drawFoldLine(transformPoint(from), transformPoint(to), true);
-    }
-  );
+  const segments = getCrossHalfBounds(layout, foldRegion, seamMode, textureSide)
+    .map((bounds) => getFoldSegment(bounds, foldOrientation))
+    .map(([from, to]) => {
+      const segment: [Position, Position] = reverseSegment
+        ? [to, from]
+        : [from, to];
+      return segment.map(transformPoint) as [Position, Position];
+    });
+  const alignedSegments = alignRenderedMirrorSegmentPair(segments, region);
+
+  alignedSegments.forEach(([from, to]) => {
+    generator.drawFoldLine(from, to, true);
+  });
 }
 
 export function drawCrossCenterFold(generator: Generator, region: Region) {
@@ -358,6 +409,58 @@ function getFoldSegment(
   }
 }
 
+function alignRenderedMirrorSegmentPair(
+  segments: [Position, Position][],
+  region: Region
+): [Position, Position][] {
+  if (segments.length !== 2) {
+    return segments;
+  }
+
+  const [mirrorSegment, segment] = segments as [
+    [Position, Position],
+    [Position, Position],
+  ];
+  const axis = getSegmentConstantAxis(segment);
+  const coordinateIndex = axis === "x" ? 0 : 1;
+  const [, , width, height] = region;
+  const center =
+    axis === "x" ? region[0] + width / 2 - 0.5 : region[1] + height / 2 - 0.5;
+  const coordinate = segment[0][coordinateIndex];
+  const mirrorCoordinate = mirrorSegment[0][coordinateIndex];
+  const alignedCoordinate = alignCoordinateToRenderedMirror(
+    coordinate,
+    mirrorCoordinate,
+    center
+  );
+  const delta = alignedCoordinate - coordinate;
+
+  if (delta === 0) {
+    return segments;
+  }
+
+  return [
+    mirrorSegment,
+    shiftSegmentCoordinate(segment, coordinateIndex, delta),
+  ];
+}
+
+function getSegmentConstantAxis([from, to]: [Position, Position]): "x" | "y" {
+  return Math.abs(from[0] - to[0]) <= Math.abs(from[1] - to[1]) ? "x" : "y";
+}
+
+function shiftSegmentCoordinate(
+  segment: [Position, Position],
+  coordinateIndex: 0 | 1,
+  delta: number
+): [Position, Position] {
+  return segment.map((point) => {
+    const nextPoint: Position = [...point];
+    nextPoint[coordinateIndex] += delta;
+    return nextPoint;
+  }) as [Position, Position];
+}
+
 function getSidewaysFoldOrientation(orientation: Orientation): Orientation {
   switch (orientation) {
     case "North":
@@ -377,7 +480,7 @@ function getCrossHalves(
   x: number,
   y: number,
   width: number
-): [LayerHalf, LayerHalf] {
+): [TextureLayerHalf, TextureLayerHalf] {
   return [
     getLayerHalf(
       layer,
@@ -418,38 +521,11 @@ function getLayerHalf(
   );
 }
 
-function drawLayerHalf(
-  generator: Generator,
-  layer: SelectedTexture,
-  half: LayerHalf,
-  appliedFlip: Flip,
-  rotate = 0
-) {
-  const [nextFlip, nextRotation] = makeNextFlip(
-    layer.flip,
-    appliedFlip,
-    layer.rotation
-  );
-
-  generator.drawTexture(
-    layer.textureDefId,
-    half.source,
-    [half.x, half.y, half.width, half.height],
-    {
-      flip: nextFlip,
-      rotate: rotationToDegrees(nextRotation) + rotate,
-      blend: layer.blend
-        ? { kind: "MultiplyHex", hex: layer.blend }
-        : undefined,
-    }
-  );
-}
-
 function rotateHalfAround(
-  half: LayerHalf,
+  half: TextureLayerHalf,
   centerX: number,
   centerY: number
-): LayerHalf {
+): TextureLayerHalf {
   const halfCenterX = half.x + half.width / 2;
   const halfCenterY = half.y + half.height / 2;
   const rotatedCenterX = centerX - (halfCenterY - centerY);

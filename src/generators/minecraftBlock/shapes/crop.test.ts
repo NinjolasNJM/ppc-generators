@@ -1,11 +1,15 @@
 import { describe, expect, it, vi } from "vitest";
 import { type Generator } from "@genroot/builder/modules/generator";
+import { type Rotation } from "@genroot/builder/ui/texturePicker/rotation";
 import { encodeSelectedTextures } from "@genroot/builder/ui/texturePicker/selectedTexture";
 import { drawCrop } from "./crop";
 
 type Crop = [number, number, number, number];
 
-function makeCropFaceJson(crop: Crop = [0, 0, 16, 16]): string {
+function makeCropFaceJson(
+  crop: Crop = [0, 0, 16, 16],
+  rotation: Rotation = "Rot0"
+): string {
   return encodeSelectedTextures([
     {
       textureDefId: "test-texture",
@@ -15,21 +19,22 @@ function makeCropFaceJson(crop: Crop = [0, 0, 16, 16]): string {
         rectangle: [0, 0, 16, 16],
         crop,
       },
-      rotation: "Rot0",
+      rotation,
       flip: "None",
       blend: null,
     },
   ]);
 }
 
-function makeGenerator(faceJson: string | null = makeCropFaceJson()): Generator {
+function makeGenerator(
+  faceJson: string | null = makeCropFaceJson()
+): Generator {
   return {
     defineRegionInput: vi.fn(),
     drawFoldLine: vi.fn(),
     drawLine: vi.fn(),
     drawTexture: vi.fn(),
-    getStringInputValue: (id: string) =>
-      id === "CropFace1" ? faceJson : null,
+    getStringInputValue: (id: string) => (id === "CropFace1" ? faceJson : null),
   } as unknown as Generator;
 }
 
@@ -114,6 +119,34 @@ describe("drawCrop", () => {
     );
   });
 
+  it("anchors one-pixel rotated crops against the center fold", () => {
+    const generator = makeGenerator(makeCropFaceJson([6, 5, 4, 1], "Rot180"));
+
+    drawCrop(generator, "1", 0, 0, false);
+
+    expect(generator.drawTexture).toHaveBeenCalledTimes(8);
+    expect(generator.drawTexture).toHaveBeenNthCalledWith(
+      1,
+      "test-texture",
+      [6, 5, 4, 1],
+      [16, 192, 32, 8],
+      expect.objectContaining({
+        flip: "None",
+        rotate: 180,
+      })
+    );
+    expect(generator.drawTexture).toHaveBeenNthCalledWith(
+      2,
+      "test-texture",
+      [6, 5, 4, 1],
+      [16, 200, 32, 8],
+      expect.objectContaining({
+        flip: "Vertical",
+        rotate: 180,
+      })
+    );
+  });
+
   it("draws pair folds and left and right crop folds", () => {
     const generator = makeGenerator();
 
@@ -141,8 +174,8 @@ describe("drawCrop", () => {
     );
     expect(generator.drawFoldLine).toHaveBeenNthCalledWith(
       4,
-      [64, 72],
-      [64, 136],
+      [63, 72],
+      [63, 136],
       true
     );
     expect(generator.drawFoldLine).toHaveBeenNthCalledWith(
@@ -153,8 +186,8 @@ describe("drawCrop", () => {
     );
     expect(generator.drawFoldLine).toHaveBeenNthCalledWith(
       6,
-      [64, 264],
-      [64, 328],
+      [63, 264],
+      [63, 328],
       true
     );
     expect(generator.drawFoldLine).toHaveBeenNthCalledWith(
@@ -165,14 +198,14 @@ describe("drawCrop", () => {
     );
     expect(generator.drawFoldLine).toHaveBeenNthCalledWith(
       10,
-      [208, 136],
-      [208, 200],
+      [207, 136],
+      [207, 200],
       true
     );
     expect(generator.drawFoldLine).toHaveBeenNthCalledWith(
       12,
-      [208, 200],
-      [208, 264],
+      [207, 200],
+      [207, 264],
       true
     );
   });
@@ -185,26 +218,26 @@ describe("drawCrop", () => {
     expect(generator.drawFoldLine).toHaveBeenCalledTimes(24);
     expect(generator.drawFoldLine).toHaveBeenNthCalledWith(
       3,
-      [0, 88],
-      [0, 136],
+      [0, 104],
+      [0, 152],
       true
     );
     expect(generator.drawFoldLine).toHaveBeenNthCalledWith(
       4,
-      [64, 88],
-      [64, 136],
+      [63, 104],
+      [63, 152],
       true
     );
     expect(generator.drawFoldLine).toHaveBeenNthCalledWith(
       5,
-      [0, 264],
-      [0, 312],
+      [0, 248],
+      [0, 296],
       true
     );
     expect(generator.drawFoldLine).toHaveBeenNthCalledWith(
       6,
-      [64, 264],
-      [64, 312],
+      [63, 248],
+      [63, 296],
       true
     );
   });

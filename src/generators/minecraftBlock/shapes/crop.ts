@@ -6,11 +6,17 @@ import {
 import { type Flip } from "@genroot/builder/ui/texturePicker/flip";
 import { type SelectedTexture } from "@genroot/builder/ui/texturePicker/selectedTexture";
 import {
+  getLayerHalfDestinationWithScale,
   getTextureHalfCropBounds,
   type Rectangle,
 } from "../../_common/plugins/texturePicker/textureLayout";
 import * as Face from "../face";
-import { drawCrossCenterFold } from "./shared";
+import {
+  alignCoordinateToRenderedMirror,
+  drawCrossCenterFold,
+  drawTextureLayerHalf,
+  getMirroredSeamGap,
+} from "./shared";
 
 type CropFoldDirection = "North" | "South";
 type CropPairConfig = {
@@ -21,6 +27,10 @@ type CropPair = CropPairConfig & {
   pair: Region;
   top: Region;
 };
+type CropTextureLayout = {
+  bottom: Rectangle;
+  top: Rectangle;
+};
 
 const size = 128;
 const faceGap = 16;
@@ -28,9 +38,8 @@ const halfPageHeight = 400;
 const pairHeight = size * 2;
 const pairYOffset = (halfPageHeight - pairHeight) / 2;
 const foldOffset = (size * 4) / 16;
-const faceSource: Region = [0, 0, 16, 16];
 const scale = size / 16;
-const foldOffsets = [foldOffset, size - foldOffset];
+const foldOffsets: [number, number] = [foldOffset, size - foldOffset];
 
 const pairConfigs: CropPairConfig[] = [
   { foldDirection: "North" },
@@ -64,17 +73,15 @@ function getOppositeFoldDirection(
 function drawCropFold(
   generator: Generator,
   region: Region,
-  layout: Rectangle,
+  textureY: number,
+  textureHeight: number,
   foldDirection: CropFoldDirection
 ) {
-  const [x, y] = region;
-  const [, cropY, , cropHeight] = layout;
-  const textureY = y + cropY * scale;
-  const textureHeight = cropHeight * scale;
+  const [x, , width] = region;
   const centerY = textureY + textureHeight / 2;
+  const foldXs = getCropFoldXs(x, width);
 
-  for (const foldOffset of foldOffsets) {
-    const foldX = x + foldOffset;
+  for (const foldX of foldXs) {
     const line: [Position, Position] =
       foldDirection === "North"
         ? [
@@ -90,11 +97,85 @@ function drawCropFold(
   }
 }
 
-function getCropFoldLayout(
-  layers: SelectedTexture[],
+function getCropFoldXs(x: number, width: number): [number, number] {
+  const left = x + foldOffsets[0];
+  const right = x + foldOffsets[1];
+  return [
+    left,
+    alignCoordinateToRenderedMirror(right, left, x + width / 2 - 0.5),
+  ];
+}
+
+function getCropTextureLayout(
+  layers: SelectedTexture[]
+): CropTextureLayout | null {
+  if (layers.length === 0) {
+    return null;
+  }
+
+  return {
+    top: getTextureHalfCropBounds(layers, "None"),
+    bottom: getTextureHalfCropBounds(layers, "Vertical"),
+  };
+}
+
+function getVisibleCropY(
+  top: Region,
+  layout: CropTextureLayout
+): { bottomY: number; topY: number } {
+  const [, topRegionY, , topRegionHeight] = top;
+  const seamY = topRegionY + topRegionHeight;
+  const topHeight = layout.top[3] * scale;
+  const bottomHeight = layout.bottom[3] * scale;
+  const topY = seamY - topHeight;
+  const seamGap = getMirroredSeamGap(
+    { x: topY, width: topHeight },
+    { x: seamY, width: bottomHeight }
+  );
+
+  return {
+    topY,
+    bottomY: seamY - seamGap,
+  };
+}
+
+function drawCropLayer(
+  generator: Generator,
+  layer: SelectedTexture,
+  region: Region,
+  layout: Rectangle,
+  y: number,
   appliedFlip: Flip
-): Rectangle | null {
-  return layers.length > 0 ? getTextureHalfCropBounds(layers, appliedFlip) : null;
+) {
+  const [x] = region;
+  const [layoutX, layoutY] = layout;
+  const destination = getLayerHalfDestinationWithScale(
+    layout,
+    layoutY,
+    layer,
+    x + layoutX * scale,
+    y,
+    scale,
+    scale,
+    appliedFlip
+  );
+
+  drawTextureLayerHalf(generator, layer, destination, appliedFlip);
+}
+
+function drawCropPair(
+  generator: Generator,
+  layers: SelectedTexture[],
+  top: Region,
+  bottom: Region,
+  layout: CropTextureLayout
+) {
+  const { topY, bottomY } = getVisibleCropY(top, layout);
+
+  for (const layer of layers) {
+    drawCropLayer(generator, layer, top, layout.top, topY, "None");
+    drawCropLayer(generator, layer, bottom, layout.bottom, bottomY, "Vertical");
+  }
 }
 
 export function drawCrop(
@@ -107,28 +188,32 @@ export function drawCrop(
   const faceId = "CropFace" + blockId;
   const pairs = makePairs(ox, oy);
   const layers = Face.getFaceTextures(generator, faceId);
-  const topFoldLayout = getCropFoldLayout(layers, "None");
-  const bottomFoldLayout = getCropFoldLayout(layers, "Vertical");
+  const layout = getCropTextureLayout(layers);
 
   for (const { pair, top, bottom } of pairs) {
     Face.defineInputRegion(generator, faceId, pair);
-    Face.drawFace(generator, faceId, faceSource, top);
-    Face.drawFace(generator, faceId, faceSource, bottom, {
-      flip: "Vertical",
-    });
+    if (layout) {
+      drawCropPair(generator, layers, top, bottom, layout);
+    }
   }
 
   if (showFolds) {
     for (const { pair, top, bottom, foldDirection } of pairs) {
       drawCrossCenterFold(generator, pair);
-      if (topFoldLayout) {
-        drawCropFold(generator, top, topFoldLayout, foldDirection);
-      }
-      if (bottomFoldLayout) {
+      if (layout) {
+        const { topY, bottomY } = getVisibleCropY(top, layout);
+        drawCropFold(
+          generator,
+          top,
+          topY,
+          layout.top[3] * scale,
+          foldDirection
+        );
         drawCropFold(
           generator,
           bottom,
-          bottomFoldLayout,
+          bottomY,
+          layout.bottom[3] * scale,
           getOppositeFoldDirection(foldDirection)
         );
       }

@@ -233,11 +233,11 @@ const script: ScriptDef = (generator: Generator) => {
 
     generator.defineInputRowStart();
     const blockType = generator.defineAndGetSelectInput(typeName, [
-      "Wall",
       "Block",
       "Slab",
       "Stair",
       "Fence",
+      "Wall",
       "Door",
       "Trapdoor",
       "Snow Layers",

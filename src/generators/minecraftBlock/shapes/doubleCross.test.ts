@@ -103,8 +103,8 @@ describe("drawDoubleCross", () => {
     );
     expect(generator.drawFoldLine).toHaveBeenNthCalledWith(
       6,
-      [96, 219.75],
-      [208, 219.75],
+      [96, 218.75],
+      [208, 218.75],
       true
     );
     expect(generator.drawFoldLine).toHaveBeenNthCalledWith(
@@ -115,8 +115,8 @@ describe("drawDoubleCross", () => {
     );
     expect(generator.drawFoldLine).toHaveBeenNthCalledWith(
       8,
-      [272, 219.75],
-      [384, 219.75],
+      [272, 218.75],
+      [384, 218.75],
       true
     );
   });
@@ -138,8 +138,8 @@ describe("drawDoubleCross", () => {
     );
     expect(generator.drawFoldLine).toHaveBeenNthCalledWith(
       6,
-      [96, 281],
-      [224, 281],
+      [96, 280],
+      [224, 280],
       true
     );
     expect(generator.drawFoldLine).toHaveBeenNthCalledWith(
@@ -150,8 +150,8 @@ describe("drawDoubleCross", () => {
     );
     expect(generator.drawFoldLine).toHaveBeenNthCalledWith(
       8,
-      [256, 281],
-      [384, 281],
+      [256, 280],
+      [384, 280],
       true
     );
   });
