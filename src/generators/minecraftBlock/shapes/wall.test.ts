@@ -31,6 +31,7 @@ function makeGenerator(
     defineAndGetBooleanInput: vi.fn(() => isTall),
     defineSelectInput: vi.fn(),
     defineRegionInput: vi.fn(),
+    drawFoldLine: vi.fn(),
     drawImage: vi.fn(),
     drawTexture: vi.fn(),
     getBooleanInputValueWithDefault: vi.fn(() => withPost),
@@ -43,7 +44,7 @@ function makeGenerator(
 }
 
 describe("drawWall", () => {
-  it("uses post regions and post overlay art by default", () => {
+  it("uses post regions and draws generated light folds by default", () => {
     const generator = makeGenerator();
 
     drawWall(generator, "1", 57, 16, true);
@@ -57,11 +58,8 @@ describe("drawWall", () => {
       "Block 1 Tall Wall",
       false
     );
-    expect(generator.getBooleanInputValueWithDefault).toHaveBeenCalledWith(
-      "Block 1 Wall With Post",
-      true
-    );
-    expect(generator.defineRegionInput).toHaveBeenCalledTimes(7);
+    expect(generator.getBooleanInputValueWithDefault).not.toHaveBeenCalled();
+    expect(generator.defineRegionInput).toHaveBeenCalledTimes(6);
     expect(generator.defineRegionInput).toHaveBeenNthCalledWith(
       1,
       [121, 80, 64, 64],
@@ -101,22 +99,24 @@ describe("drawWall", () => {
     expect(generator.drawTexture).toHaveBeenCalledTimes(12);
     expect(generator.drawTexture).toHaveBeenCalledWith(
       "test-texture",
-      [11, 2, 4, 14],
+      [12, 2, 4, 14],
       [417, 160, 32, 112],
       expect.any(Object)
     );
-    expect(generator.defineRegionInput).toHaveBeenNthCalledWith(
-      7,
-      [369, 112, 160, 208],
-      expect.any(Function),
-      "Block 1 Wall With Post"
+    expect(generator.drawImage).not.toHaveBeenCalled();
+    expect(generator.drawFoldLine).toHaveBeenCalledTimes(18);
+    expect(generator.drawFoldLine).toHaveBeenNthCalledWith(
+      1,
+      [121, 79],
+      [185, 79],
+      true
     );
-    expect(generator.drawImage).toHaveBeenCalledWith("Tabs-Wall-Post", [
-      25, 15,
-    ]);
-    expect(generator.drawImage).toHaveBeenCalledWith("Folds-Wall-Post", [
-      25, 15,
-    ]);
+    expect(generator.drawFoldLine).toHaveBeenNthCalledWith(
+      9,
+      [248, 144],
+      [248, 272],
+      true
+    );
   });
 
   it("uses short left side regions and draws both sides by default", () => {
@@ -164,7 +164,7 @@ describe("drawWall", () => {
     expect(generator.drawTexture).toHaveBeenCalledTimes(12);
     expect(generator.drawTexture).toHaveBeenCalledWith(
       "test-texture",
-      [11, 2, 4, 14],
+      [12, 2, 4, 14],
       [113, 160, 32, 112],
       expect.any(Object)
     );
@@ -174,12 +174,20 @@ describe("drawWall", () => {
       expect.any(Function),
       "Block 1 Wall With Post"
     );
-    expect(generator.drawImage).toHaveBeenCalledWith("Tabs-Wall-Sides", [
-      25, 15,
-    ]);
-    expect(generator.drawImage).toHaveBeenCalledWith("Folds-Wall-Sides", [
-      25, 15,
-    ]);
+    expect(generator.drawImage).not.toHaveBeenCalled();
+    expect(generator.drawFoldLine).toHaveBeenCalledTimes(18);
+    expect(generator.drawFoldLine).toHaveBeenNthCalledWith(
+      1,
+      [113, 111],
+      [145, 111],
+      true
+    );
+    expect(generator.drawFoldLine).toHaveBeenNthCalledWith(
+      18,
+      [496, 160],
+      [496, 272],
+      true
+    );
   });
 
   it("uses short straight segment regions and draws only the straight shape", () => {
@@ -231,12 +239,20 @@ describe("drawWall", () => {
       [185, 160, 128, 112],
       expect.any(Object)
     );
-    expect(generator.drawImage).toHaveBeenCalledWith("Tabs-Wall-Straight", [
-      25, 15,
-    ]);
-    expect(generator.drawImage).toHaveBeenCalledWith("Folds-Wall-Straight", [
-      25, 15,
-    ]);
+    expect(generator.drawImage).not.toHaveBeenCalled();
+    expect(generator.drawFoldLine).toHaveBeenCalledTimes(9);
+    expect(generator.drawFoldLine).toHaveBeenNthCalledWith(
+      1,
+      [185, 111],
+      [313, 111],
+      true
+    );
+    expect(generator.drawFoldLine).toHaveBeenNthCalledWith(
+      9,
+      [360, 160],
+      [360, 272],
+      true
+    );
   });
 
   it("uses tall side regions and full-height side textures when Tall Wall is checked", () => {
@@ -283,10 +299,12 @@ describe("drawWall", () => {
     );
     expect(generator.drawTexture).toHaveBeenCalledWith(
       "test-texture",
-      [11, 0, 4, 16],
+      [12, 0, 4, 16],
       [113, 144, 32, 128],
       expect.any(Object)
     );
+    expect(generator.drawFoldLine).toHaveBeenCalledTimes(18);
+    expect(generator.drawImage).not.toHaveBeenCalled();
   });
 
   it("uses the wider side depth when Wall With Post is toggled off", () => {
@@ -325,16 +343,74 @@ describe("drawWall", () => {
       [105, 160, 40, 112],
       expect.any(Object)
     );
+    expect(generator.drawImage).not.toHaveBeenCalled();
+    expect(generator.drawFoldLine).toHaveBeenCalledTimes(18);
+    expect(generator.drawFoldLine).toHaveBeenNthCalledWith(
+      1,
+      [105, 111],
+      [145, 111],
+      true
+    );
+  });
+
+  it.each([
+    ["Post and Side", true, false, "Post"],
+    ["Two Sides", true, false, "Sides-Post"],
+    ["Two Sides", false, false, "Sides"],
+    ["Straight Segment", true, false, "Straight"],
+  ] as const)(
+    "uses the %s overlay images when Show Folds is off",
+    (shape, withPost, isTall, imageSuffix) => {
+      const generator = makeGenerator(shape, isTall, withPost);
+
+      drawWall(generator, "1", 57, 16, false);
+
+      expect(generator.drawFoldLine).not.toHaveBeenCalled();
+      expect(generator.drawImage).toHaveBeenCalledWith(
+        "Tabs-Wall-" + imageSuffix,
+        [25, 15]
+      );
+      expect(generator.drawImage).toHaveBeenCalledWith(
+        "Folds-Wall-" + imageSuffix,
+        [25, 15]
+      );
+      expect(generator.drawImage).toHaveBeenCalledWith(
+        "Tabs-Wall-" + imageSuffix + "-Top",
+        [25, 15]
+      );
+    }
+  );
+
+  it("does not draw short top overlay images for tall walls when Show Folds is off", () => {
+    const generator = makeGenerator("Two Sides", true);
+
+    drawWall(generator, "1", 57, 16, false);
+
+    expect(generator.drawImage).toHaveBeenCalledWith(
+      "Tabs-Wall-Sides-Post",
+      [25, 15]
+    );
+    expect(generator.drawImage).toHaveBeenCalledWith(
+      "Folds-Wall-Sides-Post",
+      [25, 15]
+    );
+    expect(generator.drawImage).not.toHaveBeenCalledWith(
+      "Tabs-Wall-Sides-Post-Top",
+      expect.anything()
+    );
   });
 
   it("toggles Wall With Post from the right side control region", () => {
-    const generator = makeGenerator("Post and Side");
+    const generator = makeGenerator("Two Sides");
 
     drawWall(generator, "1", 57, 16, true);
 
-    const controlRegionCall = vi.mocked(generator.defineRegionInput).mock.calls[6];
+    const controlRegionCall = vi.mocked(generator.defineRegionInput).mock
+      .calls[6];
     if (!controlRegionCall) {
-      throw new Error("Expected the Wall With Post control region to be defined");
+      throw new Error(
+        "Expected the Wall With Post control region to be defined"
+      );
     }
     controlRegionCall[1]();
 
@@ -344,22 +420,12 @@ describe("drawWall", () => {
     );
   });
 
-  it.each([
-    ["Post and Side", "Post"],
-    ["Two Sides", "Sides"],
-    ["Straight Segment", "Straight"],
-  ] as const)("uses the %s overlay art", (shape, imageSuffix) => {
-    const generator = makeGenerator(shape);
+  it("keeps tabs off when drawing generated folds", () => {
+    const generator = makeGenerator("Two Sides");
 
     drawWall(generator, "1", 57, 16, true);
 
-    expect(generator.drawImage).toHaveBeenCalledWith(
-      "Tabs-Wall-" + imageSuffix,
-      [25, 15]
-    );
-    expect(generator.drawImage).toHaveBeenCalledWith(
-      "Folds-Wall-" + imageSuffix,
-      [25, 15]
-    );
+    expect(generator.drawFoldLine).toHaveBeenCalled();
+    expect(generator.drawImage).not.toHaveBeenCalled();
   });
 });

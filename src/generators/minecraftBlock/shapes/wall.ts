@@ -2,6 +2,8 @@ import {
   type Generator,
   type Region,
 } from "@genroot/builder/modules/generator";
+import { drawCuboidFolds } from "../../_common/cuboidFolds";
+import { type Dimensions, type Position } from "../../_common/cuboid";
 import * as Face from "../face";
 
 type WallShape = "Post and Side" | "Two Sides" | "Straight Segment";
@@ -46,6 +48,28 @@ type Faces = {
   rightSideControl: Region;
 };
 
+type SideFaces = {
+  top: Region;
+  bottom: Region;
+  right: Region;
+  front: Region;
+  left: Region;
+  back: Region;
+};
+
+type SideSources = {
+  sideSourceX: number;
+  sideSourceWidth: number;
+  frontSourceX: number;
+  wallSourceY: number;
+  wallSourceHeight: number;
+};
+
+type FoldCuboid = {
+  position: Position;
+  dimensions: Dimensions;
+};
+
 const size = 128; // 16
 const size2 = 64; // 8
 const size3 = 48; // 6
@@ -62,11 +86,38 @@ const wallShapeOptions: WallShape[] = [
   "Straight Segment",
 ];
 
-const wallShapeImageSuffixes: Record<WallShape, string> = {
-  "Post and Side": "Post",
-  "Two Sides": "Sides",
-  "Straight Segment": "Straight",
-};
+function drawWallOverlayImages(
+  generator: Generator,
+  overlaySuffix: string,
+  ox: number,
+  oy: number,
+  isTall: boolean
+) {
+  generator.drawImage("Tabs-Wall-" + overlaySuffix, [ox - 32, oy - 1]);
+  generator.drawImage("Folds-Wall-" + overlaySuffix, [ox - 32, oy - 1]);
+  if (!isTall) {
+    generator.drawImage("Tabs-Wall-" + overlaySuffix + "-Top", [
+      ox - 32,
+      oy - 1,
+    ]);
+  }
+}
+
+function makeFoldCuboid(right: Region, top: Region, front: Region): FoldCuboid {
+  return {
+    position: [right[0], top[1]],
+    dimensions: [front[2], front[3], right[2]],
+  };
+}
+
+function drawFolds(generator: Generator, cuboids: FoldCuboid[]) {
+  cuboids.forEach(({ position, dimensions }) => {
+    drawCuboidFolds(generator, position, dimensions, {
+      foldType: "light",
+      orientation: "West",
+    });
+  });
+}
 
 function makeFaces(
   ox: number,
@@ -119,6 +170,303 @@ function makeFaces(
   };
 }
 
+function makeSideSources(isTall: boolean, withPost: boolean): SideSources {
+  return {
+    sideSourceX: withPost ? 0 : 1,
+    sideSourceWidth: withPost ? 4 : 5,
+    frontSourceX: withPost ? 12 : 11,
+    wallSourceY: isTall ? 0 : 2,
+    wallSourceHeight: isTall ? 16 : 14,
+  };
+}
+
+function drawSide(
+  generator: Generator,
+  blockId: string,
+  regions: SideFaces,
+  sources: SideSources,
+  isRightSide: boolean
+) {
+  const topBottomSourceX = isRightSide
+    ? sources.frontSourceX
+    : sources.sideSourceX;
+  const topBottomOptions = isRightSide ? undefined : { rotate: 180 };
+
+  Face.drawFace(
+    generator,
+    "WallFaceTop" + blockId,
+    [topBottomSourceX, 5, sources.sideSourceWidth, 6],
+    regions.top,
+    topBottomOptions
+  );
+  Face.drawFace(
+    generator,
+    "WallFaceBottom" + blockId,
+    [topBottomSourceX, 5, sources.sideSourceWidth, 6],
+    regions.bottom,
+    topBottomOptions
+  );
+  Face.drawFace(
+    generator,
+    "WallFaceRight" + blockId,
+    [5, sources.wallSourceY, 6, sources.wallSourceHeight],
+    regions.right
+  );
+  Face.drawFace(
+    generator,
+    "WallFaceFront" + blockId,
+    [
+      sources.frontSourceX,
+      sources.wallSourceY,
+      sources.sideSourceWidth,
+      sources.wallSourceHeight,
+    ],
+    regions.front
+  );
+  Face.drawFace(
+    generator,
+    "WallFaceLeft" + blockId,
+    [5, sources.wallSourceY, 6, sources.wallSourceHeight],
+    regions.left
+  );
+  Face.drawFace(
+    generator,
+    "WallFaceBack" + blockId,
+    [
+      sources.sideSourceX,
+      sources.wallSourceY,
+      sources.sideSourceWidth,
+      sources.wallSourceHeight,
+    ],
+    regions.back
+  );
+}
+
+function drawPost(
+  generator: Generator,
+  blockId: string,
+  ox: number,
+  oy: number,
+  showFolds: boolean,
+  isTall: boolean
+) {
+  const regions = makeFaces(ox, oy, isTall, true);
+  const sideSources = makeSideSources(isTall, true);
+
+  Face.defineInputRegion(generator, "WallFaceTop" + blockId, regions.top);
+  Face.defineInputRegion(generator, "WallFaceBottom" + blockId, regions.bottom);
+  Face.defineInputRegion(generator, "WallFaceRight" + blockId, regions.right);
+  Face.defineInputRegion(generator, "WallFaceFront" + blockId, regions.front);
+  Face.defineInputRegion(generator, "WallFaceLeft" + blockId, regions.left);
+  Face.defineInputRegion(generator, "WallFaceBack" + blockId, regions.back);
+
+  // generator.defineRegionInput(
+  //   regions.rightSideControl,
+  //   () => {},
+  //   "Block " + blockId + " Wall With Post"
+  // );
+
+  Face.drawFace(generator, "WallFaceTop" + blockId, [4, 4, 8, 8], regions.top);
+  Face.drawFace(
+    generator,
+    "WallFaceBottom" + blockId,
+    [4, 4, 8, 8],
+    regions.bottom
+  );
+  Face.drawFace(
+    generator,
+    "WallFaceRight" + blockId,
+    [4, 0, 8, 16],
+    regions.right
+  );
+  Face.drawFace(
+    generator,
+    "WallFaceFront" + blockId,
+    [4, 0, 8, 16],
+    regions.front
+  );
+  Face.drawFace(
+    generator,
+    "WallFaceLeft" + blockId,
+    [4, 0, 8, 16],
+    regions.left
+  );
+  Face.drawFace(
+    generator,
+    "WallFaceBack" + blockId,
+    [4, 0, 8, 16],
+    regions.back
+  );
+  drawSide(
+    generator,
+    blockId,
+    {
+      top: regions.stop2,
+      bottom: regions.sbottom2,
+      right: regions.sright2,
+      front: regions.sfront2,
+      left: regions.sleft2,
+      back: regions.sback2,
+    },
+    sideSources,
+    true
+  );
+
+  if (showFolds) {
+    drawFolds(generator, [
+      makeFoldCuboid(regions.right, regions.top, regions.front),
+      makeFoldCuboid(regions.sright2, regions.stop2, regions.sfront2),
+    ]);
+  } else {
+    drawWallOverlayImages(generator, "Post", ox, oy, isTall);
+  }
+}
+
+function drawSides(
+  generator: Generator,
+  blockId: string,
+  ox: number,
+  oy: number,
+  showFolds: boolean,
+  isTall: boolean
+) {
+  const withPostInputId = "Block " + blockId + " Wall With Post";
+  const withPost = generator.getBooleanInputValueWithDefault(
+    withPostInputId,
+    true
+  );
+  const regions = makeFaces(ox, oy, isTall, withPost);
+  const sideSources = makeSideSources(isTall, withPost);
+
+  Face.defineInputRegion(generator, "WallFaceTop" + blockId, regions.stop1);
+  Face.defineInputRegion(
+    generator,
+    "WallFaceBottom" + blockId,
+    regions.sbottom1
+  );
+  Face.defineInputRegion(generator, "WallFaceRight" + blockId, regions.sright1);
+  Face.defineInputRegion(generator, "WallFaceFront" + blockId, regions.sfront1);
+  Face.defineInputRegion(generator, "WallFaceLeft" + blockId, regions.sleft1);
+  Face.defineInputRegion(generator, "WallFaceBack" + blockId, regions.sback1);
+
+  generator.defineRegionInput(
+    regions.rightSideControl,
+    () => {
+      generator.setBooleanInputValue(withPostInputId, !withPost);
+    },
+    withPostInputId
+  );
+
+  drawSide(
+    generator,
+    blockId,
+    {
+      top: regions.stop1,
+      bottom: regions.sbottom1,
+      right: regions.sright1,
+      front: regions.sfront1,
+      left: regions.sleft1,
+      back: regions.sback1,
+    },
+    sideSources,
+    false
+  );
+  drawSide(
+    generator,
+    blockId,
+    {
+      top: regions.stop2,
+      bottom: regions.sbottom2,
+      right: regions.sright2,
+      front: regions.sfront2,
+      left: regions.sleft2,
+      back: regions.sback2,
+    },
+    sideSources,
+    true
+  );
+
+  const overlaySuffix = withPost ? "Sides-Post" : "Sides";
+
+  if (showFolds) {
+    drawFolds(generator, [
+      makeFoldCuboid(regions.sright1, regions.stop1, regions.sfront1),
+      makeFoldCuboid(regions.sright2, regions.stop2, regions.sfront2),
+    ]);
+  } else {
+    drawWallOverlayImages(generator, overlaySuffix, ox, oy, isTall);
+  }
+}
+
+function drawStraight(
+  generator: Generator,
+  blockId: string,
+  ox: number,
+  oy: number,
+  showFolds: boolean,
+  isTall: boolean
+) {
+  const regions = makeFaces(ox, oy, isTall, true);
+  const wallSourceY = isTall ? 0 : 2;
+  const wallSourceHeight = isTall ? 16 : 14;
+
+  Face.defineInputRegion(generator, "WallFaceTop" + blockId, regions.ltop1);
+  Face.defineInputRegion(
+    generator,
+    "WallFaceBottom" + blockId,
+    regions.lbottom1
+  );
+  Face.defineInputRegion(generator, "WallFaceRight" + blockId, regions.lright1);
+  Face.defineInputRegion(generator, "WallFaceFront" + blockId, regions.lfront1);
+  Face.defineInputRegion(generator, "WallFaceLeft" + blockId, regions.lleft1);
+  Face.defineInputRegion(generator, "WallFaceBack" + blockId, regions.lback1);
+
+  Face.drawFace(
+    generator,
+    "WallFaceTop" + blockId,
+    [0, 5, 16, 6],
+    regions.ltop1
+  );
+  Face.drawFace(
+    generator,
+    "WallFaceBottom" + blockId,
+    [0, 5, 16, 6],
+    regions.lbottom1
+  );
+  Face.drawFace(
+    generator,
+    "WallFaceRight" + blockId,
+    [5, wallSourceY, 6, wallSourceHeight],
+    regions.lright1
+  );
+  Face.drawFace(
+    generator,
+    "WallFaceFront" + blockId,
+    [0, wallSourceY, 16, wallSourceHeight],
+    regions.lfront1
+  );
+  Face.drawFace(
+    generator,
+    "WallFaceLeft" + blockId,
+    [5, wallSourceY, 6, wallSourceHeight],
+    regions.lleft1
+  );
+  Face.drawFace(
+    generator,
+    "WallFaceBack" + blockId,
+    [0, wallSourceY, 16, wallSourceHeight],
+    regions.lback1
+  );
+
+  if (showFolds) {
+    drawFolds(generator, [
+      makeFoldCuboid(regions.lright1, regions.ltop1, regions.lfront1),
+    ]);
+  } else {
+    drawWallOverlayImages(generator, "Straight", ox, oy, isTall);
+  }
+}
+
 export function drawWall(
   generator: Generator,
   blockId: string,
@@ -138,255 +486,19 @@ export function drawWall(
     "Block " + blockId + " Tall Wall",
     false
   );
-  const withPostInputId = "Block " + blockId + " Wall With Post";
-  const withPost = generator.getBooleanInputValueWithDefault(
-    withPostInputId,
-    true
-  );
-  const imageSuffix = wallShapeImageSuffixes[shape];
-  const regions = makeFaces(ox, oy, isTall, withPost);
-  const wallSourceY = isTall ? 0 : 2;
-  const wallSourceHeight = isTall ? 16 : 14;
-  const sideSourceX = withPost ? 0 : 1;
-  const sideSourceWidth = withPost ? 4 : 5;
-  const frontSourceX = withPost ? 12 : 11;
 
-  const drawPost = shape === "Post and Side";
-  const drawLeftSide = shape === "Two Sides";
-  const drawRightSide = shape === "Post and Side" || shape === "Two Sides";
-  const drawStraightSegment = shape === "Straight Segment";
-
-  // Each wall shape keeps its editable regions on the representative piece.
-  if (drawPost) {
-    Face.defineInputRegion(generator, "WallFaceTop" + blockId, regions.top);
-    Face.defineInputRegion(
-      generator,
-      "WallFaceBottom" + blockId,
-      regions.bottom
-    );
-    Face.defineInputRegion(generator, "WallFaceRight" + blockId, regions.right);
-    Face.defineInputRegion(generator, "WallFaceFront" + blockId, regions.front);
-    Face.defineInputRegion(generator, "WallFaceLeft" + blockId, regions.left);
-    Face.defineInputRegion(generator, "WallFaceBack" + blockId, regions.back);
-  }
-
-  if (drawLeftSide) {
-    Face.defineInputRegion(generator, "WallFaceTop" + blockId, regions.stop1);
-    Face.defineInputRegion(
-      generator,
-      "WallFaceBottom" + blockId,
-      regions.sbottom1
-    );
-    Face.defineInputRegion(
-      generator,
-      "WallFaceRight" + blockId,
-      regions.sright1
-    );
-    Face.defineInputRegion(
-      generator,
-      "WallFaceFront" + blockId,
-      regions.sfront1
-    );
-    Face.defineInputRegion(generator, "WallFaceLeft" + blockId, regions.sleft1);
-    Face.defineInputRegion(generator, "WallFaceBack" + blockId, regions.sback1);
-  }
-
-  if (drawStraightSegment) {
-    Face.defineInputRegion(generator, "WallFaceTop" + blockId, regions.ltop1);
-    Face.defineInputRegion(
-      generator,
-      "WallFaceBottom" + blockId,
-      regions.lbottom1
-    );
-    Face.defineInputRegion(
-      generator,
-      "WallFaceRight" + blockId,
-      regions.lright1
-    );
-    Face.defineInputRegion(
-      generator,
-      "WallFaceFront" + blockId,
-      regions.lfront1
-    );
-    Face.defineInputRegion(generator, "WallFaceLeft" + blockId, regions.lleft1);
-    Face.defineInputRegion(generator, "WallFaceBack" + blockId, regions.lback1);
-  }
-
-  if (drawRightSide) {
-    generator.defineRegionInput(
-      regions.rightSideControl,
-      () => {
-        generator.setBooleanInputValue(withPostInputId, !withPost);
-      },
-      withPostInputId
-    );
-  }
-
-  // Post and Side draws only the editable post plus the matching right side.
-  if (drawPost) {
-    Face.drawFace(
-      generator,
-      "WallFaceTop" + blockId,
-      [4, 4, 8, 8],
-      regions.top
-    );
-    Face.drawFace(
-      generator,
-      "WallFaceBottom" + blockId,
-      [4, 4, 8, 8],
-      regions.bottom
-    );
-    Face.drawFace(
-      generator,
-      "WallFaceRight" + blockId,
-      [4, 0, 8, 16],
-      regions.right
-    );
-    Face.drawFace(
-      generator,
-      "WallFaceFront" + blockId,
-      [4, 0, 8, 16],
-      regions.front
-    );
-    Face.drawFace(
-      generator,
-      "WallFaceLeft" + blockId,
-      [4, 0, 8, 16],
-      regions.left
-    );
-    Face.drawFace(
-      generator,
-      "WallFaceBack" + blockId,
-      [4, 0, 8, 16],
-      regions.back
-    );
-  }
-
-  // Two Sides draws an editable left side and an uneditable matching right side.
-  if (drawLeftSide) {
-    Face.drawFace(
-      generator,
-      "WallFaceTop" + blockId,
-      [sideSourceX, 5, sideSourceWidth, 6],
-      regions.stop1,
-      { rotate: 180 }
-    );
-    Face.drawFace(
-      generator,
-      "WallFaceBottom" + blockId,
-      [sideSourceX, 5, sideSourceWidth, 6],
-      regions.sbottom1,
-      { rotate: 180 }
-    );
-    Face.drawFace(
-      generator,
-      "WallFaceRight" + blockId,
-      [5, wallSourceY, 6, wallSourceHeight],
-      regions.sright1
-    );
-    Face.drawFace(
-      generator,
-      "WallFaceFront" + blockId,
-      [frontSourceX, wallSourceY, sideSourceWidth, wallSourceHeight],
-      regions.sfront1
-    );
-    Face.drawFace(
-      generator,
-      "WallFaceLeft" + blockId,
-      [5, wallSourceY, 6, wallSourceHeight],
-      regions.sleft1
-    );
-    Face.drawFace(
-      generator,
-      "WallFaceBack" + blockId,
-      [sideSourceX, wallSourceY, sideSourceWidth, wallSourceHeight],
-      regions.sback1
-    );
-  }
-
-  // The right side is paired with Post and Side and Two Sides.
-  if (drawRightSide) {
-    Face.drawFace(
-      generator,
-      "WallFaceTop" + blockId,
-      [frontSourceX, 5, sideSourceWidth, 6],
-      regions.stop2
-    );
-    Face.drawFace(
-      generator,
-      "WallFaceBottom" + blockId,
-      [frontSourceX, 5, sideSourceWidth, 6],
-      regions.sbottom2
-    );
-    Face.drawFace(
-      generator,
-      "WallFaceRight" + blockId,
-      [5, wallSourceY, 6, wallSourceHeight],
-      regions.sright2
-    );
-    Face.drawFace(
-      generator,
-      "WallFaceFront" + blockId,
-      [frontSourceX, wallSourceY, sideSourceWidth, wallSourceHeight],
-      regions.sfront2
-    );
-    Face.drawFace(
-      generator,
-      "WallFaceLeft" + blockId,
-      [5, wallSourceY, 6, wallSourceHeight],
-      regions.sleft2
-    );
-    Face.drawFace(
-      generator,
-      "WallFaceBack" + blockId,
-      [sideSourceX, wallSourceY, sideSourceWidth, wallSourceHeight],
-      regions.sback2
-    );
-  }
-
-  // Straight Segment draws only its long segment, with regions on that segment.
-  if (drawStraightSegment) {
-    Face.drawFace(
-      generator,
-      "WallFaceTop" + blockId,
-      [0, 5, 16, 6],
-      regions.ltop1
-    );
-    Face.drawFace(
-      generator,
-      "WallFaceBottom" + blockId,
-      [0, 5, 16, 6],
-      regions.lbottom1
-    );
-    Face.drawFace(
-      generator,
-      "WallFaceRight" + blockId,
-      [5, wallSourceY, 6, wallSourceHeight],
-      regions.lright1
-    );
-    Face.drawFace(
-      generator,
-      "WallFaceFront" + blockId,
-      [0, wallSourceY, 16, wallSourceHeight],
-      regions.lfront1
-    );
-    Face.drawFace(
-      generator,
-      "WallFaceLeft" + blockId,
-      [5, wallSourceY, 6, wallSourceHeight],
-      regions.lleft1
-    );
-    Face.drawFace(
-      generator,
-      "WallFaceBack" + blockId,
-      [0, wallSourceY, 16, wallSourceHeight],
-      regions.lback1
-    );
-  }
-
-  generator.drawImage("Tabs-Wall-" + imageSuffix, [ox - 32, oy - 1]);
-
-  if (showFolds) {
-    generator.drawImage("Folds-Wall-" + imageSuffix, [ox - 32, oy - 1]);
+  switch (shape) {
+    case "Two Sides": {
+      drawSides(generator, blockId, ox, oy, showFolds, isTall);
+      break;
+    }
+    case "Straight Segment": {
+      drawStraight(generator, blockId, ox, oy, showFolds, isTall);
+      break;
+    }
+    case "Post and Side": {
+      drawPost(generator, blockId, ox, oy, showFolds, isTall);
+      break;
+    }
   }
 }

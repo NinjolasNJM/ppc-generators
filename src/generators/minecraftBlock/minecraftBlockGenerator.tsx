@@ -38,7 +38,6 @@ import { drawCake } from "./shapes/cake";
 import { drawShelf } from "./shapes/shelf";
 
 import thumnbailImage from "./thumbnail/v2-thumbnail-256.jpeg";
-import backgroundImage from "./images/Background.png";
 import titleImage from "./images/Title.png";
 import foldsBlockImage from "./images/Folds-Block.png";
 import tabsBlockImage from "./images/Tabs-Block.png";
@@ -50,10 +49,16 @@ import foldsFenceImage from "./images/Folds-Fence.png";
 import tabsFenceImage from "./images/Tabs-Fence.png";
 import foldsWallPostImage from "./images/Folds-Wall-Post.png";
 import tabsWallPostImage from "./images/Tabs-Wall-Post.png";
+import tabsWallPostTopImage from "./images/Tabs-Wall-Post-Top.png";
 import foldsWallSidesImage from "./images/Folds-Wall-Sides.png";
 import tabsWallSidesImage from "./images/Tabs-Wall-Sides.png";
+import tabsWallSidesTopImage from "./images/Tabs-Wall-Sides-Top.png";
+import foldsWallSidesPostImage from "./images/Folds-Wall-Sides-Post.png";
+import tabsWallSidesPostImage from "./images/Tabs-Wall-Sides-Post.png";
+import tabsWallSidesPostTopImage from "./images/Tabs-Wall-Sides-Post-Top.png";
 import foldsWallStraightImage from "./images/Folds-Wall-Straight.png";
 import tabsWallStraightImage from "./images/Tabs-Wall-Straight.png";
+import tabsWallStraightTopImage from "./images/Tabs-Wall-Straight-Top.png";
 import foldsDoorImage from "./images/Folds-Door.png";
 import tabsDoorImage from "./images/Tabs-Door.png";
 import foldsTrapdoorImage from "./images/Folds-Trapdoor.png";
@@ -117,7 +122,6 @@ const thumbnail: ThumbnailDef = {
 };
 
 const images: ImageDef[] = [
-  { id: "Background", url: backgroundImage.src },
   { id: "Title", url: titleImage.src },
   { id: "Folds-Block", url: foldsBlockImage.src },
   { id: "Tabs-Block", url: tabsBlockImage.src },
@@ -129,10 +133,16 @@ const images: ImageDef[] = [
   { id: "Tabs-Fence", url: tabsFenceImage.src },
   { id: "Folds-Wall-Post", url: foldsWallPostImage.src },
   { id: "Tabs-Wall-Post", url: tabsWallPostImage.src },
+  { id: "Tabs-Wall-Post-Top", url: tabsWallPostTopImage.src },
   { id: "Folds-Wall-Sides", url: foldsWallSidesImage.src },
   { id: "Tabs-Wall-Sides", url: tabsWallSidesImage.src },
+  { id: "Tabs-Wall-Sides-Top", url: tabsWallSidesTopImage.src },
+  { id: "Folds-Wall-Sides-Post", url: foldsWallSidesPostImage.src },
+  { id: "Tabs-Wall-Sides-Post", url: tabsWallSidesPostImage.src },
+  { id: "Tabs-Wall-Sides-Post-Top", url: tabsWallSidesPostTopImage.src },
   { id: "Folds-Wall-Straight", url: foldsWallStraightImage.src },
   { id: "Tabs-Wall-Straight", url: tabsWallStraightImage.src },
+  { id: "Tabs-Wall-Straight-Top", url: tabsWallStraightTopImage.src },
   { id: "Folds-Door", url: foldsDoorImage.src },
   { id: "Tabs-Door", url: tabsDoorImage.src },
   { id: "Folds-Trapdoor", url: foldsTrapdoorImage.src },
@@ -239,8 +249,6 @@ const script: ScriptDef = (generator: Generator) => {
   generator.defineBooleanInput("Show Folds", true);
 
   const showFolds = generator.getBooleanInputValue("Show Folds") ?? false;
-
-  generator.drawImage("Background", [0, 0]);
 
   for (let i = 1; i <= numberOfBlocks; i++) {
     const blockId = i.toString();
@@ -359,7 +367,7 @@ const script: ScriptDef = (generator: Generator) => {
   generator.defineInputRowEnd();
 
   generator.drawImage("Title", [0, 0]);
-  generator.fillBackgroundColor("#ff8000");
+  generator.fillBackgroundColorWithWhite(); // ("#ff8000");
 };
 
 export const generator: GeneratorDef = {
