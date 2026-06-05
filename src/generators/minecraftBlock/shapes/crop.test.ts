@@ -47,25 +47,25 @@ describe("drawCrop", () => {
     expect(generator.defineRegionInput).toHaveBeenCalledTimes(4);
     expect(generator.defineRegionInput).toHaveBeenNthCalledWith(
       1,
-      [-32, 72, 128, 256],
+      [-40, 72, 128, 256],
       expect.any(Function),
       "CropFace1"
     );
     expect(generator.defineRegionInput).toHaveBeenNthCalledWith(
       2,
-      [112, 72, 128, 256],
+      [104, 72, 128, 256],
       expect.any(Function),
       "CropFace1"
     );
     expect(generator.defineRegionInput).toHaveBeenNthCalledWith(
       3,
-      [256, 72, 128, 256],
+      [248, 72, 128, 256],
       expect.any(Function),
       "CropFace1"
     );
     expect(generator.defineRegionInput).toHaveBeenNthCalledWith(
       4,
-      [400, 72, 128, 256],
+      [392, 72, 128, 256],
       expect.any(Function),
       "CropFace1"
     );
@@ -81,7 +81,7 @@ describe("drawCrop", () => {
       1,
       "test-texture",
       [0, 0, 16, 16],
-      [-32, 72, 128, 128],
+      [-40, 72, 128, 128],
       expect.objectContaining({
         flip: "None",
         rotate: 0,
@@ -91,7 +91,7 @@ describe("drawCrop", () => {
       2,
       "test-texture",
       [0, 0, 16, 16],
-      [-32, 200, 128, 128],
+      [-40, 200, 128, 128],
       expect.objectContaining({
         flip: "Vertical",
         rotate: 0,
@@ -101,7 +101,7 @@ describe("drawCrop", () => {
       7,
       "test-texture",
       [0, 0, 16, 16],
-      [400, 72, 128, 128],
+      [392, 72, 128, 128],
       expect.objectContaining({
         flip: "None",
         rotate: 0,
@@ -111,7 +111,7 @@ describe("drawCrop", () => {
       8,
       "test-texture",
       [0, 0, 16, 16],
-      [400, 200, 128, 128],
+      [392, 200, 128, 128],
       expect.objectContaining({
         flip: "Vertical",
         rotate: 0,
@@ -129,7 +129,7 @@ describe("drawCrop", () => {
       1,
       "test-texture",
       [6, 5, 4, 1],
-      [16, 192, 32, 8],
+      [8, 192, 32, 8],
       expect.objectContaining({
         flip: "None",
         rotate: 180,
@@ -139,7 +139,7 @@ describe("drawCrop", () => {
       2,
       "test-texture",
       [6, 5, 4, 1],
-      [16, 200, 32, 8],
+      [8, 200, 32, 8],
       expect.objectContaining({
         flip: "Vertical",
         rotate: 180,
@@ -156,56 +156,56 @@ describe("drawCrop", () => {
     expect(generator.drawFoldLine).toHaveBeenCalledTimes(24);
     expect(generator.drawFoldLine).toHaveBeenNthCalledWith(
       1,
-      [-32, 200],
-      [96, 200],
+      [-40, 200],
+      [88, 200],
       true
     );
     expect(generator.drawFoldLine).toHaveBeenNthCalledWith(
       2,
-      [-32, 199],
-      [96, 199],
+      [-40, 199],
+      [88, 199],
       true
     );
     expect(generator.drawFoldLine).toHaveBeenNthCalledWith(
       3,
-      [0, 72],
-      [0, 136],
+      [-8, 72],
+      [-8, 136],
       true
     );
     expect(generator.drawFoldLine).toHaveBeenNthCalledWith(
       4,
-      [63, 72],
-      [63, 136],
+      [55, 72],
+      [55, 136],
       true
     );
     expect(generator.drawFoldLine).toHaveBeenNthCalledWith(
       5,
-      [0, 264],
-      [0, 328],
+      [-8, 264],
+      [-8, 328],
       true
     );
     expect(generator.drawFoldLine).toHaveBeenNthCalledWith(
       6,
-      [63, 264],
-      [63, 328],
+      [55, 264],
+      [55, 328],
       true
     );
     expect(generator.drawFoldLine).toHaveBeenNthCalledWith(
       9,
-      [144, 136],
-      [144, 200],
+      [136, 136],
+      [136, 200],
       true
     );
     expect(generator.drawFoldLine).toHaveBeenNthCalledWith(
       10,
-      [207, 136],
-      [207, 200],
+      [199, 136],
+      [199, 200],
       true
     );
     expect(generator.drawFoldLine).toHaveBeenNthCalledWith(
       12,
-      [207, 200],
-      [207, 264],
+      [199, 200],
+      [199, 264],
       true
     );
   });
@@ -218,26 +218,26 @@ describe("drawCrop", () => {
     expect(generator.drawFoldLine).toHaveBeenCalledTimes(24);
     expect(generator.drawFoldLine).toHaveBeenNthCalledWith(
       3,
-      [0, 104],
-      [0, 152],
+      [-8, 104],
+      [-8, 152],
       true
     );
     expect(generator.drawFoldLine).toHaveBeenNthCalledWith(
       4,
-      [63, 104],
-      [63, 152],
+      [55, 104],
+      [55, 152],
       true
     );
     expect(generator.drawFoldLine).toHaveBeenNthCalledWith(
       5,
-      [0, 248],
-      [0, 296],
+      [-8, 248],
+      [-8, 296],
       true
     );
     expect(generator.drawFoldLine).toHaveBeenNthCalledWith(
       6,
-      [63, 248],
-      [63, 296],
+      [55, 248],
+      [55, 296],
       true
     );
   });

@@ -82,7 +82,7 @@ const history: HistoryDef = [
   "Jan 2022 NinjolasNJM - Add Cake Block type.",
   "May 2026 NinjolasNJM - Add Shelf Block type.",
   "May 2026 NinjolasNJM - Changed to use new glint and tint input.",
-  "Jun 2026 NinjolasNJM - Add Cross, Double Cross, Crop and Wall Block types.",
+  "Jun 2026 NinjolasNJM - Add Cross, Double Cross, Crop, Bed, and Wall Block types.",
 ];
 
 const instructions = `

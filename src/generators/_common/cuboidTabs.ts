@@ -46,7 +46,7 @@ export function getDioramaEdgeTabThickness(
 function makeWestCuboidFaces(
   [x, y]: Position,
   [w, h, d]: Dimensions,
-  [baseW, baseH, baseD]: Dimensions
+  [baseW, , baseD]: Dimensions
 ): Record<
   CuboidTabFace,
   {
