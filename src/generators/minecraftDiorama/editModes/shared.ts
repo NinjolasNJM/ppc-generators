@@ -3,6 +3,7 @@ import {
   type Region,
 } from "@genroot/builder/modules/generator";
 import { type Flip } from "@genroot/builder/modules/renderers/drawTexture";
+import { getDioramaEdgeTabThickness } from "../../_common/cuboidTabs";
 
 export type EditMode =
   | "Blocks"
@@ -172,12 +173,10 @@ function sanitizeTransforms(
 ): DioramaDocument["transforms"] {
   return Object.fromEntries(
     Object.entries(transforms ?? {})
-      .map(
-        ([id, transform]): [string, FaceTransform] => [
-          id,
-          sanitizeTransform(transform),
-        ]
-      )
+      .map(([id, transform]): [string, FaceTransform] => [
+        id,
+        sanitizeTransform(transform),
+      ])
       .filter(([, transform]) => !isDefaultTransform(transform))
   );
 }
@@ -544,9 +543,7 @@ export function getEdgeControlThickness(faceSize: number): number {
   return Math.min(faceSize / 4, maxEdgeRegionThickness);
 }
 
-function getEdgeTabThickness(baseSize: number, faceSize: number): number {
-  return Math.min(baseSize / 4, maxEdgeRegionThickness, faceSize / 2);
-}
+const getEdgeTabThickness = getDioramaEdgeTabThickness;
 
 export function getColumnWidth(
   options: Pick<DioramaOptions, "width" | "document">,

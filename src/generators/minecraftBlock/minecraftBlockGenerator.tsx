@@ -47,18 +47,6 @@ import foldsStairImage from "./images/Folds-Stair.png";
 import tabsStairImage from "./images/Tabs-Stair.png";
 import foldsFenceImage from "./images/Folds-Fence.png";
 import tabsFenceImage from "./images/Tabs-Fence.png";
-import foldsWallPostImage from "./images/Folds-Wall-Post.png";
-import tabsWallPostImage from "./images/Tabs-Wall-Post.png";
-import tabsWallPostTopImage from "./images/Tabs-Wall-Post-Top.png";
-import foldsWallSidesImage from "./images/Folds-Wall-Sides.png";
-import tabsWallSidesImage from "./images/Tabs-Wall-Sides.png";
-import tabsWallSidesTopImage from "./images/Tabs-Wall-Sides-Top.png";
-import foldsWallSidesPostImage from "./images/Folds-Wall-Sides-Post.png";
-import tabsWallSidesPostImage from "./images/Tabs-Wall-Sides-Post.png";
-import tabsWallSidesPostTopImage from "./images/Tabs-Wall-Sides-Post-Top.png";
-import foldsWallStraightImage from "./images/Folds-Wall-Straight.png";
-import tabsWallStraightImage from "./images/Tabs-Wall-Straight.png";
-import tabsWallStraightTopImage from "./images/Tabs-Wall-Straight-Top.png";
 import foldsDoorImage from "./images/Folds-Door.png";
 import tabsDoorImage from "./images/Tabs-Door.png";
 import foldsTrapdoorImage from "./images/Folds-Trapdoor.png";
@@ -131,18 +119,6 @@ const images: ImageDef[] = [
   { id: "Tabs-Stair", url: tabsStairImage.src },
   { id: "Folds-Fence", url: foldsFenceImage.src },
   { id: "Tabs-Fence", url: tabsFenceImage.src },
-  { id: "Folds-Wall-Post", url: foldsWallPostImage.src },
-  { id: "Tabs-Wall-Post", url: tabsWallPostImage.src },
-  { id: "Tabs-Wall-Post-Top", url: tabsWallPostTopImage.src },
-  { id: "Folds-Wall-Sides", url: foldsWallSidesImage.src },
-  { id: "Tabs-Wall-Sides", url: tabsWallSidesImage.src },
-  { id: "Tabs-Wall-Sides-Top", url: tabsWallSidesTopImage.src },
-  { id: "Folds-Wall-Sides-Post", url: foldsWallSidesPostImage.src },
-  { id: "Tabs-Wall-Sides-Post", url: tabsWallSidesPostImage.src },
-  { id: "Tabs-Wall-Sides-Post-Top", url: tabsWallSidesPostTopImage.src },
-  { id: "Folds-Wall-Straight", url: foldsWallStraightImage.src },
-  { id: "Tabs-Wall-Straight", url: tabsWallStraightImage.src },
-  { id: "Tabs-Wall-Straight-Top", url: tabsWallStraightTopImage.src },
   { id: "Folds-Door", url: foldsDoorImage.src },
   { id: "Tabs-Door", url: tabsDoorImage.src },
   { id: "Folds-Trapdoor", url: foldsTrapdoorImage.src },

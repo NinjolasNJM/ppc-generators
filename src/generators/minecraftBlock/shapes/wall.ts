@@ -3,6 +3,7 @@ import {
   type Region,
 } from "@genroot/builder/modules/generator";
 import { drawCuboidFolds } from "../../_common/cuboidFolds";
+import { drawCuboidTabs } from "../../_common/cuboidTabs";
 import { type Dimensions, type Position } from "../../_common/cuboid";
 import * as Face from "../face";
 
@@ -86,23 +87,6 @@ const wallShapeOptions: WallShape[] = [
   "Straight Segment",
 ];
 
-function drawWallOverlayImages(
-  generator: Generator,
-  overlaySuffix: string,
-  ox: number,
-  oy: number,
-  isTall: boolean
-) {
-  generator.drawImage("Tabs-Wall-" + overlaySuffix, [ox - 32, oy - 1]);
-  generator.drawImage("Folds-Wall-" + overlaySuffix, [ox - 32, oy - 1]);
-  if (!isTall) {
-    generator.drawImage("Tabs-Wall-" + overlaySuffix + "-Top", [
-      ox - 32,
-      oy - 1,
-    ]);
-  }
-}
-
 function makeFoldCuboid(right: Region, top: Region, front: Region): FoldCuboid {
   return {
     position: [right[0], top[1]],
@@ -115,6 +99,14 @@ function drawFolds(generator: Generator, cuboids: FoldCuboid[]) {
     drawCuboidFolds(generator, position, dimensions, {
       foldType: "light",
       orientation: "West",
+    });
+  });
+}
+
+function drawTabs(generator: Generator, cuboids: FoldCuboid[]) {
+  cuboids.forEach(({ position, dimensions }) => {
+    drawCuboidTabs(generator, position, dimensions, {
+      baseDimensions: [size, size, size],
     });
   });
 }
@@ -312,13 +304,13 @@ function drawPost(
     true
   );
 
+  const cuboids = [
+    makeFoldCuboid(regions.right, regions.top, regions.front),
+    makeFoldCuboid(regions.sright2, regions.stop2, regions.sfront2),
+  ];
+  drawTabs(generator, cuboids);
   if (showFolds) {
-    drawFolds(generator, [
-      makeFoldCuboid(regions.right, regions.top, regions.front),
-      makeFoldCuboid(regions.sright2, regions.stop2, regions.sfront2),
-    ]);
-  } else {
-    drawWallOverlayImages(generator, "Post", ox, oy, isTall);
+    drawFolds(generator, cuboids);
   }
 }
 
@@ -386,15 +378,13 @@ function drawSides(
     true
   );
 
-  const overlaySuffix = withPost ? "Sides-Post" : "Sides";
-
+  const cuboids = [
+    makeFoldCuboid(regions.sright1, regions.stop1, regions.sfront1),
+    makeFoldCuboid(regions.sright2, regions.stop2, regions.sfront2),
+  ];
+  drawTabs(generator, cuboids);
   if (showFolds) {
-    drawFolds(generator, [
-      makeFoldCuboid(regions.sright1, regions.stop1, regions.sfront1),
-      makeFoldCuboid(regions.sright2, regions.stop2, regions.sfront2),
-    ]);
-  } else {
-    drawWallOverlayImages(generator, overlaySuffix, ox, oy, isTall);
+    drawFolds(generator, cuboids);
   }
 }
 
@@ -458,12 +448,12 @@ function drawStraight(
     regions.lback1
   );
 
+  const cuboids = [
+    makeFoldCuboid(regions.lright1, regions.ltop1, regions.lfront1),
+  ];
+  drawTabs(generator, cuboids);
   if (showFolds) {
-    drawFolds(generator, [
-      makeFoldCuboid(regions.lright1, regions.ltop1, regions.lfront1),
-    ]);
-  } else {
-    drawWallOverlayImages(generator, "Straight", ox, oy, isTall);
+    drawFolds(generator, cuboids);
   }
 }
 

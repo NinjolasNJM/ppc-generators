@@ -33,6 +33,7 @@ function makeGenerator(
     defineRegionInput: vi.fn(),
     drawFoldLine: vi.fn(),
     drawImage: vi.fn(),
+    drawTab: vi.fn(),
     drawTexture: vi.fn(),
     getBooleanInputValueWithDefault: vi.fn(() => withPost),
     getSelectInputValue: (id: string) =>
@@ -44,7 +45,7 @@ function makeGenerator(
 }
 
 describe("drawWall", () => {
-  it("uses post regions and draws generated light folds by default", () => {
+  it("uses post regions and draws generated tabs and light folds by default", () => {
     const generator = makeGenerator();
 
     drawWall(generator, "1", 57, 16, true);
@@ -104,6 +105,23 @@ describe("drawWall", () => {
       expect.any(Object)
     );
     expect(generator.drawImage).not.toHaveBeenCalled();
+    expect(generator.drawTab).toHaveBeenCalledTimes(14);
+    expect(generator.drawTab).toHaveBeenNthCalledWith(
+      1,
+      [57, 112, 64, 32],
+      "North",
+      false,
+      45,
+      "Regular"
+    );
+    expect(generator.drawTab).toHaveBeenNthCalledWith(
+      3,
+      [25, 144, 32, 128],
+      "West",
+      false,
+      45,
+      "Regular"
+    );
     expect(generator.drawFoldLine).toHaveBeenCalledTimes(18);
     expect(generator.drawFoldLine).toHaveBeenNthCalledWith(
       1,
@@ -175,6 +193,23 @@ describe("drawWall", () => {
       "Block 1 Wall With Post"
     );
     expect(generator.drawImage).not.toHaveBeenCalled();
+    expect(generator.drawTab).toHaveBeenCalledTimes(14);
+    expect(generator.drawTab).toHaveBeenNthCalledWith(
+      1,
+      [65, 136, 48, 24],
+      "North",
+      false,
+      45,
+      "Regular"
+    );
+    expect(generator.drawTab).toHaveBeenNthCalledWith(
+      3,
+      [41, 160, 24, 112],
+      "West",
+      false,
+      45,
+      "Regular"
+    );
     expect(generator.drawFoldLine).toHaveBeenCalledTimes(18);
     expect(generator.drawFoldLine).toHaveBeenNthCalledWith(
       1,
@@ -240,6 +275,23 @@ describe("drawWall", () => {
       expect.any(Object)
     );
     expect(generator.drawImage).not.toHaveBeenCalled();
+    expect(generator.drawTab).toHaveBeenCalledTimes(7);
+    expect(generator.drawTab).toHaveBeenNthCalledWith(
+      1,
+      [137, 136, 48, 24],
+      "North",
+      false,
+      45,
+      "Regular"
+    );
+    expect(generator.drawTab).toHaveBeenNthCalledWith(
+      6,
+      [361, 136, 128, 24],
+      "North",
+      false,
+      45,
+      "Regular"
+    );
     expect(generator.drawFoldLine).toHaveBeenCalledTimes(9);
     expect(generator.drawFoldLine).toHaveBeenNthCalledWith(
       1,
@@ -304,6 +356,7 @@ describe("drawWall", () => {
       expect.any(Object)
     );
     expect(generator.drawFoldLine).toHaveBeenCalledTimes(18);
+    expect(generator.drawTab).toHaveBeenCalledTimes(14);
     expect(generator.drawImage).not.toHaveBeenCalled();
   });
 
@@ -344,6 +397,15 @@ describe("drawWall", () => {
       expect.any(Object)
     );
     expect(generator.drawImage).not.toHaveBeenCalled();
+    expect(generator.drawTab).toHaveBeenCalledTimes(14);
+    expect(generator.drawTab).toHaveBeenNthCalledWith(
+      1,
+      [57, 136, 48, 24],
+      "North",
+      false,
+      45,
+      "Regular"
+    );
     expect(generator.drawFoldLine).toHaveBeenCalledTimes(18);
     expect(generator.drawFoldLine).toHaveBeenNthCalledWith(
       1,
@@ -354,50 +416,31 @@ describe("drawWall", () => {
   });
 
   it.each([
-    ["Post and Side", true, false, "Post"],
-    ["Two Sides", true, false, "Sides-Post"],
-    ["Two Sides", false, false, "Sides"],
-    ["Straight Segment", true, false, "Straight"],
+    ["Post and Side", true, false, 14],
+    ["Two Sides", true, false, 14],
+    ["Two Sides", false, false, 14],
+    ["Straight Segment", true, false, 7],
   ] as const)(
-    "uses the %s overlay images when Show Folds is off",
-    (shape, withPost, isTall, imageSuffix) => {
+    "draws generated %s tabs without folds when Show Folds is off",
+    (shape, withPost, isTall, tabCount) => {
       const generator = makeGenerator(shape, isTall, withPost);
 
       drawWall(generator, "1", 57, 16, false);
 
       expect(generator.drawFoldLine).not.toHaveBeenCalled();
-      expect(generator.drawImage).toHaveBeenCalledWith(
-        "Tabs-Wall-" + imageSuffix,
-        [25, 15]
-      );
-      expect(generator.drawImage).toHaveBeenCalledWith(
-        "Folds-Wall-" + imageSuffix,
-        [25, 15]
-      );
-      expect(generator.drawImage).toHaveBeenCalledWith(
-        "Tabs-Wall-" + imageSuffix + "-Top",
-        [25, 15]
-      );
+      expect(generator.drawTab).toHaveBeenCalledTimes(tabCount);
+      expect(generator.drawImage).not.toHaveBeenCalled();
     }
   );
 
-  it("does not draw short top overlay images for tall walls when Show Folds is off", () => {
+  it("draws tall wall generated tabs without folds when Show Folds is off", () => {
     const generator = makeGenerator("Two Sides", true);
 
     drawWall(generator, "1", 57, 16, false);
 
-    expect(generator.drawImage).toHaveBeenCalledWith(
-      "Tabs-Wall-Sides-Post",
-      [25, 15]
-    );
-    expect(generator.drawImage).toHaveBeenCalledWith(
-      "Folds-Wall-Sides-Post",
-      [25, 15]
-    );
-    expect(generator.drawImage).not.toHaveBeenCalledWith(
-      "Tabs-Wall-Sides-Post-Top",
-      expect.anything()
-    );
+    expect(generator.drawTab).toHaveBeenCalledTimes(14);
+    expect(generator.drawFoldLine).not.toHaveBeenCalled();
+    expect(generator.drawImage).not.toHaveBeenCalled();
   });
 
   it("toggles Wall With Post from the right side control region", () => {
@@ -420,11 +463,32 @@ describe("drawWall", () => {
     );
   });
 
-  it("keeps tabs off when drawing generated folds", () => {
+  it("draws generated tabs after textures and before generated folds", () => {
     const generator = makeGenerator("Two Sides");
 
     drawWall(generator, "1", 57, 16, true);
 
+    const textureOrders = vi.mocked(generator.drawTexture).mock
+      .invocationCallOrder;
+    const tabOrders = vi.mocked(generator.drawTab).mock.invocationCallOrder;
+    const foldOrders = vi.mocked(generator.drawFoldLine).mock
+      .invocationCallOrder;
+
+    const lastTextureOrder = textureOrders[textureOrders.length - 1];
+    const firstTabOrder = tabOrders[0];
+    const firstFoldOrder = foldOrders[0];
+
+    if (
+      lastTextureOrder === undefined ||
+      firstTabOrder === undefined ||
+      firstFoldOrder === undefined
+    ) {
+      throw new Error("Expected texture, tab, and fold calls to be recorded");
+    }
+
+    expect(lastTextureOrder).toBeLessThan(firstTabOrder);
+    expect(firstTabOrder).toBeLessThan(firstFoldOrder);
+    expect(generator.drawTab).toHaveBeenCalled();
     expect(generator.drawFoldLine).toHaveBeenCalled();
     expect(generator.drawImage).not.toHaveBeenCalled();
   });
