@@ -49,7 +49,7 @@ const pairConfigs: CropPairConfig[] = [
 ];
 
 function makePairs(ox: number, oy: number): CropPair[] {
-  const startX = ox - 32;
+  const startX = ox - 40;
   const topY = oy + pairYOffset;
 
   return pairConfigs.map((config, index) => {
