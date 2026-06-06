@@ -49,7 +49,7 @@ import {
   getCurrentTransform,
 } from "./editModes/transform";
 
-import thumbnailImage from "./thumbnail/v2-thumbnail-256.jpeg";
+import thumbnailImage from "./thumbnail/v3-thumbnail-256.png";
 import backgroundImage from "./images/Background.png";
 import titleLandscapeImage from "./images/TitleLandscape.png";
 import titlePortraitImage from "./images/TitlePortrait.png";
