@@ -16,45 +16,66 @@ type SourceRegionDef = {
   faceIds: string[];
 };
 
+const minimumSourceSize = 0.5;
+const sourceSize = 16;
+
+export function clampSourceToBounds(
+  [x, y, width, height]: Region
+): Region {
+  const clampedX = Math.max(
+    0,
+    Math.min(x, sourceSize - minimumSourceSize)
+  );
+  const clampedY = Math.max(
+    0,
+    Math.min(y, sourceSize - minimumSourceSize)
+  );
+
+  return [
+    clampedX,
+    clampedY,
+    Math.max(
+      minimumSourceSize,
+      Math.min(width, sourceSize - clampedX)
+    ),
+    Math.max(
+      minimumSourceSize,
+      Math.min(height, sourceSize - clampedY)
+    ),
+  ];
+}
+
 export function getCurrentSource(generator: Generator): Region {
   const x = generator.defineAndGetRangeInput("Source X", {
     min: 0,
-    max: 16,
+    max: sourceSize,
     value: 0,
     step: 0.5,
     showValue: true,
   });
   const y = generator.defineAndGetRangeInput("Source Y", {
     min: 0,
-    max: 16,
+    max: sourceSize,
     value: 0,
     step: 0.5,
     showValue: true,
   });
   const width = generator.defineAndGetRangeInput("Source Width", {
-    min: 0.5,
-    max: 16,
+    min: minimumSourceSize,
+    max: sourceSize,
     value: 16,
     step: 0.5,
     showValue: true,
   });
   const height = generator.defineAndGetRangeInput("Source Height", {
-    min: 0.5,
-    max: 16,
+    min: minimumSourceSize,
+    max: sourceSize,
     value: 16,
     step: 0.5,
     showValue: true,
   });
 
-  const clampedX = Math.min(x, 15.5);
-  const clampedY = Math.min(y, 15.5);
-
-  return [
-    clampedX,
-    clampedY,
-    Math.max(0.5, Math.min(width, 16 - clampedX)),
-    Math.max(0.5, Math.min(height, 16 - clampedY)),
-  ];
+  return clampSourceToBounds([x, y, width, height]);
 }
 
 export function drawSourceRegions(

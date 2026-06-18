@@ -80,13 +80,13 @@ function drawTexture(
   const flipOption = options?.flip ?? "None";
   const [nextFlip, nextRotation] = makeNextFlip(flip, flipOption, rotation);
 
-  const scale =
-    fw === fh && fw > 0 && fw % 16 === 0 && fh % 16 === 0 ? fw / 16 : 1;
+  const scaleX = fw / 16;
+  const scaleY = fh / 16;
   const scaledSource = [
-    sx * scale,
-    sy * scale,
-    sw * scale,
-    sh * scale,
+    sx * scaleX,
+    sy * scaleY,
+    sw * scaleX,
+    sh * scaleY,
   ] as const;
   const [ssx, ssy, ssw, ssh] = scaledSource;
 
@@ -95,11 +95,21 @@ function drawTexture(
       case "Rot0":
         return [fx + ssx, fy + ssy, ssw, ssh];
       case "Rot90":
-        return [fx + ssy, fy + fw - (ssw + ssx), ssh, ssw];
+        return [
+          fx + sy * scaleX,
+          fy + (16 - (sx + sw)) * scaleY,
+          sh * scaleX,
+          sw * scaleY,
+        ];
       case "Rot180":
         return [fx + fw - (ssw + ssx), fy + fh - (ssh + ssy), ssw, ssh];
       case "Rot270":
-        return [fx + fh - (ssh + ssy), fy + ssx, ssh, ssw];
+        return [
+          fx + (16 - (sy + sh)) * scaleX,
+          fy + sx * scaleY,
+          sh * scaleX,
+          sw * scaleY,
+        ];
     }
   })();
 

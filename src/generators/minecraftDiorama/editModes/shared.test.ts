@@ -4,6 +4,7 @@ import {
   makeEdgeControlRegions,
   makeEdgeRegions,
   makeEmptyDioramaDocument,
+  sanitizeSource,
   type DioramaOptions,
 } from "./shared";
 
@@ -68,6 +69,27 @@ describe("diorama edit mode shared helpers", () => {
 
     expect(findRegion(regions, "North0 0")).toEqual([42, 41, 16, 8]);
     expect(findRegion(regions, "East0 0")).toEqual([42, 41, 8, 16]);
+  });
+
+  it("keeps one-source-pixel destination tabs at least one scaled source pixel thick", () => {
+    const document = makeEmptyDioramaDocument();
+    document.destinationColumns = { 0: 1 };
+    document.destinationRows = { 0: 1 };
+
+    const regions = makeEdgeRegions(
+      makeOptions({
+        width: 128,
+        height: 128,
+        document,
+      })
+    );
+
+    expect(findRegion(regions, "North0 0")).toEqual([42, 41, 8, 8]);
+    expect(findRegion(regions, "East0 0")).toEqual([42, 41, 8, 8]);
+  });
+
+  it("keeps saved source regions in normalized 16px face units", () => {
+    expect(sanitizeSource([16, 0, 16, 16])).toEqual([15.5, 0, 0.5, 16]);
   });
 
   it("uses world offsets when reading destination sizes", () => {

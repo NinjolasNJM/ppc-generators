@@ -65,6 +65,7 @@ export const defaultTransform: FaceTransform = { rotate: 0, flip: "None" };
 export const defaultPreset: BlockPreset = "Full Blocks";
 export const blockPresets: BlockPreset[] = ["Full Blocks", "Quarter Blocks"];
 const maxEdgeRegionThickness = (16 * 800) / 100 / 4;
+const minimumSourceSize = 0.5;
 
 export function getFaceId(column: number, row: number): string {
   return `BlockFace${column} ${row}`;
@@ -127,7 +128,7 @@ function sanitizeSources(
   );
 }
 
-function sanitizeSource([x, y, width, height]: Region): Region {
+export function sanitizeSource([x, y, width, height]: Region): Region {
   const sourceX = sanitizeNumber(x, defaultSource[0]);
   const sourceY = sanitizeNumber(y, defaultSource[1]);
   const sourceWidth = sanitizeNumber(width, defaultSource[2]);
@@ -138,8 +139,14 @@ function sanitizeSource([x, y, width, height]: Region): Region {
   return [
     clampedX,
     clampedY,
-    Math.max(0.5, Math.min(roundToHalf(sourceWidth), 16 - clampedX)),
-    Math.max(0.5, Math.min(roundToHalf(sourceHeight), 16 - clampedY)),
+    Math.max(
+      minimumSourceSize,
+      Math.min(roundToHalf(sourceWidth), 16 - clampedX)
+    ),
+    Math.max(
+      minimumSourceSize,
+      Math.min(roundToHalf(sourceHeight), 16 - clampedY)
+    ),
   ];
 }
 
@@ -545,7 +552,11 @@ export function getEdgeControlThickness(faceSize: number): number {
 }
 
 function getEdgeTabThickness(baseSize: number, faceSize: number): number {
-  return Math.min(baseSize / 4, maxEdgeRegionThickness, faceSize / 2);
+  const minimumSourcePixelThickness = baseSize / 16;
+  return Math.max(
+    minimumSourcePixelThickness,
+    Math.min(baseSize / 4, maxEdgeRegionThickness, faceSize / 2)
+  );
 }
 
 export function getColumnWidth(
