@@ -1,10 +1,14 @@
-import { type Generator, type Region } from "@genroot/builder/modules/generator";
+import {
+  type Generator,
+  type Region,
+} from "@genroot/builder/modules/generator";
 import {
   drawRectangleButton,
   getEdgeControlThickness,
-  getFaceId,
+  getRegionUnion,
   isDefaultTransform,
   makeBlockRegions,
+  parseFaceId,
   setDioramaDocument,
   type DioramaOptions,
   type FaceRotation,
@@ -56,7 +60,9 @@ export function drawTransformRegions(
   });
 }
 
-function makeFaceTransformRegions(options: DioramaOptions): TransformRegionDef[] {
+function makeFaceTransformRegions(
+  options: DioramaOptions
+): TransformRegionDef[] {
   return makeBlockRegions(options).map(({ id, region }) => ({
     region,
     faceIds: [id],
@@ -66,16 +72,15 @@ function makeFaceTransformRegions(options: DioramaOptions): TransformRegionDef[]
 function makeColumnTransformRegions(
   options: DioramaOptions
 ): TransformRegionDef[] {
-  const blockRegions = new Map(
-    makeBlockRegions(options).map(({ id, region }) => [id, region])
-  );
+  const blockRegions = makeBlockRegions(options);
   const regions: TransformRegionDef[] = [];
 
   for (let column = 0; column < options.columns; column += 1) {
     const worldColumn = column + options.worldColumnOffset;
-    const region = blockRegions.get(
-      getFaceId(worldColumn, options.worldRowOffset)
+    const faceRegions = blockRegions.filter(
+      ({ id }) => parseFaceId(id)?.column === worldColumn
     );
+    const region = getRegionUnion(faceRegions.map(({ region }) => region));
     if (!region) {
       continue;
     }
@@ -89,26 +94,25 @@ function makeColumnTransformRegions(
         width,
         regionHeight,
       ],
-      faceIds: Array.from({ length: options.rows }, (_, row) =>
-        getFaceId(worldColumn, row + options.worldRowOffset)
-      ),
+      faceIds: faceRegions.map(({ id }) => id),
     });
   }
 
   return regions;
 }
 
-function makeRowTransformRegions(options: DioramaOptions): TransformRegionDef[] {
-  const blockRegions = new Map(
-    makeBlockRegions(options).map(({ id, region }) => [id, region])
-  );
+function makeRowTransformRegions(
+  options: DioramaOptions
+): TransformRegionDef[] {
+  const blockRegions = makeBlockRegions(options);
   const regions: TransformRegionDef[] = [];
 
   for (let row = 0; row < options.rows; row += 1) {
     const worldRow = row + options.worldRowOffset;
-    const region = blockRegions.get(
-      getFaceId(options.worldColumnOffset, worldRow)
+    const faceRegions = blockRegions.filter(
+      ({ id }) => parseFaceId(id)?.row === worldRow
     );
+    const region = getRegionUnion(faceRegions.map(({ region }) => region));
     if (!region) {
       continue;
     }
@@ -117,9 +121,7 @@ function makeRowTransformRegions(options: DioramaOptions): TransformRegionDef[] 
 
     regions.push({
       region: [x >= regionWidth ? x - regionWidth : x, y, regionWidth, height],
-      faceIds: Array.from({ length: options.columns }, (_, column) =>
-        getFaceId(column + options.worldColumnOffset, worldRow)
-      ),
+      faceIds: faceRegions.map(({ id }) => id),
     });
   }
 

@@ -27,6 +27,53 @@ async function makeWideTexture(): Promise<Buffer> {
     .toBuffer();
 }
 
+async function makeQuadrantTexture(): Promise<Buffer> {
+  const makePatch = (background: {
+    r: number;
+    g: number;
+    b: number;
+    alpha: number;
+  }) =>
+    sharp({
+      create: {
+        width: 8,
+        height: 8,
+        channels: 4,
+        background,
+      },
+    })
+      .png()
+      .toBuffer();
+
+  return sharp({
+    create: {
+      width: 16,
+      height: 16,
+      channels: 4,
+      background: { r: 255, g: 0, b: 0, alpha: 1 },
+    },
+  })
+    .composite([
+      {
+        input: await makePatch({ r: 0, g: 255, b: 0, alpha: 1 }),
+        left: 8,
+        top: 0,
+      },
+      {
+        input: await makePatch({ r: 0, g: 0, b: 255, alpha: 1 }),
+        left: 0,
+        top: 8,
+      },
+      {
+        input: await makePatch({ r: 255, g: 255, b: 0, alpha: 1 }),
+        left: 8,
+        top: 8,
+      },
+    ])
+    .png()
+    .toBuffer();
+}
+
 async function setRangeValue(page: Page, label: string, value: number) {
   await page.getByLabel(label).evaluate((element, nextValue) => {
     const input = element as HTMLInputElement;
@@ -97,4 +144,47 @@ test("minecraft diorama generator can draw the right half of a custom 32x16 sour
   await expect
     .poll(() => readPixel(outputPage, 100, 100))
     .toEqual([0, 0, 255, 255]);
+});
+
+test("minecraft diorama split keeps a textured face visually continuous", async ({
+  page,
+}) => {
+  await page.goto("/generator/minecraft-diorama");
+
+  await page.getByLabel("Version").selectOption("custom");
+  await page
+    .getByLabel("Select one or more custom texture files")
+    .setInputFiles({
+      name: "quadrants.png",
+      mimeType: "image/png",
+      buffer: await makeQuadrantTexture(),
+    });
+
+  await expect(page.getByTitle("quadrants")).toBeVisible();
+  await page.getByTitle("quadrants").click();
+
+  const outputPage = page.getByTestId("generator-page-image").first();
+  await expect(outputPage).toBeVisible();
+  await renderImageAtNaturalSize(outputPage);
+  const box = await outputPage.boundingBox();
+  if (!box) {
+    throw new Error("Diorama output page was not measurable");
+  }
+
+  await page.mouse.click(box.x + 80, box.y + 80);
+  await page.getByLabel("Edit Mode", { exact: true }).selectOption("Split");
+  await page.mouse.click(box.x + 80, box.y + 80);
+
+  await expect
+    .poll(() => readPixel(outputPage, 58, 57))
+    .toEqual([255, 0, 0, 255]);
+  await expect
+    .poll(() => readPixel(outputPage, 138, 57))
+    .toEqual([0, 255, 0, 255]);
+  await expect
+    .poll(() => readPixel(outputPage, 58, 137))
+    .toEqual([0, 0, 255, 255]);
+  await expect
+    .poll(() => readPixel(outputPage, 138, 137))
+    .toEqual([255, 255, 0, 255]);
 });

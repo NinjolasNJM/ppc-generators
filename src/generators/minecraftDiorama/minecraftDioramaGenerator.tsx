@@ -39,10 +39,12 @@ import {
   makeEmptyDioramaDocument,
   setDioramaDocument,
   defaultTransform,
+  defaultSplit,
   type DioramaOptions,
   type EditMode,
 } from "./editModes/shared";
 import { drawSourceRegions, getCurrentSource } from "./editModes/source";
+import { drawSplitRegions, getCurrentSplit } from "./editModes/split";
 import { drawTabs } from "./editModes/tabs";
 import {
   drawTransformRegions,
@@ -122,6 +124,12 @@ The "Show Edit Regions" toggle will show an outline of each clickable region, fo
 * Transform Mode allows for rotating and flipping faces. This is useful in combination with the other modes for some block models, and for creating accurate exported templates using the diorama generator.
 * The rotation and flip can be changed using the select inputs.
 * Click the regions on the page to change the rotation and flip of a chosen face.
+
+## Split Edit Mode
+* Split Mode splits a face into four smaller editable faces without changing adjacent rows or columns.
+* The split width and height can be changed using the range inputs.
+* Click an unsplit face to split it. Click any part of a split face to turn it back into one face.
+* In Split Mode, there are additional regions on the top and left side of every row and column. Clicking them will split, resize, or unsplit the chosen row, column, or whole visible page.
 
 ### Saving and Loading
 * Using the "Export JSON" button, the state the generator is in can be exported as a .json file.
@@ -207,6 +215,7 @@ function drawDiorama(generator: Generator, options: DioramaOptions) {
   drawSourceRegions(generator, options);
   drawDestinationRegions(generator, options);
   drawTransformRegions(generator, options);
+  drawSplitRegions(generator, options);
   drawFolds(generator, options);
 }
 
@@ -361,6 +370,7 @@ function getOccupiedFacePositions(
     ...Object.keys(document.transforms),
     ...Object.keys(document.destinationColumns).map((column) => `${column} 0`),
     ...Object.keys(document.destinationRows).map((row) => `0 ${row}`),
+    ...Object.keys(document.splits),
     ...getOccupiedVariableFaceIds(generator),
   ]
     .map(getFacePositionFromId)
@@ -373,17 +383,17 @@ function getOccupiedFacePositions(
 function getOccupiedVariableFaceIds(generator: Generator): string[] {
   return Array.from(generator.model.values.variables.entries())
     .filter(([id, variable]) => {
-      if (/^BlockFace-?\d+ -?\d+$/.test(id)) {
+      if (/^BlockFace-?\d+ -?\d+[ABCD]?$/.test(id)) {
         return (
           variable.kind === "String" &&
           variable.value !== "" &&
           variable.value !== "[]"
         );
       }
-      if (/^Tabs(?:North|South|East|West)-?\d+ -?\d+$/.test(id)) {
+      if (/^Tabs(?:North|South|East|West)-?\d+ -?\d+[ABCD]?$/.test(id)) {
         return variable.kind === "String" && variable.value !== "0";
       }
-      if (/^Folds(?:North|South|East|West)-?\d+ -?\d+$/.test(id)) {
+      if (/^Folds(?:North|South|East|West)-?\d+ -?\d+[ABCD]?$/.test(id)) {
         return variable.kind === "Boolean" && variable.value;
       }
       return false;
@@ -395,7 +405,7 @@ function getFacePositionFromId(
   id: string
 ): { column: number; row: number } | null {
   const match =
-    /^(?:BlockFace|Tabs(?:North|South|East|West)|Folds(?:North|South|East|West))?(-?\d+) (-?\d+)$/.exec(
+    /^(?:BlockFace|Tabs(?:North|South|East|West)|Folds(?:North|South|East|West))?(-?\d+) (-?\d+)(?:[ABCD])?$/.exec(
       id
     );
   if (!match) {
@@ -415,18 +425,18 @@ function clearDioramaEditMode(
 ): void {
   switch (editMode) {
     case "Blocks":
-      clearVariablesMatching(generator, /^BlockFace-?\d+ -?\d+$/);
+      clearVariablesMatching(generator, /^BlockFace-?\d+ -?\d+[ABCD]?$/);
       break;
     case "Tabs":
       clearVariablesMatching(
         generator,
-        /^Tabs(?:North|South|East|West)-?\d+ -?\d+$/
+        /^Tabs(?:North|South|East|West)-?\d+ -?\d+[ABCD]?$/
       );
       break;
     case "Folds":
       clearVariablesMatching(
         generator,
-        /^Folds(?:North|South|East|West)-?\d+ -?\d+$/
+        /^Folds(?:North|South|East|West)-?\d+ -?\d+[ABCD]?$/
       );
       break;
     case "Source":
@@ -446,6 +456,12 @@ function clearDioramaEditMode(
       setDioramaDocument(generator, {
         ...document,
         transforms: {},
+      });
+      break;
+    case "Split":
+      setDioramaDocument(generator, {
+        ...document,
+        splits: {},
       });
       break;
   }
@@ -479,6 +495,7 @@ const script: ScriptDef = (generator: Generator) => {
     "Source",
     "Destination",
     "Transform",
+    "Split",
   ]);
   const currentSource =
     editMode === "Source" ? getCurrentSource(generator) : defaultSource;
@@ -490,7 +507,11 @@ const script: ScriptDef = (generator: Generator) => {
         )
       : getDefaultDestinationForPreset(document.preset);
   const currentTransform =
-    editMode === "Transform" ? getCurrentTransform(generator) : defaultTransform;
+    editMode === "Transform"
+      ? getCurrentTransform(generator)
+      : defaultTransform;
+  const currentSplit =
+    editMode === "Split" ? getCurrentSplit(generator) : defaultSplit;
 
   const isLandscape = generator.defineAndGetBooleanInput(
     "Landscape Mode",
@@ -540,6 +561,7 @@ const script: ScriptDef = (generator: Generator) => {
       currentSource,
       currentDestination,
       currentTransform,
+      currentSplit,
     };
 
     drawDiorama(generator, dioramaOptions);
@@ -550,7 +572,9 @@ const script: ScriptDef = (generator: Generator) => {
     );
   }
 
-  generator.defineCustomStringInput("Diorama Clear Button Break", () => <div />);
+  generator.defineCustomStringInput("Diorama Clear Button Break", () => (
+    <div />
+  ));
 
   generator.defineButtonInput(
     "Clear Edit Mode",
@@ -579,8 +603,11 @@ const script: ScriptDef = (generator: Generator) => {
         generator.getNumberVariable("Destination Width");
       const currentDestinationHeight =
         generator.getNumberVariable("Destination Height");
-      const currentFaceRotation = generator.getSelectInputValue("Face Rotation");
+      const currentFaceRotation =
+        generator.getSelectInputValue("Face Rotation");
       const currentFaceFlip = generator.getSelectInputValue("Face Flip");
+      const currentSplitWidth = generator.getNumberVariable("Split Width");
+      const currentSplitHeight = generator.getNumberVariable("Split Height");
       const currentPreset = document.preset;
 
       generator.clearAllVariables();
@@ -636,6 +663,12 @@ const script: ScriptDef = (generator: Generator) => {
       }
       if (currentFaceFlip) {
         generator.setSelectInputValue("Face Flip", currentFaceFlip);
+      }
+      if (currentSplitWidth !== null) {
+        generator.setNumberVariable("Split Width", currentSplitWidth);
+      }
+      if (currentSplitHeight !== null) {
+        generator.setNumberVariable("Split Height", currentSplitHeight);
       }
       setDioramaDocument(generator, makeEmptyDioramaDocument(currentPreset));
     },

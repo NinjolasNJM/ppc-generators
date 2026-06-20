@@ -2,6 +2,7 @@ import type { Generator } from "@genroot/builder/modules/generator";
 import * as Face from "../../minecraftBlock/face";
 import {
   drawRectangleButton,
+  getBaseFaceId,
   getSourceForFace,
   getTransformForFace,
   makeBlockRegions,
@@ -14,6 +15,7 @@ export function drawBlocks(generator: Generator, options: DioramaOptions) {
   regions.forEach(({ id: faceId, region }) => {
     const source = getSourceForFace(options.document, faceId);
     const transform = getTransformForFace(options.document, faceId);
+    const textureFaceId = getTextureFaceId(generator, faceId);
 
     if (options.editMode === "Blocks") {
       if (options.showEditRegions) {
@@ -24,10 +26,18 @@ export function drawBlocks(generator: Generator, options: DioramaOptions) {
 
     Face.drawFaceWithTextureTransform(
       generator,
-      faceId,
+      textureFaceId,
       source,
       region,
       transform
     );
   });
+}
+
+function getTextureFaceId(generator: Generator, faceId: string): string {
+  if (generator.getStringInputValue(faceId) !== null) {
+    return faceId;
+  }
+
+  return getBaseFaceId(faceId) ?? faceId;
 }

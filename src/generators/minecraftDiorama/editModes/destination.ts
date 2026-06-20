@@ -7,9 +7,10 @@ import {
   drawRectangleButton,
   getDefaultDestinationForPreset,
   getEdgeControlThickness,
-  getFaceId,
+  getRegionUnion,
   makeBlockRegions,
   makeEmptyDioramaDocument,
+  parseFaceId,
   sanitizePreset,
   setDioramaDocument,
   type DioramaDocument,
@@ -105,16 +106,15 @@ function makeFaceDestinationRegions(
 function makeColumnDestinationRegions(
   options: DioramaOptions
 ): DestinationRegionDef[] {
-  const blockRegions = new Map(
-    makeBlockRegions(options).map(({ id, region }) => [id, region])
-  );
+  const blockRegions = makeBlockRegions(options);
   const regions: DestinationRegionDef[] = [];
 
   for (let column = 0; column < options.columns; column += 1) {
     const worldColumn = column + options.worldColumnOffset;
-    const region = blockRegions.get(
-      getFaceId(worldColumn, options.worldRowOffset)
+    const faceRegions = blockRegions.filter(
+      ({ id }) => parseFaceId(id)?.column === worldColumn
     );
+    const region = getRegionUnion(faceRegions.map(({ region }) => region));
     if (!region) {
       continue;
     }
@@ -138,16 +138,15 @@ function makeColumnDestinationRegions(
 function makeRowDestinationRegions(
   options: DioramaOptions
 ): DestinationRegionDef[] {
-  const blockRegions = new Map(
-    makeBlockRegions(options).map(({ id, region }) => [id, region])
-  );
+  const blockRegions = makeBlockRegions(options);
   const regions: DestinationRegionDef[] = [];
 
   for (let row = 0; row < options.rows; row += 1) {
     const worldRow = row + options.worldRowOffset;
-    const region = blockRegions.get(
-      getFaceId(options.worldColumnOffset, worldRow)
+    const faceRegions = blockRegions.filter(
+      ({ id }) => parseFaceId(id)?.row === worldRow
     );
+    const region = getRegionUnion(faceRegions.map(({ region }) => region));
     if (!region) {
       continue;
     }
@@ -211,12 +210,12 @@ function setDestinationValue(
 function getFacePosition(
   id: string
 ): Pick<DestinationRegionDef, "column" | "row"> {
-  const match = /^BlockFace(\d+) (\d+)$/.exec(id);
-  if (!match) {
+  const face = parseFaceId(id);
+  if (!face) {
     return { column: null, row: null };
   }
   return {
-    column: parseInt(match[1] ?? "0", 10),
-    row: parseInt(match[2] ?? "0", 10),
+    column: face.column,
+    row: face.row,
   };
 }

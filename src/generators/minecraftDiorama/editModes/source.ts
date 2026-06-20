@@ -5,8 +5,9 @@ import {
 import {
   drawRectangleButton,
   getEdgeControlThickness,
-  getFaceId,
+  getRegionUnion,
   makeBlockRegions,
+  parseFaceId,
   setDioramaDocument,
   type DioramaOptions,
 } from "./shared";
@@ -19,29 +20,15 @@ type SourceRegionDef = {
 const minimumSourceSize = 0.5;
 const sourceSize = 16;
 
-export function clampSourceToBounds(
-  [x, y, width, height]: Region
-): Region {
-  const clampedX = Math.max(
-    0,
-    Math.min(x, sourceSize - minimumSourceSize)
-  );
-  const clampedY = Math.max(
-    0,
-    Math.min(y, sourceSize - minimumSourceSize)
-  );
+export function clampSourceToBounds([x, y, width, height]: Region): Region {
+  const clampedX = Math.max(0, Math.min(x, sourceSize - minimumSourceSize));
+  const clampedY = Math.max(0, Math.min(y, sourceSize - minimumSourceSize));
 
   return [
     clampedX,
     clampedY,
-    Math.max(
-      minimumSourceSize,
-      Math.min(width, sourceSize - clampedX)
-    ),
-    Math.max(
-      minimumSourceSize,
-      Math.min(height, sourceSize - clampedY)
-    ),
+    Math.max(minimumSourceSize, Math.min(width, sourceSize - clampedX)),
+    Math.max(minimumSourceSize, Math.min(height, sourceSize - clampedY)),
   ];
 }
 
@@ -110,16 +97,15 @@ function makeFaceSourceRegions(options: DioramaOptions): SourceRegionDef[] {
 }
 
 function makeColumnSourceRegions(options: DioramaOptions): SourceRegionDef[] {
-  const blockRegions = new Map(
-    makeBlockRegions(options).map(({ id, region }) => [id, region])
-  );
+  const blockRegions = makeBlockRegions(options);
   const regions: SourceRegionDef[] = [];
 
   for (let column = 0; column < options.columns; column += 1) {
     const worldColumn = column + options.worldColumnOffset;
-    const region = blockRegions.get(
-      getFaceId(worldColumn, options.worldRowOffset)
+    const faceRegions = blockRegions.filter(
+      ({ id }) => parseFaceId(id)?.column === worldColumn
     );
+    const region = getRegionUnion(faceRegions.map(({ region }) => region));
     if (!region) {
       continue;
     }
@@ -133,9 +119,7 @@ function makeColumnSourceRegions(options: DioramaOptions): SourceRegionDef[] {
         width,
         regionHeight,
       ],
-      faceIds: Array.from({ length: options.rows }, (_, row) =>
-        getFaceId(worldColumn, row + options.worldRowOffset)
-      ),
+      faceIds: faceRegions.map(({ id }) => id),
     });
   }
 
@@ -143,16 +127,15 @@ function makeColumnSourceRegions(options: DioramaOptions): SourceRegionDef[] {
 }
 
 function makeRowSourceRegions(options: DioramaOptions): SourceRegionDef[] {
-  const blockRegions = new Map(
-    makeBlockRegions(options).map(({ id, region }) => [id, region])
-  );
+  const blockRegions = makeBlockRegions(options);
   const regions: SourceRegionDef[] = [];
 
   for (let row = 0; row < options.rows; row += 1) {
     const worldRow = row + options.worldRowOffset;
-    const region = blockRegions.get(
-      getFaceId(options.worldColumnOffset, worldRow)
+    const faceRegions = blockRegions.filter(
+      ({ id }) => parseFaceId(id)?.row === worldRow
     );
+    const region = getRegionUnion(faceRegions.map(({ region }) => region));
     if (!region) {
       continue;
     }
@@ -161,9 +144,7 @@ function makeRowSourceRegions(options: DioramaOptions): SourceRegionDef[] {
 
     regions.push({
       region: [x >= regionWidth ? x - regionWidth : x, y, regionWidth, height],
-      faceIds: Array.from({ length: options.columns }, (_, column) =>
-        getFaceId(column + options.worldColumnOffset, worldRow)
-      ),
+      faceIds: faceRegions.map(({ id }) => id),
     });
   }
 

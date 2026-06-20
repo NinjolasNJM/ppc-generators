@@ -10,7 +10,8 @@ export type EditMode =
   | "Folds"
   | "Source"
   | "Destination"
-  | "Transform";
+  | "Transform"
+  | "Split";
 
 export type DestinationSize = {
   width: number;
@@ -26,12 +27,24 @@ export type FaceTransform = {
 
 export type BlockPreset = "Full Blocks" | "Quarter Blocks";
 
+export type SplitSize = {
+  width: number;
+  height: number;
+};
+
+export type SplitPart = "A" | "B" | "C" | "D";
+
+export type SplitConfig = SplitSize & {
+  source: Region;
+};
+
 export type DioramaDocument = {
   preset: BlockPreset;
   sources: Record<string, Region>;
   destinationColumns: Record<string, number>;
   destinationRows: Record<string, number>;
   transforms: Record<string, FaceTransform>;
+  splits: Record<string, SplitConfig>;
 };
 
 export type DioramaOptions = {
@@ -49,6 +62,7 @@ export type DioramaOptions = {
   currentSource: Region;
   currentDestination: DestinationSize;
   currentTransform: FaceTransform;
+  currentSplit: SplitSize;
 };
 
 export type RegionDef = {
@@ -62,10 +76,12 @@ const dioramaDocumentInputId = "DioramaDocument";
 export const defaultSource: Region = [0, 0, 16, 16];
 export const defaultDestination: DestinationSize = { width: 16, height: 16 };
 export const defaultTransform: FaceTransform = { rotate: 0, flip: "None" };
+export const defaultSplit: SplitSize = { width: 8, height: 8 };
 export const defaultPreset: BlockPreset = "Full Blocks";
 export const blockPresets: BlockPreset[] = ["Full Blocks", "Quarter Blocks"];
 const maxEdgeRegionThickness = (16 * 800) / 100 / 4;
 const minimumSourceSize = 0.5;
+const splitParts: SplitPart[] = ["A", "B", "C", "D"];
 
 export function getFaceId(column: number, row: number): string {
   return `BlockFace${column} ${row}`;
@@ -95,6 +111,7 @@ function decodeDioramaDocument(json: string | null): DioramaDocument {
         getDefaultDestinationForPreset(preset).height
       ),
       transforms: sanitizeTransforms(parsed.transforms),
+      splits: sanitizeSplits(parsed.splits, preset),
     };
   } catch {
     return makeEmptyDioramaDocument();
@@ -110,6 +127,7 @@ export function makeEmptyDioramaDocument(
     destinationColumns: {},
     destinationRows: {},
     transforms: {},
+    splits: {},
   };
 }
 
@@ -150,8 +168,8 @@ export function sanitizeSource([x, y, width, height]: Region): Region {
   ];
 }
 
-function sanitizeNumber(value: number, fallback: number): number {
-  return Number.isFinite(value) ? value : fallback;
+function sanitizeNumber(value: unknown, fallback: number): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
 }
 
 function roundToHalf(value: number): number {
@@ -179,13 +197,66 @@ function sanitizeTransforms(
 ): DioramaDocument["transforms"] {
   return Object.fromEntries(
     Object.entries(transforms ?? {})
-      .map(
-        ([id, transform]): [string, FaceTransform] => [
-          id,
-          sanitizeTransform(transform),
-        ]
-      )
+      .map(([id, transform]): [string, FaceTransform] => [
+        id,
+        sanitizeTransform(transform),
+      ])
       .filter(([, transform]) => !isDefaultTransform(transform))
+  );
+}
+
+function sanitizeSplits(
+  splits: Partial<DioramaDocument>["splits"],
+  preset: BlockPreset
+): DioramaDocument["splits"] {
+  return Object.fromEntries(
+    Object.entries(splits ?? {})
+      .map(([id, split]) => {
+        const baseFaceId = getBaseFaceId(id);
+        if (!baseFaceId || baseFaceId !== id) {
+          return null;
+        }
+        const defaultDocument = makeEmptyDioramaDocument(preset);
+        return [
+          id,
+          sanitizeSplitConfig(
+            split,
+            getDefaultSourceForFace(defaultDocument, baseFaceId)
+          ),
+        ] as const;
+      })
+      .filter((entry): entry is readonly [string, SplitConfig] => !!entry)
+  );
+}
+
+function sanitizeSplitConfig(
+  split: unknown,
+  defaultSplitSource: Region
+): SplitConfig {
+  if (!split || typeof split !== "object") {
+    return { ...defaultSplit, source: defaultSplitSource };
+  }
+
+  const candidate = split as Partial<SplitConfig>;
+  return {
+    width: sanitizeSplitDimension(candidate.width, defaultSplit.width),
+    height: sanitizeSplitDimension(candidate.height, defaultSplit.height),
+    source: sanitizeSource(
+      Array.isArray(candidate.source) ? candidate.source : defaultSplitSource
+    ),
+  };
+}
+
+export function sanitizeSplitDimension(
+  value: unknown,
+  fallback: number = defaultSplit.width
+): number {
+  return Math.max(
+    minimumSourceSize,
+    Math.min(
+      16 - minimumSourceSize,
+      roundToHalf(sanitizeNumber(value, fallback))
+    )
   );
 }
 
@@ -283,15 +354,65 @@ export function makeBlockRegions({
       const rowOffset = rowOffsets[row] ?? 0;
       const columnWidth = columnWidths[column] ?? width;
       const rowHeight = rowHeights[row] ?? height;
+      const baseFaceId = getFaceId(
+        column + worldColumnOffset,
+        row + worldRowOffset
+      );
+      const region: Region = [
+        ox + columnOffset,
+        oy + rowOffset,
+        columnWidth,
+        rowHeight,
+      ];
+      const split = document.splits[baseFaceId];
+
+      if (split) {
+        regions.push(...makeSplitBlockRegions(baseFaceId, region, split));
+        continue;
+      }
 
       regions.push({
-        id: getFaceId(column + worldColumnOffset, row + worldRowOffset),
-        region: [ox + columnOffset, oy + rowOffset, columnWidth, rowHeight],
+        id: baseFaceId,
+        region,
         rotation: 0,
       });
     }
   }
   return regions;
+}
+
+function makeSplitBlockRegions(
+  baseFaceId: string,
+  [x, y, width, height]: Region,
+  split: SplitConfig
+): RegionDef[] {
+  const leftWidth = (width * split.width) / 16;
+  const rightWidth = width - leftWidth;
+  const topHeight = (height * split.height) / 16;
+  const bottomHeight = height - topHeight;
+
+  return [
+    {
+      id: getSplitFaceId(baseFaceId, "A"),
+      region: [x, y, leftWidth, topHeight],
+      rotation: 0,
+    },
+    {
+      id: getSplitFaceId(baseFaceId, "B"),
+      region: [x + leftWidth, y, rightWidth, topHeight],
+      rotation: 0,
+    },
+    {
+      id: getSplitFaceId(baseFaceId, "C"),
+      region: [x, y + topHeight, leftWidth, bottomHeight],
+      rotation: 0,
+    },
+    {
+      id: getSplitFaceId(baseFaceId, "D"),
+      region: [x + leftWidth, y + topHeight, rightWidth, bottomHeight],
+      rotation: 0,
+    },
+  ];
 }
 
 export function makeEdgeRegions({
@@ -305,7 +426,23 @@ export function makeEdgeRegions({
   worldRowOffset,
   document,
 }: DioramaOptions): RegionDef[] {
-  const regions: RegionDef[] = [];
+  const blockRegions = makeBlockRegions({
+    ox,
+    oy,
+    width,
+    height,
+    columns,
+    rows,
+    worldColumnOffset,
+    worldRowOffset,
+    document,
+  } as DioramaOptions);
+  const blockRegionMap = new Map(
+    blockRegions.map(({ id, region }) => [id, region])
+  );
+  const regions = blockRegions.flatMap(({ id, region }) =>
+    makeFaceEdgeRegions(id, region, width, height, getEdgeTabThickness)
+  );
   const columnWidths = makeColumnWidths({
     width,
     columns,
@@ -394,23 +531,32 @@ export function makeEdgeRegions({
     ],
     rotation: 3,
   });
+  const makeTopOutsideEdges = (column: number): RegionDef[] =>
+    makeOutsideTopSplitEdgeRegions({
+      baseFaceId: getFaceId(column + worldColumnOffset, worldRowOffset),
+      edgeColumn: column + worldColumnOffset,
+      edgeRow: worldRowOffset - 1,
+      baseHeight: height,
+      blockRegionMap,
+      getThickness: getEdgeTabThickness,
+      fallback: makeSouth(column, -1),
+    });
+  const makeLeftOutsideEdges = (row: number): RegionDef[] =>
+    makeOutsideLeftSplitEdgeRegions({
+      baseFaceId: getFaceId(worldColumnOffset, row + worldRowOffset),
+      edgeColumn: worldColumnOffset - 1,
+      edgeRow: row + worldRowOffset,
+      baseWidth: width,
+      blockRegionMap,
+      getThickness: getEdgeTabThickness,
+      fallback: makeWest(-1, row),
+    });
 
   for (let column = 0; column < columns; column += 1) {
-    for (let row = 0; row < rows; row += 1) {
-      regions.push(
-        makeNorth(column, row),
-        makeSouth(column, row),
-        makeEast(column, row),
-        makeWest(column, row)
-      );
-    }
-  }
-
-  for (let column = 0; column < columns; column += 1) {
-    regions.push(makeNorth(column, rows), makeSouth(column, -1));
+    regions.push(makeNorth(column, rows), ...makeTopOutsideEdges(column));
   }
   for (let row = 0; row < rows; row += 1) {
-    regions.push(makeEast(columns, row), makeWest(-1, row));
+    regions.push(makeEast(columns, row), ...makeLeftOutsideEdges(row));
   }
 
   return regions;
@@ -427,7 +573,25 @@ export function makeEdgeControlRegions({
   worldRowOffset,
   document,
 }: DioramaOptions): RegionDef[] {
-  const regions: RegionDef[] = [];
+  const blockRegions = makeBlockRegions({
+    ox,
+    oy,
+    width,
+    height,
+    columns,
+    rows,
+    worldColumnOffset,
+    worldRowOffset,
+    document,
+  } as DioramaOptions);
+  const blockRegionMap = new Map(
+    blockRegions.map(({ id, region }) => [id, region])
+  );
+  const regions = blockRegions.flatMap(({ id, region }) =>
+    makeFaceEdgeRegions(id, region, width, height, (_, faceSize) =>
+      getEdgeControlThickness(faceSize)
+    )
+  );
   const columnWidths = makeColumnWidths({
     width,
     columns,
@@ -516,26 +680,191 @@ export function makeEdgeControlRegions({
     ],
     rotation: 3,
   });
+  const makeTopOutsideEdges = (column: number): RegionDef[] =>
+    makeOutsideTopSplitEdgeRegions({
+      baseFaceId: getFaceId(column + worldColumnOffset, worldRowOffset),
+      edgeColumn: column + worldColumnOffset,
+      edgeRow: worldRowOffset - 1,
+      baseHeight: height,
+      blockRegionMap,
+      getThickness: (_, faceSize) => getEdgeControlThickness(faceSize),
+      fallback: makeSouth(column, -1),
+    });
+  const makeLeftOutsideEdges = (row: number): RegionDef[] =>
+    makeOutsideLeftSplitEdgeRegions({
+      baseFaceId: getFaceId(worldColumnOffset, row + worldRowOffset),
+      edgeColumn: worldColumnOffset - 1,
+      edgeRow: row + worldRowOffset,
+      baseWidth: width,
+      blockRegionMap,
+      getThickness: (_, faceSize) => getEdgeControlThickness(faceSize),
+      fallback: makeWest(-1, row),
+    });
 
   for (let column = 0; column < columns; column += 1) {
-    for (let row = 0; row < rows; row += 1) {
-      regions.push(
-        makeNorth(column, row),
-        makeSouth(column, row),
-        makeEast(column, row),
-        makeWest(column, row)
-      );
-    }
-  }
-
-  for (let column = 0; column < columns; column += 1) {
-    regions.push(makeNorth(column, rows), makeSouth(column, -1));
+    regions.push(makeNorth(column, rows), ...makeTopOutsideEdges(column));
   }
   for (let row = 0; row < rows; row += 1) {
-    regions.push(makeEast(columns, row), makeWest(-1, row));
+    regions.push(makeEast(columns, row), ...makeLeftOutsideEdges(row));
   }
 
   return regions;
+}
+
+function makeFaceEdgeRegions(
+  faceId: string,
+  [x, y, width, height]: Region,
+  baseWidth: number,
+  baseHeight: number,
+  getThickness: (baseSize: number, faceSize: number) => number
+): RegionDef[] {
+  const tabWidth = getThickness(baseWidth, width);
+  const tabHeight = getThickness(baseHeight, height);
+
+  return [
+    {
+      id: getEdgeId("North", faceId),
+      region: [x, y, width, tabHeight],
+      rotation: 2,
+    },
+    {
+      id: getEdgeId("South", faceId),
+      region: [x, y + height - tabHeight, width, tabHeight],
+      rotation: 0,
+    },
+    {
+      id: getEdgeId("East", faceId),
+      region: [x, y, tabWidth, height],
+      rotation: 1,
+    },
+    {
+      id: getEdgeId("West", faceId),
+      region: [x + width - tabWidth, y, tabWidth, height],
+      rotation: 3,
+    },
+  ];
+}
+
+function makeOutsideTopSplitEdgeRegions({
+  baseFaceId,
+  edgeColumn,
+  edgeRow,
+  baseHeight,
+  blockRegionMap,
+  getThickness,
+  fallback,
+}: {
+  baseFaceId: string;
+  edgeColumn: number;
+  edgeRow: number;
+  baseHeight: number;
+  blockRegionMap: Map<string, Region>;
+  getThickness: (baseSize: number, faceSize: number) => number;
+  fallback: RegionDef;
+}): RegionDef[] {
+  const topLeftRegion = blockRegionMap.get(getSplitFaceId(baseFaceId, "A"));
+  const topRightRegion = blockRegionMap.get(getSplitFaceId(baseFaceId, "B"));
+
+  if (!topLeftRegion || !topRightRegion) {
+    return [fallback];
+  }
+
+  return [
+    makeOutsideTopSplitEdge(
+      "A",
+      edgeColumn,
+      edgeRow,
+      topLeftRegion,
+      baseHeight,
+      getThickness
+    ),
+    makeOutsideTopSplitEdge(
+      "B",
+      edgeColumn,
+      edgeRow,
+      topRightRegion,
+      baseHeight,
+      getThickness
+    ),
+  ];
+}
+
+function makeOutsideTopSplitEdge(
+  part: SplitPart,
+  edgeColumn: number,
+  edgeRow: number,
+  [x, y, width, height]: Region,
+  baseHeight: number,
+  getThickness: (baseSize: number, faceSize: number) => number
+): RegionDef {
+  const tabHeight = getThickness(baseHeight, height);
+
+  return {
+    id: `South${edgeColumn} ${edgeRow}${part}`,
+    region: [x, y - tabHeight, width, tabHeight],
+    rotation: 0,
+  };
+}
+
+function makeOutsideLeftSplitEdgeRegions({
+  baseFaceId,
+  edgeColumn,
+  edgeRow,
+  baseWidth,
+  blockRegionMap,
+  getThickness,
+  fallback,
+}: {
+  baseFaceId: string;
+  edgeColumn: number;
+  edgeRow: number;
+  baseWidth: number;
+  blockRegionMap: Map<string, Region>;
+  getThickness: (baseSize: number, faceSize: number) => number;
+  fallback: RegionDef;
+}): RegionDef[] {
+  const topLeftRegion = blockRegionMap.get(getSplitFaceId(baseFaceId, "A"));
+  const bottomLeftRegion = blockRegionMap.get(getSplitFaceId(baseFaceId, "C"));
+
+  if (!topLeftRegion || !bottomLeftRegion) {
+    return [fallback];
+  }
+
+  return [
+    makeOutsideLeftSplitEdge(
+      "A",
+      edgeColumn,
+      edgeRow,
+      topLeftRegion,
+      baseWidth,
+      getThickness
+    ),
+    makeOutsideLeftSplitEdge(
+      "C",
+      edgeColumn,
+      edgeRow,
+      bottomLeftRegion,
+      baseWidth,
+      getThickness
+    ),
+  ];
+}
+
+function makeOutsideLeftSplitEdge(
+  part: SplitPart,
+  edgeColumn: number,
+  edgeRow: number,
+  [x, y, width, height]: Region,
+  baseWidth: number,
+  getThickness: (baseSize: number, faceSize: number) => number
+): RegionDef {
+  const tabWidth = getThickness(baseWidth, width);
+
+  return {
+    id: `West${edgeColumn} ${edgeRow}${part}`,
+    region: [x - tabWidth, y, tabWidth, height],
+    rotation: 3,
+  };
 }
 
 export function drawRectangleButton(generator: Generator, region: Region) {
@@ -545,6 +874,19 @@ export function drawRectangleButton(generator: Generator, region: Region) {
     lineDashOffset: 3,
     width: 1,
   });
+}
+
+export function getRegionUnion(regions: Region[]): Region | null {
+  if (regions.length === 0) {
+    return null;
+  }
+
+  const left = Math.min(...regions.map(([x]) => x));
+  const top = Math.min(...regions.map(([, y]) => y));
+  const right = Math.max(...regions.map(([x, , width]) => x + width));
+  const bottom = Math.max(...regions.map(([, y, , height]) => y + height));
+
+  return [left, top, right - left, bottom - top];
 }
 
 export function getEdgeControlThickness(faceSize: number): number {
@@ -585,14 +927,41 @@ export function getSourceForFace(
   document: DioramaDocument,
   faceId: string
 ): Region {
-  return document.sources[faceId] ?? getDefaultSourceForFace(document, faceId);
+  const explicitSource = document.sources[faceId];
+  if (explicitSource) {
+    return explicitSource;
+  }
+
+  const splitFace = getSplitFaceParts(faceId);
+  if (splitFace) {
+    const split = document.splits[splitFace.baseFaceId];
+    if (split) {
+      return getSplitSource(split, splitFace.part);
+    }
+  }
+
+  return getDefaultSourceForFace(document, faceId);
 }
 
 export function getTransformForFace(
   document: DioramaDocument,
   faceId: string
 ): FaceTransform {
-  return document.transforms[faceId] ?? defaultTransform;
+  const explicitTransform = document.transforms[faceId];
+  if (explicitTransform) {
+    return explicitTransform;
+  }
+
+  const baseFaceId = getBaseFaceId(faceId);
+  if (baseFaceId && baseFaceId !== faceId) {
+    if (document.splits[baseFaceId]) {
+      return defaultTransform;
+    }
+
+    return document.transforms[baseFaceId] ?? defaultTransform;
+  }
+
+  return defaultTransform;
 }
 
 export function getDefaultDestinationForPreset(
@@ -622,7 +991,13 @@ function getDefaultSourceForFace(
 function getFacePosition(
   faceId: string
 ): { column: number; row: number } | null {
-  const match = /^BlockFace(\d+) (\d+)$/.exec(faceId);
+  return parseFaceId(faceId);
+}
+
+export function parseFaceId(
+  faceId: string
+): { column: number; row: number; splitPart: SplitPart | null } | null {
+  const match = /^BlockFace(-?\d+) (-?\d+)([ABCD])?$/.exec(faceId);
   if (!match) {
     return null;
   }
@@ -630,7 +1005,73 @@ function getFacePosition(
   return {
     column: parseInt(match[1] ?? "0", 10),
     row: parseInt(match[2] ?? "0", 10),
+    splitPart: sanitizeSplitPart(match[3]),
   };
+}
+
+export function getBaseFaceId(faceId: string): string | null {
+  const face = parseFaceId(faceId);
+  return face ? getFaceId(face.column, face.row) : null;
+}
+
+export function getSplitFaceId(baseFaceId: string, part: SplitPart): string {
+  return `${baseFaceId}${part}`;
+}
+
+export function getSplitFaceParts(
+  faceId: string
+): { baseFaceId: string; part: SplitPart } | null {
+  const face = parseFaceId(faceId);
+  if (!face?.splitPart) {
+    return null;
+  }
+
+  return {
+    baseFaceId: getFaceId(face.column, face.row),
+    part: face.splitPart,
+  };
+}
+
+export function getSplitPartFaceIds(baseFaceId: string): string[] {
+  return splitParts.map((part) => getSplitFaceId(baseFaceId, part));
+}
+
+export function getSplitParts(): SplitPart[] {
+  return splitParts;
+}
+
+function getSplitSource(split: SplitConfig, part: SplitPart): Region {
+  const [x, y, width, height] = split.source;
+  const leftWidth = (width * split.width) / 16;
+  const rightWidth = width - leftWidth;
+  const topHeight = (height * split.height) / 16;
+  const bottomHeight = height - topHeight;
+
+  switch (part) {
+    case "A":
+      return [x, y, leftWidth, topHeight];
+    case "B":
+      return [x + leftWidth, y, rightWidth, topHeight];
+    case "C":
+      return [x, y + topHeight, leftWidth, bottomHeight];
+    case "D":
+      return [x + leftWidth, y + topHeight, rightWidth, bottomHeight];
+  }
+}
+
+function sanitizeSplitPart(part: string | undefined): SplitPart | null {
+  return part === "A" || part === "B" || part === "C" || part === "D"
+    ? part
+    : null;
+}
+
+function getEdgeId(direction: string, faceId: string): string {
+  const face = parseFaceId(faceId);
+  if (!face) {
+    return `${direction}${faceId}`;
+  }
+
+  return `${direction}${face.column} ${face.row}${face.splitPart ?? ""}`;
 }
 
 export function getColumnCountThatFits({
