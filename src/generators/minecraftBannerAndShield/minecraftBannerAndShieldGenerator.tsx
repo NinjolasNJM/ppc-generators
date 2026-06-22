@@ -21,6 +21,7 @@ import {
   entityGlintTextureDefs,
   getGlintControls,
 } from "../_common/plugins/glint";
+import { clearVariablesMatching } from "../_common/clearVariablesMatching";
 import { parseAtlas } from "../_common/textures/customTextureVersion";
 import { currentBannerAndShieldTextureId } from "./constants";
 import { drawBanner } from "./shapes/banner";
@@ -99,6 +100,10 @@ function portSelectedPatternToVersion(
   return matchingVersionId
     ? { ...pattern, versionId: matchingVersionId }
     : null;
+}
+
+function clearBannerShieldPatterns(generator: Generator): void {
+  clearVariablesMatching(generator, /^PatternFace/);
 }
 
 const script: ScriptDef = (generator: Generator) => {
@@ -182,6 +187,8 @@ const script: ScriptDef = (generator: Generator) => {
           versionId={versionId}
           selectedPattern={resolvedCurrentPattern}
           tintChoiceGroups={[dyeTintGroup]}
+          defaultTint="#F9FFFE"
+          includeNoTint={false}
           onChange={(selectedPattern) => {
             onChange(encodeSelectedBannerShieldPattern(selectedPattern));
           }}
@@ -210,6 +217,7 @@ const script: ScriptDef = (generator: Generator) => {
     const templateId = i.toString();
     const typeName = `Template ${templateId} Type`;
 
+    generator.defineInputRowStart();
     generator.defineSelectInput(typeName, ["Banner", "Shield"]);
     const templateType = generator.getSelectInputValue(typeName);
 
@@ -226,6 +234,7 @@ const script: ScriptDef = (generator: Generator) => {
         drawBanner(generator, templateId, ox, oy, showFolds);
         break;
     }
+    generator.defineInputRowEnd();
   }
 
   if (hasShieldTemplate) {
@@ -234,6 +243,15 @@ const script: ScriptDef = (generator: Generator) => {
 
   generator.fillBackgroundColorWithWhite();
   generator.drawImage("Title", [0, 0]);
+
+  generator.defineInputRowStart();
+  generator.defineButtonInput(
+    "Clear Patterns",
+    () => {
+      clearBannerShieldPatterns(generator);
+    },
+    "Red"
+  );
 
   generator.defineButtonInput(
     "Clear",
@@ -253,6 +271,7 @@ const script: ScriptDef = (generator: Generator) => {
     },
     "Red"
   );
+  generator.defineInputRowEnd();
 };
 
 export const generator: GeneratorDef = {

@@ -1,4 +1,8 @@
-import { type SelectOption, type SelectOptionGroup, type SelectOptionOrGroup } from "@genroot/builder/ui/form/select";
+import {
+  type SelectOption,
+  type SelectOptionGroup,
+  type SelectOptionOrGroup,
+} from "@genroot/builder/ui/form/select";
 import {
   defaultTintChoiceGroups,
   type TintChoice,
@@ -32,7 +36,7 @@ export const noneChoice: SelectOption = { id: "None", label: "No tint" };
 
 export const customChoice: SelectOption = {
   id: "Custom",
-  label: "Custom tint",
+  label: "Custom Tint",
 };
 
 export function flattenTintChoiceGroups(
@@ -172,10 +176,11 @@ export function getTintSelectorStateFromValue(
     };
   }
 
+  const normalizedCustomTint = normalizeTint(value);
   return {
     selectedOption: customChoice,
-    selectedTint: { kind: "CustomTint", hex: value },
+    selectedTint: { kind: "CustomTint", hex: normalizedCustomTint },
     customTintInput: getCustomTintInput(value),
-    color: value,
+    color: normalizedCustomTint,
   };
 }
