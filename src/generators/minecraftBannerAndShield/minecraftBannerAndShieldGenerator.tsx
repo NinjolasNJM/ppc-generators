@@ -14,6 +14,7 @@ import {
   encodeSelectedBannerShieldPattern,
   type SelectedBannerShieldPattern,
 } from "./bannerTexturePicker/types";
+import { clonePattern1To2, clonePattern2To1 } from "./clonePatterns";
 import { PatternTexturePicker } from "./bannerTexturePicker/patternTexturePicker";
 import { dyeTintGroup } from "../_common/tintSelector/tints";
 import {
@@ -244,6 +245,24 @@ const script: ScriptDef = (generator: Generator) => {
   generator.fillBackgroundColorWithWhite();
   generator.drawImage("Title", [0, 0]);
 
+  generator.defineInputRowStart();
+  generator.defineButtonInput(
+    "Clone Pattern 1 to 2",
+    () => {
+      clonePattern1To2(generator, numberOfTemplates);
+    },
+    "Blue"
+  );
+
+  generator.defineButtonInput(
+    "Clone Pattern 2 to 1",
+    () => {
+      clonePattern2To1(generator, numberOfTemplates);
+    },
+    "Blue"
+  );
+  generator.defineInputRowEnd();
+  
   generator.defineInputRowStart();
   generator.defineButtonInput(
     "Clear Patterns",
