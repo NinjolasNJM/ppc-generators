@@ -3,10 +3,10 @@
 import { type TextureDef } from "@genroot/builder/modules/generatorDef";
 import { type TextureData } from "@genroot/builder/modules/textureData";
 
-import image from "./texture_minecraft_26_2_pre_2_banner_patterns.png";
+import image from "./texture_minecraft_26_2_banner_patterns.png";
 
 const textureDef: TextureDef = {
-  id: "minecraft-26.2-pre-2-banner-patterns",
+  id: "minecraft-26.2-banner-patterns",
   url: image.src,
   standardWidth: 512,
   standardHeight: 384,

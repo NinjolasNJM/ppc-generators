@@ -10,19 +10,19 @@ import * as Texture_1_7_10_Blocks from "./texture_minecraft_1_7_10_blocks";
 import * as Texture_1_7_10_Items from "./texture_minecraft_1_7_10_items";
 import * as Texture_1_13_2_Blocks from "./texture_minecraft_1_13_2_blocks";
 import * as Texture_1_13_2_Items from "./texture_minecraft_1_13_2_items";
-import * as Texture_26_1_2_Blocks from "./texture_minecraft_26_1_2_blocks";
-import * as Texture_26_1_2_Items from "./texture_minecraft_26_1_2_items";
+import * as Texture_26_2_Blocks from "./texture_minecraft_26_2_blocks";
+import * as Texture_26_2_Items from "./texture_minecraft_26_2_items";
 
 const blockDefinitions: [TextureData, number][] = [
   [Texture_1_7_10_Blocks.data, 16],
   [Texture_1_13_2_Blocks.data, 16],
-  [Texture_26_1_2_Blocks.data, 16],
+  [Texture_26_2_Blocks.data, 16],
 ];
 
 const itemDefinitions: [TextureData, number][] = [
   [Texture_1_7_10_Items.data, 16],
   [Texture_1_13_2_Items.data, 16],
-  [Texture_26_1_2_Items.data, 16],
+  [Texture_26_2_Items.data, 16],
 ];
 
 export type TextureVersion = {
