@@ -42,7 +42,7 @@ import foldsBannerImage from "./images/Folds-Banner.png";
 import foldsShieldImage from "./images/Folds-Shield.png";
 import tabsBannerImage from "./images/Tabs-Banner.png";
 import tabsShieldImage from "./images/Tabs-Shield.png";
-import thumbnailImage from "./thumbnail/v2-thumbnail-256.jpeg";
+import thumbnailImage from "./thumbnail/v3-thumbnail-256.jpg";
 
 const id = "minecraft-banner-and-shield";
 
@@ -50,6 +50,7 @@ const name = "Minecraft Banner and Shield";
 
 const history: HistoryDef = [
   "May 2026 NinjolasNJM - Initial TypeScript version.",
+  "May 2026 NinjolasNJM - Added pattern tint selector.",
 ];
 
 const instructions = `
@@ -57,7 +58,7 @@ const instructions = `
 
 ### Selecting and Adding Banner Patterns
 * Click in the texture picker to select a banner pattern. 
-* Usint the Tint Selector, A dye color can be applied to the pattern.
+* Using the Tint Selector, a dye color can be applied to the pattern.
 * Click on the banner or shield to add the selected pattern.
 * Click the erase button in the texture picker to clear the selected pattern. Clicking a banner or shield without a specified pattern will remove the last pattern placed on it.
 * Vanilla Tweaks' HD Shields textures can be selected from the "Versions" dropdown menu. Custom textures can also be added from files.
@@ -262,7 +263,7 @@ const script: ScriptDef = (generator: Generator) => {
     "Blue"
   );
   generator.defineInputRowEnd();
-  
+
   generator.defineInputRowStart();
   generator.defineButtonInput(
     "Clear Patterns",

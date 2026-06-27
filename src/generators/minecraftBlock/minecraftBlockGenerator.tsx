@@ -35,7 +35,7 @@ import { drawSnow } from "./shapes/snow";
 import { drawCake } from "./shapes/cake";
 import { drawShelf } from "./shapes/shelf";
 
-import thumnbailImage from "./thumbnail/v2-thumbnail-256.jpeg";
+import thumbnailImage from "./thumbnail/v2-thumbnail-256.jpeg";
 import backgroundImage from "./images/Background.png";
 import titleImage from "./images/Title.png";
 import foldsBlockImage from "./images/Folds-Block.png";
@@ -97,7 +97,7 @@ const instructions = `
 `;
 
 const thumbnail: ThumbnailDef = {
-  url: thumnbailImage.src,
+  url: thumbnailImage.src,
 };
 
 const images: ImageDef[] = [
