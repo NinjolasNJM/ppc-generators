@@ -413,16 +413,27 @@ describe("defineInputRegion", () => {
   function makeRegionGenerator({
     currentPatternJson,
     faceJson,
+    enableErase = true,
   }: {
     currentPatternJson: string;
     faceJson: string;
+    enableErase?: boolean;
   }) {
     let onRegionClick: (() => void) | undefined;
+    let onRegionRightClick: (() => void) | undefined;
     let nextFaceJson: string | null = null;
     const generator = {
-      defineRegionInput: vi.fn((_region: unknown, callback: () => void) => {
-        onRegionClick = callback;
-      }),
+      defineRegionInput: vi.fn(
+        (
+          _region: unknown,
+          callback: () => void,
+          _id: string | undefined,
+          rightClick?: () => void
+        ) => {
+          onRegionClick = callback;
+          onRegionRightClick = rightClick;
+        }
+      ),
       getStringInputValue: vi.fn((id: string) => {
         if (id === currentBannerAndShieldTextureId) {
           return currentPatternJson;
@@ -442,7 +453,7 @@ describe("defineInputRegion", () => {
       ),
     } as unknown as Generator;
 
-    defineInputRegion(generator, faceId, region);
+    defineInputRegion(generator, faceId, region, { enableErase });
 
     const click = onRegionClick;
     if (!click) {
@@ -451,6 +462,7 @@ describe("defineInputRegion", () => {
 
     return {
       click,
+      rightClick: onRegionRightClick,
       getNextFacePatterns: () =>
         nextFaceJson ? decodeSelectedBannerShieldPatterns(nextFaceJson) : [],
     };
@@ -500,6 +512,51 @@ describe("defineInputRegion", () => {
 
     expect(getNextFacePatterns()).toHaveLength(1);
     expect(getNextFacePatterns()[0]?.patternId).toBe("base");
+  });
+
+  it("erases the last face pattern on right click without changing the selected pattern", () => {
+    const faceJson = encodeSelectedBannerShieldPatterns([
+      makeSelectedPattern("base"),
+      makeSelectedPattern("border"),
+    ]);
+    const { rightClick, getNextFacePatterns } = makeRegionGenerator({
+      currentPatternJson: encodeSelectedBannerShieldPattern(
+        makeSelectedPattern("creeper")
+      ),
+      faceJson,
+    });
+
+    expect(rightClick).toBeDefined();
+    rightClick?.();
+
+    expect(getNextFacePatterns()).toHaveLength(1);
+    expect(getNextFacePatterns()[0]?.patternId).toBe("base");
+  });
+
+  it("erases the implicit base pattern on right click", () => {
+    const { rightClick, getNextFacePatterns } = makeRegionGenerator({
+      currentPatternJson: encodeSelectedBannerShieldPattern(
+        makeSelectedPattern("border")
+      ),
+      faceJson: "",
+    });
+
+    expect(rightClick).toBeDefined();
+    rightClick?.();
+
+    expect(getNextFacePatterns()).toEqual([]);
+  });
+
+  it("does not register right click erase when erase is disabled", () => {
+    const { rightClick } = makeRegionGenerator({
+      currentPatternJson: encodeSelectedBannerShieldPattern(
+        makeSelectedPattern("border")
+      ),
+      faceJson: "",
+      enableErase: false,
+    });
+
+    expect(rightClick).toBeUndefined();
   });
 
   it("applies a tint-only selection to the top face pattern", () => {

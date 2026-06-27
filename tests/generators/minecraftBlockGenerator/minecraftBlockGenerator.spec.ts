@@ -1,8 +1,36 @@
 import fs from "node:fs";
 import path from "node:path";
 
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import { renderImageAtNaturalSize } from "../_shared/screenshot";
+
+async function getExportVariables(
+  page: Page
+): Promise<Record<string, unknown>> {
+  const href = await page
+    .getByRole("link", { name: "Export generator JSON" })
+    .getAttribute("href");
+  expect(href).toBeTruthy();
+
+  const json = decodeURIComponent(
+    href!.replace(/^data:application\/json;charset=utf-8,/, "")
+  );
+  const save = JSON.parse(json) as { variables?: Record<string, unknown> };
+  return save.variables ?? {};
+}
+
+function getStringVariable(
+  variables: Record<string, unknown>,
+  id: string
+): string | null {
+  const variable = variables[id];
+  if (typeof variable !== "object" || variable === null) {
+    return null;
+  }
+
+  const value = (variable as { value?: unknown }).value;
+  return typeof value === "string" ? value : null;
+}
 
 test("minecraft block generator matches the default screenshot", async ({
   page,
@@ -139,6 +167,38 @@ test("minecraft block generator shows the before and after tinting on the page",
 
   await expect(outputPage).toHaveScreenshot(
     "minecraft-block-tinted-before-and-after-page-1.png"
+  );
+});
+
+test("minecraft block generator erases a face texture on right click", async ({
+  page,
+}) => {
+  await page.goto("/generator/minecraft-block");
+
+  await page.getByPlaceholder("Search...").fill("lever");
+  await page.getByTitle("lever").click();
+  await page.getByTestId("region-BlockFaceTop1").click();
+
+  await expect
+    .poll(async () => {
+      const variables = await getExportVariables(page);
+      return JSON.parse(getStringVariable(variables, "BlockFaceTop1") ?? "[]")
+        .length;
+    })
+    .toBe(1);
+
+  await page.getByTestId("region-BlockFaceTop1").click({ button: "right" });
+
+  await expect
+    .poll(async () => {
+      const variables = await getExportVariables(page);
+      return getStringVariable(variables, "BlockFaceTop1");
+    })
+    .toBe("[]");
+
+  const variables = await getExportVariables(page);
+  expect(getStringVariable(variables, "CurrentBlockTexture")).toContain(
+    '"lever"'
   );
 });
 

@@ -7,6 +7,7 @@ import {
   defineTextureInputRegion,
   drawTextureFace,
   drawTextureFaceWithTransform,
+  type DefineTextureInputRegionOptions,
   type FaceTextureTransform,
 } from "../_common/plugins/texturePicker/face";
 import { currentBlockTextureId } from "./constants";
@@ -16,9 +17,16 @@ export type { FaceTextureTransform };
 export function defineInputRegion(
   generator: Generator,
   faceId: string,
-  region: Region
+  region: Region,
+  options: DefineTextureInputRegionOptions = {}
 ) {
-  defineTextureInputRegion(generator, currentBlockTextureId, faceId, region);
+  defineTextureInputRegion(
+    generator,
+    currentBlockTextureId,
+    faceId,
+    region,
+    options
+  );
 }
 
 export function drawFace(

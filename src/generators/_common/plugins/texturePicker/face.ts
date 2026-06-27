@@ -6,7 +6,10 @@ import {
   type Generator,
   type Region,
 } from "@genroot/builder/modules/generator";
-import { makeNextFlip, type Flip } from "@genroot/builder/ui/texturePicker/flip";
+import {
+  makeNextFlip,
+  type Flip,
+} from "@genroot/builder/ui/texturePicker/flip";
 import { type Rotation } from "@genroot/builder/ui/texturePicker/rotation";
 import {
   type SelectedTexture,
@@ -21,12 +24,18 @@ export type FaceTextureTransform = {
   flip: Flip;
 };
 
+export type DefineTextureInputRegionOptions = {
+  enableErase?: boolean;
+};
+
 export function defineTextureInputRegion(
   generator: Generator,
   selectedTextureInputId: string,
   faceId: string,
-  region: Region
+  region: Region,
+  options: DefineTextureInputRegionOptions = {}
 ) {
+  const enableErase = options.enableErase ?? true;
   generator.defineRegionInput(
     region,
     () => {
@@ -42,9 +51,9 @@ export function defineTextureInputRegion(
         return;
       }
 
-      const curentFaceTexturesJson = generator.getStringInputValue(faceId);
-      const currentFaceTextures = curentFaceTexturesJson
-        ? decodeSelectedTextures(curentFaceTexturesJson)
+      const currentFaceTexturesJson = generator.getStringInputValue(faceId);
+      const currentFaceTextures = currentFaceTexturesJson
+        ? decodeSelectedTextures(currentFaceTexturesJson)
         : [];
 
       const shouldErase = selectedTexture.textureDefId === "";
@@ -56,7 +65,24 @@ export function defineTextureInputRegion(
         encodeSelectedTextures(newFaceTextures)
       );
     },
-    faceId
+    faceId,
+    enableErase
+      ? () => {
+          eraseLastFaceTexture(generator, faceId);
+        }
+      : undefined
+  );
+}
+
+function eraseLastFaceTexture(generator: Generator, faceId: string) {
+  const currentFaceTexturesJson = generator.getStringInputValue(faceId);
+  const currentFaceTextures = currentFaceTexturesJson
+    ? decodeSelectedTextures(currentFaceTexturesJson)
+    : [];
+
+  generator.setStringInputValue(
+    faceId,
+    encodeSelectedTextures(currentFaceTextures.slice(0, -1))
   );
 }
 
@@ -103,7 +129,7 @@ export function drawSelectedTexture(
   })();
 
   const rotate: number = ((): number => {
-    const currRotate = options ? (options.rotate ?? 0) : 0;
+    const currRotate = options ? options.rotate ?? 0 : 0;
     switch (nextRotation) {
       case "Rot0":
         return currRotate;
