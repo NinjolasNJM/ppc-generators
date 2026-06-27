@@ -321,6 +321,7 @@ const script: ScriptDef = (generator: Generator) => {
         true
       );
 
+      generator.defineInputRowStart();
       const bodyHeight = generator.defineAndGetRangeInput(
         textureId + " Body Height",
         { min: 0, max: 64, value: 32, step: 1 }
@@ -330,6 +331,7 @@ const script: ScriptDef = (generator: Generator) => {
         textureId + " Texture Style",
         ["Simple", "Detailed"]
       );
+      generator.defineInputRowEnd();
 
       const isSlimModel = modelType === "Slim";
       const pixelate = textureStyle === "Simple";

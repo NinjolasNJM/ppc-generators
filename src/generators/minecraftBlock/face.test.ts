@@ -216,7 +216,10 @@ describe("defineInputRegion", () => {
   const faceId = "BlockFaceTop1";
   const region: [number, number, number, number] = [0, 0, 16, 16];
 
-  function makeSelectedTextureJson(textureDefId: string): string {
+  function makeSelectedTextureJson(
+    textureDefId: string,
+    blend: string | null = null
+  ): string {
     return encodeSelectedTexture({
       textureDefId,
       frame: {
@@ -227,7 +230,7 @@ describe("defineInputRegion", () => {
       },
       rotation: "Rot0",
       flip: "None",
-      blend: null,
+      blend,
     });
   }
 
@@ -314,6 +317,25 @@ describe("defineInputRegion", () => {
 
     expect(getNextFaceTextures()).toHaveLength(1);
     expect(getNextFaceTextures()[0]?.textureDefId).toBe("stone");
+  });
+
+  it("applies a tint-only picker selection to the last face texture", () => {
+    const currentTextureJson = makeSelectedTextureJson("", "#3C44AA");
+    const faceJson = encodeSelectedTextures([
+      JSON.parse(makeSelectedTextureJson("stone")),
+      JSON.parse(makeSelectedTextureJson("dirt")),
+    ]);
+    const { click, getNextFaceTextures } = makeRegionGenerator({
+      currentTextureJson,
+      faceJson,
+    });
+
+    click();
+
+    expect(getNextFaceTextures()).toHaveLength(2);
+    expect(getNextFaceTextures()[0]?.blend).toBe(null);
+    expect(getNextFaceTextures()[1]?.textureDefId).toBe("dirt");
+    expect(getNextFaceTextures()[1]?.blend).toBe("#3C44AA");
   });
 
   it("erases the last face texture on right click without changing the selected texture", () => {

@@ -15,9 +15,7 @@ import backgroundImage from "./images/Background.png";
 import foldsImage from "./images/Folds.png";
 import labelsImage from "./images/Labels.png";
 import { getSkinUrl } from "../_common/skins";
-import {
-  makeDefaultMinecraftSkinPresetOptions,
-} from "../_common/skins/options";
+import { makeDefaultMinecraftSkinPresetOptions } from "../_common/skins/options";
 import poppyTexture from "./textures/Flower-Poppy.png";
 import roseTexture from "./textures/Flower-Rose.png";
 import cyanTexture from "./textures/Flower-Cyan.png";
@@ -96,8 +94,10 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Define user variables
 
+  generator.defineInputRowStart();
   generator.defineBooleanInput("Show Folds", true);
   generator.defineBooleanInput("Show Labels", true);
+  generator.defineInputRowEnd();
 
   // Get user variable values
 

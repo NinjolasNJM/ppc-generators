@@ -572,44 +572,84 @@ const script: ScriptDef = (generator: Generator) => {
   const getItemLayersForItem = (item: SelectedTexture) =>
     item.itemLayers ?? [item];
 
+  const setSelectedTextureFrames = (textures: SelectedTexture[]) => {
+    generator.setStringInputValue(
+      "SelectedTextureFrames",
+      encodeSelectedTextures(textures)
+    );
+  };
+
   const addSelectedTextureFrame = (textureFrame: SelectedTexture) => [
     ...selectedTextureFrames,
     textureFrame,
   ];
 
+  const tintTopItemLayer = (blend: string) => {
+    const previousItem = selectedTextureFrames.at(-1);
+    if (!previousItem) {
+      return;
+    }
+
+    const previousLayers = getItemLayersForItem(previousItem);
+    const updatedLayers = previousLayers.map((layer, index) =>
+      index === previousLayers.length - 1 ? { ...layer, blend } : layer
+    );
+    const updatedItem =
+      previousLayers.length > 1
+        ? {
+            ...previousItem,
+            blend,
+            itemLayers: updatedLayers,
+          }
+        : {
+            ...previousItem,
+            blend,
+          };
+
+    setSelectedTextureFrames([
+      ...selectedTextureFrames.slice(0, -1),
+      updatedItem,
+    ]);
+  };
+
+  const isTintOnlySelection = (
+    texture: SelectedTexture | null
+  ): texture is SelectedTexture & { blend: string } =>
+    texture?.textureDefId === "" && /^#[\da-f]{6}$/i.test(texture.blend ?? "");
+
   const toggleItemEnchantment = (itemIndex: number) => {
-    generator.setStringInputValue(
-      "SelectedTextureFrames",
-      encodeSelectedTextures(
-        selectedTextureFrames.map((textureFrame, index) =>
-          index === itemIndex
-            ? {
-                ...textureFrame,
-                enchanted: !(textureFrame.enchanted ?? false),
-              }
-            : textureFrame
-        )
+    setSelectedTextureFrames(
+      selectedTextureFrames.map((textureFrame, index) =>
+        index === itemIndex
+          ? {
+              ...textureFrame,
+              enchanted: !(textureFrame.enchanted ?? false),
+            }
+          : textureFrame
       )
     );
   };
 
   // Show a button which adds the selected texture to the page
 
+  generator.defineInputRowStart();
   generator.defineButtonInput(
     "Add Item",
     () => {
-      if (selectedTextureFrame) {
+      if (isTintOnlySelection(selectedTextureFrame)) {
+        tintTopItemLayer(selectedTextureFrame.blend);
+        return;
+      }
+
+      if (selectedTextureFrame && selectedTextureFrame.textureDefId !== "") {
         const newSelectedTextureFrame: SelectedTexture = {
           ...selectedTextureFrame,
           itemScale: selectedItemScale,
           itemLayers: undefined,
           enchanted: false,
         };
-        generator.setStringInputValue(
-          "SelectedTextureFrames",
-          encodeSelectedTextures(
-            addSelectedTextureFrame(newSelectedTextureFrame)
-          )
+        setSelectedTextureFrames(
+          addSelectedTextureFrame(newSelectedTextureFrame)
         );
       }
     },
@@ -621,7 +661,12 @@ const script: ScriptDef = (generator: Generator) => {
   generator.defineButtonInput(
     "Overlay Item",
     () => {
-      if (selectedTextureFrame) {
+      if (isTintOnlySelection(selectedTextureFrame)) {
+        tintTopItemLayer(selectedTextureFrame.blend);
+        return;
+      }
+
+      if (selectedTextureFrame && selectedTextureFrame.textureDefId !== "") {
         const previousItem = selectedTextureFrames.at(-1);
         const overlayItemScale = previousItem?.itemScale ?? selectedItemScale;
         const newLayer: SelectedTexture = {
@@ -641,10 +686,7 @@ const script: ScriptDef = (generator: Generator) => {
               },
             ]
           : addSelectedTextureFrame({ ...newLayer, enchanted: false });
-        generator.setStringInputValue(
-          "SelectedTextureFrames",
-          encodeSelectedTextures(newSelectedTextureFrames)
-        );
+        setSelectedTextureFrames(newSelectedTextureFrames);
       }
     },
     "Green"
@@ -672,25 +714,18 @@ const script: ScriptDef = (generator: Generator) => {
             ]
           : selectedTextureFrames.slice(0, -1);
 
-      generator.setStringInputValue(
-        "SelectedTextureFrames",
-        encodeSelectedTextures(newSelectedTextureFrames)
-      );
+      setSelectedTextureFrames(newSelectedTextureFrames);
     },
     "Red"
   );
+  generator.defineInputRowEnd();
 
   // Show a button which allows the items to be cleared
-
-  generator.defineText("");
 
   generator.defineButtonInput(
     "Clear",
     () => {
-      generator.setStringInputValue(
-        "SelectedTextureFrames",
-        encodeSelectedTextures([])
-      );
+      setSelectedTextureFrames([]);
       if (selectedTextureFrame) {
         generator.setStringInputValue(
           "SelectedTextureFrame",

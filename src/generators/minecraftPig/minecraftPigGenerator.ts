@@ -423,10 +423,12 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Define Layer variables
 
+  generator.defineInputRowStart();
   generator.defineBooleanInput("Show Folds", true);
   generator.defineBooleanInput("Show Labels", true);
   generator.defineBooleanInput("Show Titles", true);
   generator.defineBooleanInput("Transparent Background", false);
+  generator.defineInputRowEnd();
 
   const showFolds = generator.getBooleanInputValue("Show Folds");
   const showLabels = generator.getBooleanInputValue("Show Labels");

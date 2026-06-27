@@ -557,6 +557,7 @@ function drawNearestNeighbor(
 
     // Save the current state of the page
     pageContext.save();
+    pageContext.imageSmoothingEnabled = false;
 
     // Move to the destination coordinate
     pageContext.translate(dx, dy);

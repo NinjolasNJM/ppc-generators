@@ -56,10 +56,13 @@ export function defineTextureInputRegion(
         ? decodeSelectedTextures(currentFaceTexturesJson)
         : [];
 
-      const shouldErase = selectedTexture.textureDefId === "";
+      const shouldErase =
+        selectedTexture.textureDefId === "" && selectedTexture.blend === null;
       const newFaceTextures = shouldErase
         ? currentFaceTextures.slice(0, -1)
-        : currentFaceTextures.concat([selectedTexture]);
+        : selectedTexture.textureDefId === ""
+          ? applyBlendToTopTexture(currentFaceTextures, selectedTexture.blend)
+          : currentFaceTextures.concat([selectedTexture]);
       generator.setStringInputValue(
         faceId,
         encodeSelectedTextures(newFaceTextures)
@@ -72,6 +75,23 @@ export function defineTextureInputRegion(
         }
       : undefined
   );
+}
+
+function applyBlendToTopTexture(
+  textures: SelectedTexture[],
+  blend: string | null
+): SelectedTexture[] {
+  if (!isValidTint(blend) || textures.length === 0) {
+    return textures;
+  }
+
+  return textures.map((texture, index) =>
+    index === textures.length - 1 ? { ...texture, blend } : texture
+  );
+}
+
+function isValidTint(blend: string | null): blend is string {
+  return /^#[\da-f]{6}$/i.test(blend ?? "");
 }
 
 function eraseLastFaceTexture(generator: Generator, faceId: string) {
