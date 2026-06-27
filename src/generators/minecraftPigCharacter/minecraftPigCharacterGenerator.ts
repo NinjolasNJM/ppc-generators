@@ -436,6 +436,7 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Define Texture variables
 
+  generator.defineInputRowStart();
   generator.defineSelectInput("Head Style", [
     "Simple",
     "Advanced",
@@ -443,13 +444,16 @@ const script: ScriptDef = (generator: Generator) => {
   ]);
 
   generator.defineBooleanInput("Separate Snout", true);
+  generator.defineInputRowEnd();
 
   const headStyle = generator.getSelectInputValue("Head Style");
   const noseStyle = generator.getBooleanInputValue("Separate Snout");
 
+  generator.defineInputRowStart();
   generator.defineSelectInput("Saddle Style", ["Attached", "Separate"]);
   generator.defineSelectInput("Helmet Style", ["Attached", "Separate"]);
   generator.defineSelectInput("Boots Style", ["Attached", "Separate"]);
+  generator.defineInputRowEnd();
 
   const saddleStyle = generator.getSelectInputValue("Saddle Style");
   const helmetStyle = generator.getSelectInputValue("Helmet Style");
