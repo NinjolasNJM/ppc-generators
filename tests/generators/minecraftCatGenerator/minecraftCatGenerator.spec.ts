@@ -1,7 +1,9 @@
 import { expect, test } from "@playwright/test";
 import { renderImageAtNaturalSize } from "../_shared/screenshot";
 
-test("minecraft cat generator matches the default screenshot", async ({ page }) => {
+test("minecraft cat generator matches the default screenshot", async ({
+  page,
+}) => {
   await page.goto("/generator/minecraft-cat");
 
   const outputPages = page.getByTestId("generator-page-image");
@@ -26,7 +28,7 @@ test("minecraft cat generator renders a tinted collar", async ({ page }) => {
   await page.getByLabel("Collar", { exact: true }).selectOption({
     label: "Cat Collar",
   });
-  await page.getByLabel("Collar Color").selectOption({ label: "Blue" });
+  await page.getByRole("button", { name: "Blue (#3C44AA)" }).click();
 
   const outputPages = page.getByTestId("generator-page-image");
   await expect(outputPages).toHaveCount(1);

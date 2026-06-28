@@ -1,6 +1,9 @@
 import { expect, test } from "@playwright/test";
 import { renderImageAtNaturalSize } from "../_shared/screenshot";
 
+const armorTexturePath =
+  "src/generators/minecraftArmor/textures/iron_layer_1.png";
+
 test("minecraft armor generator exposes a typeable helmet tint input", async ({
   page,
 }) => {
@@ -11,7 +14,7 @@ test("minecraft armor generator exposes a typeable helmet tint input", async ({
     .evaluate((element) => (element as HTMLInputElement).click());
   await page.getByLabel("Helmet Color").selectOption({ label: "Custom Tint" });
 
-  const tintInput = page.getByPlaceholder("Enter hex color");
+  const tintInput = page.getByPlaceholder("RRGGBB");
   await expect(tintInput).toBeVisible();
   await tintInput.fill("123abc");
   await expect(tintInput).toHaveValue("123abc");
@@ -25,7 +28,8 @@ test("minecraft armor generator renders tinted enchanted armor", async ({
   await page
     .getByLabel("Tint Helmet")
     .evaluate((element) => (element as HTMLInputElement).click());
-  await page.getByLabel("Helmet Color").selectOption({ label: "Blue" });
+  await page.getByLabel("Helmet Color").selectOption({ label: "Dyes" });
+  await page.getByRole("button", { name: "Blue (#3C44AA)" }).click();
 
   const outputPages = page.getByTestId("generator-page-image");
   await expect(outputPages).toHaveCount(1);
@@ -42,6 +46,28 @@ test("minecraft armor generator renders tinted enchanted armor", async ({
 
   await expect(outputPage).toHaveScreenshot(
     "minecraft-armor-tinted-enchanted-helmet-page-1.png"
+  );
+});
+
+test("minecraft armor generator renders a custom 64x32 helmet texture", async ({
+  page,
+}) => {
+  await page.goto("/generator/minecraft-armor");
+
+  await page.getByLabel("Upload Helmet texture file").setInputFiles(
+    armorTexturePath
+  );
+
+  const outputPages = page.getByTestId("generator-page-image");
+  await expect(outputPages).toHaveCount(1);
+
+  const outputPage = outputPages.nth(0);
+  await expect(outputPage).toBeVisible();
+  await expect(outputPage).toHaveAttribute("src", /data:image\/png/);
+  await renderImageAtNaturalSize(outputPage);
+
+  await expect(outputPage).toHaveScreenshot(
+    "minecraft-armor-custom-64x32-helmet-page-1.png"
   );
 });
 

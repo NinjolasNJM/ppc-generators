@@ -3,10 +3,10 @@
 import { type TextureDef } from "@genroot/builder/modules/generatorDef";
 import { type TextureData } from "@genroot/builder/modules/textureData";
 
-import image from "./texture_minecraft_26_2_pre_2_items.png";
+import image from "./texture_minecraft_26_2_items.png";
 
 const textureDef: TextureDef = {
-  id: "minecraft-26.2-pre-2-items",
+  id: "minecraft-26.2-items",
   url: image.src,
   standardWidth: 512,
   standardHeight: 448,

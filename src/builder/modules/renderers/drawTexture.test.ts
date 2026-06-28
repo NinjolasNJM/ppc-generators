@@ -501,7 +501,7 @@ describe("drawTexture", () => {
   it("renders sampled blue base and cyan gradient pixels without double alpha", async () => {
     const page = makeFakeContext(1, 40);
     const bannerPatternsPath = path.resolve(
-      "src/generators/minecraftBannerAndShield/textures/texture_minecraft_26_2_pre_2_banner_patterns.png"
+      "src/generators/minecraftBannerAndShield/textures/texture_minecraft_26_2_banner_patterns.png"
     );
     const frontFaceX = 1 + 10;
     const frontFaceY = 1;

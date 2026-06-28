@@ -36,6 +36,10 @@ export const defaultPatternId = "base";
 export const defaultPatternTint = "#F9FFFE";
 const bannerShieldTextureFrameSize = 64;
 
+export type DefinePatternInputRegionOptions = {
+  enableErase?: boolean;
+};
+
 export function makePatternFaceId(templateId: string): string {
   return "PatternFace" + templateId;
 }
@@ -73,8 +77,10 @@ export function defineBaseInput(
 export function defineInputRegion(
   generator: Generator,
   faceId: string,
-  region: Region
+  region: Region,
+  options: DefinePatternInputRegionOptions = {}
 ) {
+  const enableErase = options.enableErase ?? true;
   generator.defineRegionInput(
     region,
     () => {
@@ -104,7 +110,21 @@ export function defineInputRegion(
         encodeSelectedBannerShieldPatterns(newFacePatterns)
       );
     },
-    faceId
+    faceId,
+    enableErase
+      ? () => {
+          eraseLastFacePattern(generator, faceId);
+        }
+      : undefined
+  );
+}
+
+function eraseLastFacePattern(generator: Generator, faceId: string) {
+  const currentFacePatterns = getFacePatterns(generator, faceId);
+
+  generator.setStringInputValue(
+    faceId,
+    encodeSelectedBannerShieldPatterns(currentFacePatterns.slice(0, -1))
   );
 }
 

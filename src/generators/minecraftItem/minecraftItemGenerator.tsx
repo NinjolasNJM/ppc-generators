@@ -50,7 +50,7 @@ import {
   getLayerHalfDestination,
 } from "./itemLayout";
 
-import thumnbailImage from "./thumbnail/v2-thumbnail-256.jpeg";
+import thumbnailImage from "./thumbnail/v2-thumbnail-256.jpeg";
 import backgroundImage from "./images/Background.png";
 import titleImage from "./images/Title.png";
 import centerFoldTexture from "./textures/CenterFold.png";
@@ -62,10 +62,11 @@ const name = "Minecraft Item";
 const history: HistoryDef = [
   "26 Jan 2022 lostminer - First release.",
   "05 Feb 2022 NinjolasNJM - Added fold lines and gap removal feature.",
+  "May 2026 NinjolasNJM - Changed to use new glint and tint input.",
 ];
 
 const thumbnail: ThumbnailDef = {
-  url: thumnbailImage.src,
+  url: thumbnailImage.src,
 };
 
 const instructions: InstructionsDef = `

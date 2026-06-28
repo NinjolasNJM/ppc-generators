@@ -46,6 +46,26 @@ export const character: GeneratorDef[] = [
   minecraftCharacterMiniGenerator,
 ];
 
+// Blocks, Items and Accessories
+export const utility: GeneratorDef[] = [
+  minecraftBlockGenerator,
+  minecraftItemGenerator,
+  minecraftBannerAndShieldGenerator,
+  minecraftArmorGenerator,
+  minecraftCapeAndElytraGenerator,
+  minecraftCharacterHeadsGenerator,
+];
+
+export const mob: GeneratorDef[] = [
+  minecraftCreeperGenerator,
+  minecraftEndermanGenerator,
+  minecraftGolemGenerator,
+  minecraftHorseGenerator,
+  minecraftPigGenerator,
+  minecraftCatGenerator,
+  minecraftVillagerGenerator,
+];
+
 export const mobCharacter: GeneratorDef[] = [
   minecraftCreeperCharacterGenerator,
   minecraftCatCharacterGenerator,
@@ -59,26 +79,6 @@ export const mobCharacter: GeneratorDef[] = [
   minecraftAxolotlCharacterGenerator,
   minecraftAllayCharacterGenerator,
   minecraftBeeCharacterGenerator,
-];
-
-export const mob: GeneratorDef[] = [
-  minecraftCreeperGenerator,
-  minecraftEndermanGenerator,
-  minecraftGolemGenerator,
-  minecraftHorseGenerator,
-  minecraftPigGenerator,
-  minecraftCatGenerator,
-  minecraftVillagerGenerator,
-];
-
-// Blocks, Items and Accessories
-export const utility: GeneratorDef[] = [
-  minecraftBlockGenerator,
-  minecraftBannerAndShieldGenerator,
-  minecraftItemGenerator,
-  minecraftArmorGenerator,
-  minecraftCapeAndElytraGenerator,
-  minecraftCharacterHeadsGenerator,
 ];
 
 export const mod: GeneratorDef[] = [
@@ -103,9 +103,9 @@ function concatArrays<GeneratorDef>(arrays: Array<Array<GeneratorDef>>) {
 
 export const generators = concatArrays([
   character,
-  mobCharacter,
-  mob,
   utility,
+  mob,
+  mobCharacter,
   mod,
   other,
   dev,
@@ -123,9 +123,9 @@ export type GeneratorGroup = {
 
 export const generatorGroups: GeneratorGroup[] = [
   { label: "Characters", generators: character },
-  { label: "Mob Characters", generators: mobCharacter },
-  { label: "Mobs", generators: mob },
   { label: "Blocks, Items and Accessories", generators: utility },
+  { label: "Mobs", generators: mob },
+  { label: "Mob Characters", generators: mobCharacter },
   { label: "Mods", generators: mod },
   { label: "Other", generators: other },
   { label: "Development", generators: dev },

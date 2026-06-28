@@ -291,16 +291,27 @@ describe("defineInputRegion", () => {
   function makeRegionGenerator({
     currentTextureJson,
     faceJson,
+    enableErase = true,
   }: {
     currentTextureJson: string;
     faceJson: string;
+    enableErase?: boolean;
   }) {
     let onRegionClick: (() => void) | undefined;
+    let onRegionRightClick: (() => void) | undefined;
     let nextFaceJson: string | null = null;
     const generator = {
-      defineRegionInput: vi.fn((_region: unknown, callback: () => void) => {
-        onRegionClick = callback;
-      }),
+      defineRegionInput: vi.fn(
+        (
+          _region: unknown,
+          callback: () => void,
+          _id: string | undefined,
+          rightClick?: () => void
+        ) => {
+          onRegionClick = callback;
+          onRegionRightClick = rightClick;
+        }
+      ),
       getStringInputValue: vi.fn((id: string) => {
         if (id === currentBlockTextureId) {
           return currentTextureJson;
@@ -317,7 +328,7 @@ describe("defineInputRegion", () => {
       }),
     } as unknown as Generator;
 
-    defineInputRegion(generator, faceId, region);
+    defineInputRegion(generator, faceId, region, { enableErase });
 
     const click = onRegionClick;
     if (!click) {
@@ -326,6 +337,7 @@ describe("defineInputRegion", () => {
 
     return {
       click,
+      rightClick: onRegionRightClick,
       getNextFaceTextures: () =>
         nextFaceJson ? decodeSelectedTextures(nextFaceJson) : [],
     };
@@ -361,8 +373,8 @@ describe("defineInputRegion", () => {
     expect(getNextFaceTextures()[0]?.textureDefId).toBe("stone");
   });
 
-  it("ignores pending tint selections without erasing the face", () => {
-    const currentTextureJson = makeSelectedTextureJson("", "#ff0000");
+  it("applies a tint-only picker selection to the last face texture", () => {
+    const currentTextureJson = makeSelectedTextureJson("", "#3C44AA");
     const faceJson = encodeSelectedTextures([
       JSON.parse(makeSelectedTextureJson("stone")),
       JSON.parse(makeSelectedTextureJson("dirt")),
@@ -375,6 +387,36 @@ describe("defineInputRegion", () => {
     click();
 
     expect(getNextFaceTextures()).toHaveLength(2);
+    expect(getNextFaceTextures()[0]?.blend).toBe(null);
     expect(getNextFaceTextures()[1]?.textureDefId).toBe("dirt");
+    expect(getNextFaceTextures()[1]?.blend).toBe("#3C44AA");
+  });
+
+  it("erases the last face texture on right click without changing the selected texture", () => {
+    const currentTextureJson = makeSelectedTextureJson("grass_block_top");
+    const faceJson = encodeSelectedTextures([
+      JSON.parse(makeSelectedTextureJson("stone")),
+      JSON.parse(makeSelectedTextureJson("dirt")),
+    ]);
+    const { rightClick, getNextFaceTextures } = makeRegionGenerator({
+      currentTextureJson,
+      faceJson,
+    });
+
+    expect(rightClick).toBeDefined();
+    rightClick?.();
+
+    expect(getNextFaceTextures()).toHaveLength(1);
+    expect(getNextFaceTextures()[0]?.textureDefId).toBe("stone");
+  });
+
+  it("does not register right click erase when erase is disabled", () => {
+    const { rightClick } = makeRegionGenerator({
+      currentTextureJson: makeSelectedTextureJson("stone"),
+      faceJson: "",
+      enableErase: false,
+    });
+
+    expect(rightClick).toBeUndefined();
   });
 });

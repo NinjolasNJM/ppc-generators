@@ -15,12 +15,10 @@ import {
   getTintInputValue,
   getTintSelectorStateFromValue,
   normalizeTint,
-  noneChoice,
   type SelectedTint,
 } from "./tintSelectorLogic";
 
 type TintSelectorState = {
-  selectedOption: SelectOption;
   selectedTint: SelectedTint;
   customTintInput: string;
   color: string | null;
@@ -170,12 +168,6 @@ export function TintSelector({
   const setTint = (selectedTint: SelectedTint) => {
     const color = getColorFromSelectedTint(selectedTint);
     const nextState = {
-      selectedOption:
-        selectedTint.kind === "NoTint"
-          ? noneChoice
-          : selectedTint.kind === "CustomTint"
-            ? customChoice
-            : { id: color ?? "", label: color ?? "" },
       selectedTint,
       customTintInput: color ? color.replace(/^#/, "") : "",
       color,
@@ -188,7 +180,6 @@ export function TintSelector({
     const normalizedColor = normalizeTint(color);
     const selectedTint = makeCustomTintChoice(normalizedColor);
     setState({
-      selectedOption: customChoice,
       selectedTint,
       customTintInput: normalizedColor ? normalizedColor.replace(/^#/, "") : "",
       color: normalizedColor,
@@ -201,7 +192,6 @@ export function TintSelector({
     const nextColor = normalizeTint(customTintInput);
     const selectedTint = makeCustomTintChoice(nextColor);
     setState({
-      selectedOption: customChoice,
       selectedTint,
       customTintInput,
       color: nextColor,

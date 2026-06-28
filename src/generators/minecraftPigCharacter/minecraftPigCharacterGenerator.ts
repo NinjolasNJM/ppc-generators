@@ -436,6 +436,7 @@ const script: ScriptDef = (generator: Generator) => {
 
   // Define Texture variables
 
+  generator.defineInputRowStart();
   generator.defineSelectInput("Head Style", [
     "Simple",
     "Advanced",
@@ -443,6 +444,7 @@ const script: ScriptDef = (generator: Generator) => {
   ]);
 
   generator.defineBooleanInput("Separate Snout", true);
+  generator.defineInputRowEnd();
 
   const headStyle = generator.getSelectInputValue("Head Style");
   const noseStyle = generator.getBooleanInputValue("Separate Snout");

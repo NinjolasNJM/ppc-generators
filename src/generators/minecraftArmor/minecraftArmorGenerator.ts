@@ -1149,7 +1149,7 @@ const script: ScriptDef = (generator: Generator) => {
   function defineHelmetTextureInput() {
     generator.defineTextureInput("Helmet", {
       standardWidth: 64,
-      standardHeight: 64,
+      standardHeight: 32,
       choices: [
         "Leather",
         "Chainmail",
@@ -1175,7 +1175,7 @@ const script: ScriptDef = (generator: Generator) => {
     if (tintHelmet) {
       generator.defineTextureInput("Helmet Overlay", {
         standardWidth: 64,
-        standardHeight: 64,
+        standardHeight: 32,
         choices: ["Leather Overlay"],
       });
       drawHelmetHead(
@@ -1203,7 +1203,7 @@ const script: ScriptDef = (generator: Generator) => {
   function defineChestplateTextureInput() {
     generator.defineTextureInput("Chestplate", {
       standardWidth: 64,
-      standardHeight: 64,
+      standardHeight: 32,
       choices: materials,
     });
   }
@@ -1220,7 +1220,7 @@ const script: ScriptDef = (generator: Generator) => {
     if (tintChestplate) {
       generator.defineTextureInput("Chestplate Overlay", {
         standardWidth: 64,
-        standardHeight: 64,
+        standardHeight: 32,
         choices: ["Leather Overlay"],
       });
       drawChestplateBody(
@@ -1255,7 +1255,7 @@ const script: ScriptDef = (generator: Generator) => {
   function defineLeggingsTextureInput() {
     generator.defineTextureInput("Leggings", {
       standardWidth: 64,
-      standardHeight: 64,
+      standardHeight: 32,
       choices: materials2,
     });
   }
@@ -1272,7 +1272,7 @@ const script: ScriptDef = (generator: Generator) => {
     if (tintLeggings) {
       generator.defineTextureInput("Leggings Overlay", {
         standardWidth: 64,
-        standardHeight: 64,
+        standardHeight: 32,
         choices: ["Leather Overlay "],
       });
       drawLeggingsBody("Leggings Overlay", { kind: "None" }, enchantLeggings);
@@ -1293,7 +1293,7 @@ const script: ScriptDef = (generator: Generator) => {
   function defineBootsTextureInput() {
     generator.defineTextureInput("Boots", {
       standardWidth: 64,
-      standardHeight: 64,
+      standardHeight: 32,
       choices: materials,
     });
   }
@@ -1305,7 +1305,7 @@ const script: ScriptDef = (generator: Generator) => {
     if (tintBoots) {
       generator.defineTextureInput("Boots Overlay", {
         standardWidth: 64,
-        standardHeight: 64,
+        standardHeight: 32,
         choices: ["Leather Overlay"],
       });
       drawLeftBoot("Boots Overlay", { kind: "None" }, enchantBoots);
@@ -1323,7 +1323,7 @@ const script: ScriptDef = (generator: Generator) => {
   function drawHelmetTrim(showHeadOverlay: boolean, enchantHelmet: boolean) {
     generator.defineTextureInput("Helmet Trim", {
       standardWidth: 64,
-      standardHeight: 64,
+      standardHeight: 32,
       choices: trimTemplates,
     });
     generator.defineTextureInput("Helmet Trim Material", {
@@ -1349,7 +1349,7 @@ const script: ScriptDef = (generator: Generator) => {
   function drawChestplateTrim(enchantChestplate: boolean) {
     generator.defineTextureInput("Chestplate Trim", {
       standardWidth: 64,
-      standardHeight: 64,
+      standardHeight: 32,
       choices: trimTemplates,
     });
     generator.defineTextureInput("Chestplate Trim Material", {
@@ -1380,7 +1380,7 @@ const script: ScriptDef = (generator: Generator) => {
   function drawLeggingsTrim(enchantLeggings: boolean) {
     generator.defineTextureInput("Leggings Trim", {
       standardWidth: 64,
-      standardHeight: 64,
+      standardHeight: 32,
       choices: trimTemplates2,
     });
     generator.defineTextureInput("Leggings Trim Material", {
@@ -1409,7 +1409,7 @@ const script: ScriptDef = (generator: Generator) => {
   function drawBootsTrim(enchantBoots: boolean) {
     generator.defineTextureInput("Boots Trim", {
       standardWidth: 64,
-      standardHeight: 64,
+      standardHeight: 32,
       choices: trimTemplates,
     });
     generator.defineTextureInput("Boots Trim Material", {

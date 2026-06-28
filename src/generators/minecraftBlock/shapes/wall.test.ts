@@ -65,37 +65,43 @@ describe("drawWall", () => {
       1,
       [121, 80, 64, 64],
       expect.any(Function),
-      "WallFaceTop1"
+      "WallFaceTop1",
+      expect.any(Function)
     );
     expect(generator.defineRegionInput).toHaveBeenNthCalledWith(
       2,
       [121, 272, 64, 64],
       expect.any(Function),
-      "WallFaceBottom1"
+      "WallFaceBottom1",
+      expect.any(Function)
     );
     expect(generator.defineRegionInput).toHaveBeenNthCalledWith(
       3,
       [57, 144, 64, 128],
       expect.any(Function),
-      "WallFaceRight1"
+      "WallFaceRight1",
+      expect.any(Function)
     );
     expect(generator.defineRegionInput).toHaveBeenNthCalledWith(
       4,
       [121, 144, 64, 128],
       expect.any(Function),
-      "WallFaceFront1"
+      "WallFaceFront1",
+      expect.any(Function)
     );
     expect(generator.defineRegionInput).toHaveBeenNthCalledWith(
       5,
       [185, 144, 64, 128],
       expect.any(Function),
-      "WallFaceLeft1"
+      "WallFaceLeft1",
+      expect.any(Function)
     );
     expect(generator.defineRegionInput).toHaveBeenNthCalledWith(
       6,
       [249, 144, 64, 128],
       expect.any(Function),
-      "WallFaceBack1"
+      "WallFaceBack1",
+      expect.any(Function)
     );
     expect(generator.drawTexture).toHaveBeenCalledTimes(12);
     expect(generator.drawTexture).toHaveBeenCalledWith(
@@ -147,37 +153,43 @@ describe("drawWall", () => {
       1,
       [113, 112, 32, 48],
       expect.any(Function),
-      "WallFaceTop1"
+      "WallFaceTop1",
+      expect.any(Function)
     );
     expect(generator.defineRegionInput).toHaveBeenNthCalledWith(
       2,
       [113, 272, 32, 48],
       expect.any(Function),
-      "WallFaceBottom1"
+      "WallFaceBottom1",
+      expect.any(Function)
     );
     expect(generator.defineRegionInput).toHaveBeenNthCalledWith(
       3,
       [65, 160, 48, 112],
       expect.any(Function),
-      "WallFaceRight1"
+      "WallFaceRight1",
+      expect.any(Function)
     );
     expect(generator.defineRegionInput).toHaveBeenNthCalledWith(
       4,
       [113, 160, 32, 112],
       expect.any(Function),
-      "WallFaceFront1"
+      "WallFaceFront1",
+      expect.any(Function)
     );
     expect(generator.defineRegionInput).toHaveBeenNthCalledWith(
       5,
       [145, 160, 48, 112],
       expect.any(Function),
-      "WallFaceLeft1"
+      "WallFaceLeft1",
+      expect.any(Function)
     );
     expect(generator.defineRegionInput).toHaveBeenNthCalledWith(
       6,
       [193, 160, 32, 112],
       expect.any(Function),
-      "WallFaceBack1"
+      "WallFaceBack1",
+      expect.any(Function)
     );
     expect(generator.drawTexture).toHaveBeenCalledTimes(12);
     expect(generator.drawTexture).toHaveBeenCalledWith(
@@ -235,37 +247,43 @@ describe("drawWall", () => {
       1,
       [185, 112, 128, 48],
       expect.any(Function),
-      "WallFaceTop1"
+      "WallFaceTop1",
+      expect.any(Function)
     );
     expect(generator.defineRegionInput).toHaveBeenNthCalledWith(
       2,
       [185, 272, 128, 48],
       expect.any(Function),
-      "WallFaceBottom1"
+      "WallFaceBottom1",
+      expect.any(Function)
     );
     expect(generator.defineRegionInput).toHaveBeenNthCalledWith(
       3,
       [137, 160, 48, 112],
       expect.any(Function),
-      "WallFaceRight1"
+      "WallFaceRight1",
+      expect.any(Function)
     );
     expect(generator.defineRegionInput).toHaveBeenNthCalledWith(
       4,
       [185, 160, 128, 112],
       expect.any(Function),
-      "WallFaceFront1"
+      "WallFaceFront1",
+      expect.any(Function)
     );
     expect(generator.defineRegionInput).toHaveBeenNthCalledWith(
       5,
       [313, 160, 48, 112],
       expect.any(Function),
-      "WallFaceLeft1"
+      "WallFaceLeft1",
+      expect.any(Function)
     );
     expect(generator.defineRegionInput).toHaveBeenNthCalledWith(
       6,
       [361, 160, 128, 112],
       expect.any(Function),
-      "WallFaceBack1"
+      "WallFaceBack1",
+      expect.any(Function)
     );
     expect(generator.drawTexture).toHaveBeenCalledTimes(6);
     expect(generator.drawTexture).toHaveBeenCalledWith(
@@ -317,37 +335,43 @@ describe("drawWall", () => {
       1,
       [113, 96, 32, 48],
       expect.any(Function),
-      "WallFaceTop1"
+      "WallFaceTop1",
+      expect.any(Function)
     );
     expect(generator.defineRegionInput).toHaveBeenNthCalledWith(
       2,
       [113, 272, 32, 48],
       expect.any(Function),
-      "WallFaceBottom1"
+      "WallFaceBottom1",
+      expect.any(Function)
     );
     expect(generator.defineRegionInput).toHaveBeenNthCalledWith(
       3,
       [65, 144, 48, 128],
       expect.any(Function),
-      "WallFaceRight1"
+      "WallFaceRight1",
+      expect.any(Function)
     );
     expect(generator.defineRegionInput).toHaveBeenNthCalledWith(
       4,
       [113, 144, 32, 128],
       expect.any(Function),
-      "WallFaceFront1"
+      "WallFaceFront1",
+      expect.any(Function)
     );
     expect(generator.defineRegionInput).toHaveBeenNthCalledWith(
       5,
       [145, 144, 48, 128],
       expect.any(Function),
-      "WallFaceLeft1"
+      "WallFaceLeft1",
+      expect.any(Function)
     );
     expect(generator.defineRegionInput).toHaveBeenNthCalledWith(
       6,
       [193, 144, 32, 128],
       expect.any(Function),
-      "WallFaceBack1"
+      "WallFaceBack1",
+      expect.any(Function)
     );
     expect(generator.drawTexture).toHaveBeenCalledWith(
       "test-texture",
@@ -370,19 +394,22 @@ describe("drawWall", () => {
       1,
       [105, 112, 40, 48],
       expect.any(Function),
-      "WallFaceTop1"
+      "WallFaceTop1",
+      expect.any(Function)
     );
     expect(generator.defineRegionInput).toHaveBeenNthCalledWith(
       4,
       [105, 160, 40, 112],
       expect.any(Function),
-      "WallFaceFront1"
+      "WallFaceFront1",
+      expect.any(Function)
     );
     expect(generator.defineRegionInput).toHaveBeenNthCalledWith(
       5,
       [145, 160, 48, 112],
       expect.any(Function),
-      "WallFaceLeft1"
+      "WallFaceLeft1",
+      expect.any(Function)
     );
     expect(generator.defineRegionInput).toHaveBeenNthCalledWith(
       7,

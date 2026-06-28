@@ -24,12 +24,18 @@ export type FaceTextureTransform = {
   flip: Flip;
 };
 
+export type DefineTextureInputRegionOptions = {
+  enableErase?: boolean;
+};
+
 export function defineTextureInputRegion(
   generator: Generator,
   selectedTextureInputId: string,
   faceId: string,
-  region: Region
+  region: Region,
+  options: DefineTextureInputRegionOptions = {}
 ) {
+  const enableErase = options.enableErase ?? true;
   generator.defineRegionInput(
     region,
     () => {
@@ -45,9 +51,9 @@ export function defineTextureInputRegion(
         return;
       }
 
-      const curentFaceTexturesJson = generator.getStringInputValue(faceId);
-      const currentFaceTextures = curentFaceTexturesJson
-        ? decodeSelectedTextures(curentFaceTexturesJson)
+      const currentFaceTexturesJson = generator.getStringInputValue(faceId);
+      const currentFaceTextures = currentFaceTexturesJson
+        ? decodeSelectedTextures(currentFaceTexturesJson)
         : [];
 
       const shouldErase =
@@ -62,7 +68,12 @@ export function defineTextureInputRegion(
         encodeSelectedTextures(newFaceTextures)
       );
     },
-    faceId
+    faceId,
+    enableErase
+      ? () => {
+          eraseLastFaceTexture(generator, faceId);
+        }
+      : undefined
   );
 }
 
@@ -81,6 +92,18 @@ function applyBlendToTopTexture(
 
 function isValidTint(blend: string | null): blend is string {
   return /^#[\da-f]{6}$/i.test(blend ?? "");
+}
+
+function eraseLastFaceTexture(generator: Generator, faceId: string) {
+  const currentFaceTexturesJson = generator.getStringInputValue(faceId);
+  const currentFaceTextures = currentFaceTexturesJson
+    ? decodeSelectedTextures(currentFaceTexturesJson)
+    : [];
+
+  generator.setStringInputValue(
+    faceId,
+    encodeSelectedTextures(currentFaceTextures.slice(0, -1))
+  );
 }
 
 export function drawSelectedTexture(

@@ -13,9 +13,9 @@ import {
   customShieldTextureDef,
   makeCustomBannerShieldTextureVersion,
 } from "./customBannerShieldTextureVersion";
-import * as Texture_26_2_Pre_2_Banner from "./texture_minecraft_26_2_pre_2_banner_patterns";
-import * as Texture_26_2_Pre_2_Shield from "./texture_minecraft_26_2_pre_2_shield_patterns";
-import * as Texture_26_2_Pre_2_HD_Shield from "./texture_vanilla_tweaks_26_2_pre_2_shield_patterns";
+import * as Texture_26_2_Banner from "./texture_minecraft_26_2_banner_patterns";
+import * as Texture_26_2_Shield from "./texture_minecraft_26_2_shield_patterns";
+import * as Texture_26_2_HD_Shield from "./texture_vanilla_tweaks_26_2_shield_patterns";
 
 type BannerShieldTextureDefinition = {
   id: string;
@@ -27,17 +27,17 @@ type BannerShieldTextureDefinition = {
 
 const generatedBannerShieldDefinitions: BannerShieldTextureDefinition[] = [
   {
-    id: "minecraft-26-2-pre-2-banner-shield",
-    label: "Minecraft 26.2 Pre-Release 2",
-    bannerData: Texture_26_2_Pre_2_Banner.data,
-    shieldData: Texture_26_2_Pre_2_Shield.data,
+    id: "minecraft-26-2-banner-shield",
+    label: "Minecraft 26.2",
+    bannerData: Texture_26_2_Banner.data,
+    shieldData: Texture_26_2_Shield.data,
     frameSize: 64,
   },
   {
-    id: "vanilla-tweaks-26-2-pre-2-banner-shield",
-    label: "Vanilla Tweaks 26.2 Pre-Release 2 - HD Shields",
-    bannerData: Texture_26_2_Pre_2_Banner.data,
-    shieldData: Texture_26_2_Pre_2_HD_Shield.data,
+    id: "vanilla-tweaks-26-2-banner-shield",
+    label: "Vanilla Tweaks 26.2 - HD Shields",
+    bannerData: Texture_26_2_Banner.data,
+    shieldData: Texture_26_2_HD_Shield.data,
     frameSize: 64,
   },
 ];

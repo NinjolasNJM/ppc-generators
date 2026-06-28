@@ -587,8 +587,8 @@ const script: ScriptDef = (generator: Generator) => {
   };
 
   generator.defineInputRowStart();
-  generator.defineSelectInput("Type", ["Normal", "Zombie"]);
 
+  generator.defineSelectInput("Type", ["Normal", "Zombie"]);
   generator.defineSelectInput("Biome", [
     "Plains",
     "Desert",

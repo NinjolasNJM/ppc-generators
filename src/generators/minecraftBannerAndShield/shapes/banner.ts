@@ -68,7 +68,7 @@ export function drawBanner(
     banner.bar,
     [ox + 345, oy + 64],
     dimensions,
-    { orientation: "North" },
+    { center: "Bottom", orientation: "North" },
     baseInputId
   );
 

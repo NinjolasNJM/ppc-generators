@@ -24,7 +24,7 @@ async function readPixel(
 
 describe("banner pattern texture data", () => {
   const bannerPatternsPath = path.resolve(
-    "src/generators/minecraftBannerAndShield/textures/texture_minecraft_26_2_pre_2_banner_patterns.png"
+    "src/generators/minecraftBannerAndShield/textures/texture_minecraft_26_2_banner_patterns.png"
   );
 
   it("keeps translucent banner pattern pixels in straight alpha form", async () => {

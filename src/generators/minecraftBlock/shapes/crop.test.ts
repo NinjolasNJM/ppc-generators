@@ -49,25 +49,29 @@ describe("drawCrop", () => {
       1,
       [-40, 72, 128, 256],
       expect.any(Function),
-      "CropFace1"
+      "CropFace1",
+      expect.any(Function)
     );
     expect(generator.defineRegionInput).toHaveBeenNthCalledWith(
       2,
       [104, 72, 128, 256],
       expect.any(Function),
-      "CropFace1"
+      "CropFace1",
+      expect.any(Function)
     );
     expect(generator.defineRegionInput).toHaveBeenNthCalledWith(
       3,
       [248, 72, 128, 256],
       expect.any(Function),
-      "CropFace1"
+      "CropFace1",
+      expect.any(Function)
     );
     expect(generator.defineRegionInput).toHaveBeenNthCalledWith(
       4,
       [392, 72, 128, 256],
       expect.any(Function),
-      "CropFace1"
+      "CropFace1",
+      expect.any(Function)
     );
   });
 
